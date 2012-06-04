@@ -1,0 +1,7 @@
+<appengine-web-app xmlns="http://appengine.google.com/ns/1.0">
+  <application>sopbase</application>
+  <version>1</version>
+  <static-files />
+  <resource-files />
+  <threadsafe>false</threadsafe>
+</appengine-web-app>

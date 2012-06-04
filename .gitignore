@@ -1,5 +1,12 @@
-pom.xml
-*jar
-/lib/
-/classes/
-.lein-deps-sum
+/pom.xml
+*.jar
+/sopbase/lib
+/sopbase/classes
+/sopbase/native
+/sopbase/.lein-failures
+/sopbase//checkouts
+/sopbase/.lein-deps-sum
+/sopbase/war/WEB-INF/classes
+/sopbase/war/WEB-INF/lib
+/sopbase/war/WEB-INF/appengine-generated
+
