@@ -9,4 +9,5 @@
 /sopbase/war/WEB-INF/classes
 /sopbase/war/WEB-INF/lib
 /sopbase/war/WEB-INF/appengine-generated
-
+*.pyc
+.#*
