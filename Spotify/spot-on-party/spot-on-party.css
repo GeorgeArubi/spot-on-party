@@ -1,0 +1,40 @@
+.mainpane {
+    display: none;
+}
+
+.mainpane.activepane {
+    display: block;
+}
+
+#start_party_name_form {
+    overflow: hidden;
+    display: none;
+}
+
+@-webkit-keyframes party_name_form_slide
+{
+    0% {height: 0px;}
+    99% {height: 24px;}
+    100% {height: auto;}
+}
+
+#start_party_name_form.active {
+    display: block;
+    -webkit-animation: party_name_form_slide 200ms;
+}
+
+.error {
+    color: red;
+    display: none;
+}
+
+@-webkit-keyframes errorflash
+{
+    0% {background-color: #00000000; color: red;}
+    50% {background-color: #ff0000; color: black;}
+    100% {background-color: #00000000; color: red;}
+}
+.error.active {
+    display: block;
+    -webkit-animation: errorflash 1s;
+}
