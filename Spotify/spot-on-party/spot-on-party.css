@@ -38,3 +38,86 @@
     display: block;
     -webkit-animation: errorflash 1s;
 }
+
+#party_info {
+    border: 2px solid white;
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    overflow: hidden;
+}
+
+#party_info:before {
+    content: "info";
+}
+
+#party_info:after {
+    content: '<hr id="party_info_bottom">';
+}
+
+#party_playlist {
+    border: 2px solid white;
+    position: absolute;
+    left: 0px;
+    bottom: 0px;
+    overflow: hidden;
+}
+
+#party_playlist:before {
+    content: "playlist";
+}
+
+#party_users {
+    border: 2px solid white;
+    position: absolute;
+    right: 0px;
+    top: 0px;
+    overflow: hidden;
+}
+
+#party_users:before {
+    content: "users";
+}
+
+#party_newsfeed {
+    border: 2px solid white;
+    position: absolute;
+    right: 0px;
+    bottom: 0px;
+    overflow: hidden;
+}
+
+#party_newsfeed:before {
+    content: "newsfeed";
+}
+
+@-webkit-keyframes appear
+{
+    0% {height: 0px;}
+    100% {height: 60px;}
+}
+
+@-webkit-keyframes disappear
+{
+    0% {height: 60px;}
+    100% {height: 0px;}
+}
+
+#party_playlist .song {
+    clear: both;
+    overflow: hidden;
+    -webkit-animation: appear 1s;
+}
+
+#party_playlist .song.removed {
+    -webkit-animation: disappear 1s;
+    height: 0px;
+}
+
+#party_playlist .song img.coverart {
+    float: left;
+    margin: 5px;
+    border: 1px solid white;
+    width: 50px;
+    height: 50px;
+}

@@ -61,15 +61,17 @@ class RequestHandlerBase(webapp2.RequestHandler):
             cls._access_token_to_user_cache[access_token] = user # pylint: disable=W0212
         return user
 
-    def reply_json(self, data):
+    def reply_jsonp(self, data):
         self.response.headers['Content-Type'] = 'application/json'
-        self.response.out.write(json.dumps(data, default=util.json_default_handler))
+        callback_name = self.request.get("callback")
+        self.response.out.write("window[%s](%s);" % (
+                json.dumps(callback_name),
+                json.dumps(data, default=util.json_default_handler)))
         
 
 class CreateParty(RequestHandlerBase):
     def get(self):
         name = self.request.get("name")
-        logging.info("name is %s", name)
         invited_user_ids = self.request.get("invited_user_ids").split(",")
         if not self.loggedin_user().id() in invited_user_ids:
             invited_user_ids.append(self.loggedin_user().id())
@@ -77,11 +79,24 @@ class CreateParty(RequestHandlerBase):
 
         party = model.Party.create(name, self.loggedin_user(), invited_users)
 
-        self.reply_json(party.for_api_use())
+        self.reply_jsonp(party.for_api_use())
+
+class RemoveSong(RequestHandlerBase):
+    def get(self):
+        party = model.Party.get_by_id(long(self.request.get("party_id")))
+        if self.request.get("sp"):
+            user = model.get_party_owner_user()
+        else:
+            user = self.loggedin_user()
+        position = long(self.request.get("position"))
+        action = party.remove_song(position, user, self.loggedin_user())
+        self.reply_jsonp(action.for_api_use())
 
 
 logging.getLogger().setLevel(logging.DEBUG)
-app = webapp2.WSGIApplication([('/api/1/createparty', CreateParty)
+app = webapp2.WSGIApplication([
+        ('/api/1/createparty', CreateParty),
+        ('/api/1/removesong', RemoveSong)
                                ], debug=True)
 
 

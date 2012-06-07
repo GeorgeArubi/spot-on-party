@@ -1,34 +1,5 @@
 from google.appengine.ext import db
 from google.appengine.ext.db import polymodel
-import logging
-import util
-
-old_model_put = db.Model.put
-def before_put (self):
-    pass
-def after_put (self):
-    pass
-def overide_put(self, **kwargs):
-    logging.info("Overiden put %s" % self.__class__.__name__)
-    before_put(self)
-    old_model_put(self, **kwargs)
-    after_put(self)
-
-db.Model.before_put = before_put
-db.Model.after_put = after_put
-db.Model.put = overide_put
-
-
-old_db_put = db.put
-def hooked_put(models, **kwargs):
-    for model in models:
-        model.before_put()
-    old_db_put(models, **kwargs)
-    for model in models:
-        model.after_put()
-
-db.put = hooked_put
-
 
 _get_party_owner_user_saved = False
 def get_party_owner_user():
@@ -60,6 +31,9 @@ class Song(db.Model):
         return self.key().id_or_name()
 
 
+class SecurityException(Exception):
+    pass
+
 class Party(db.Model):
     name = db.StringProperty()
     owner = db.ReferenceProperty(reference_class=User)
@@ -73,24 +47,36 @@ class Party(db.Model):
     @classmethod
     def create(cls, name, owner, invited_users):
         party = cls()
-        party.put() #obtains an id
         party.name = name
         party.owner = owner
         party.active = True
         party.invited_user_ids = [user.key() for user in invited_users]
+        party.put()
         
         PartyCreateAction(party=party, user=get_party_owner_user(), name=name).put()
 
         db.put([PartyInviteAction(party=party, user=get_party_owner_user(), invited_user=user) for user in invited_users])
         songs = [
             Song(key_name="spotify:track:7gSeGMqiOrv7ftmxYLFaOA", name="Moondance"),
-            Song(key_name="spotify:artist:492hDmhPyuIjP3MgTcIqgm", name="A night like this"),
-            Song(key_name="spotify:artist:04zm16Wb5rUuQzhpC8JsZh", name="That Man")]
+            Song(key_name="spotify:track:3HReViQnCFUk56f4PXO3Tx", name="A night like this"),
+            Song(key_name="spotify:track:04zm16Wb5rUuQzhpC8JsZh", name="That Man")]
             
         db.put(songs)
 
         db.put([PartySongAddAction(song=song, party=party, user=invited_users[0]) for song in songs])
         return party
+
+    def _loggedin_user_is_invited(self, loggedin_user):
+        if not loggedin_user.key() in self.invited_user_ids:
+            raise SecurityException("Loggedin user %s may not invite (%s)" % (loggedin_user.key(), ", ".join(self.invited_user_ids)))
+        
+
+    def remove_song(self, position, user, loggedin_user):
+        self._loggedin_user_is_invited(loggedin_user)
+        action = PartySongRemoveAction(party=self, user=user, position=position)
+        action.put()
+        #TODO: fanout via channel
+        return action
 
     def for_api_use(self):
         return {
@@ -104,18 +90,12 @@ class PartyAction(polymodel.PolyModel):
     party = db.ReferenceProperty(reference_class=Party, collection_name="party_actions")
     created = db.DateTimeProperty(auto_now_add=True)
     user = db.ReferenceProperty(reference_class=User)
-    nr = db.IntegerProperty()
-
-    def before_put(self):
-        counter = util.GlobalCounter("PartyAction_%s" % self.party.key().id(), ("SELECT created FROM PartyAction WHERE party = :1 ORDER BY nr DESC LIMIT 1", str(self.party.key())))
-        self.nr = counter.next()
-        logging.info("Set nr to %d", self.nr)
 
     def for_api_use(self):
         return {
             "type": self.__class__.__name__,
             "id": self.key().id(),
-            "user": self.user.id(),
+            "user_id": self.user.id(),
             "created": self.created}
 
 class PartyChangeNameAction(PartyAction): #NOTE: do not call directly; use Party.change_name
@@ -153,11 +133,10 @@ class PartySongAddAction(PartyAction):
         return dict(super(PartySongAddAction, self).for_api_use().items() + [('song_id', self.song.id()),])
 
 class PartySongRemoveAction(PartyAction):
-    song = db.ReferenceProperty(reference_class=Song)
     position = db.IntegerProperty()
 
     def for_api_use(self):
-        return dict(super(PartySongRemoveAction, self).for_api_use().items() + [('song_id', self.song.id()),("position", self.position)])
+        return dict(super(PartySongRemoveAction, self).for_api_use().items() + [("position", self.position)])
 
 
 class PartyStartPlayAction(PartyAction):

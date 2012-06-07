@@ -1,5 +1,5 @@
 /*jslint browser: true, devel: true, vars: true, newcap: true */
-/*global SpotOnParty:true, SOPBase, Facebook, $, TDFriendSelector */
+/*global SpotOnParty:true, SOPBase, Spotify, Facebook, Party, PartyUI, $, TDFriendSelector */
 
 /**
  * Main interaction for SpotOnParty
@@ -13,15 +13,27 @@ var SpotOnParty = function () {
     var createStartPartyBehaviour;
     var resetNewPartyForm;
     var initFacebookFriendpicker;
+    /**
+     * will show the party-pane, and make sure all the interaction works
+     **/
+    var showParty;
 
     var onfacebooklogin;
     var onfacebooklogout;
 
     var facebook;
     var sopbase;
+    var party;
+    var spotify;
+    var party_ui;
 
     var config = {
         minLengthPartyName: 6
+    };
+
+    showParty = function () {
+        activatePane("#party_pane");
+        party_ui = PartyUI(party, facebook, sopbase, spotify);
     };
 
     activatePane = function (pane) {
@@ -34,6 +46,15 @@ var SpotOnParty = function () {
         resetNewPartyForm();
         initFacebookFriendpicker();
         sopbase = SOPBase(facebook.getAccessToken());
+        /// START: shortcut code
+        sopbase.createParty("auto_party_name", ["501480496", "1234318345", "100001726650746"], function (response) {
+            party = Party(response.id, response.owner_id);
+            $.each(response.actions, function (index, action) {
+                party.feed(action);
+            });
+            showParty();
+        });
+        /// END: shortcut code
     };
 
     onfacebooklogout = function () {
@@ -65,7 +86,11 @@ var SpotOnParty = function () {
             } else {
                 selectFacebookFriends(function (facebook_ids) {
                     sopbase.createParty(name, facebook_ids, function (response) {
-                        console.log(response);
+                        party = Party(response.id, response.owner_id);
+                        $.each(response.actions, function (index, action) {
+                            party.feed(action);
+                        });
+                        showParty();
                     });
                 });
             }
@@ -96,6 +121,11 @@ var SpotOnParty = function () {
         $("#facebook_login_button").click(function (event) {
             facebook = Facebook(onfacebooklogin, onfacebooklogout);
         });
+        /// START: shortcut code
+        facebook = Facebook(onfacebooklogin, onfacebooklogout);
+        /// END: shortcut code
+        party = null;
+        spotify = Spotify();
     };
 
     init();

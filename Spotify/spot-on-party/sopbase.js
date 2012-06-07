@@ -13,24 +13,32 @@ var SOPBase = function (accesstoken) {
     var doCall;
 
     var createParty;
+    var removeSong;
 
     doCall = function (methodname, parameters, callback) {
-        var defaultparams = {at: accesstoken};
+        var defaultparams = {at: accesstoken, sp: 1};
         var url = SOPBASE_BACKEND + "api/1/" + methodname + "?" + $.param($.extend(defaultparams, parameters));
         $.getJSON(url + "&callback=?", function (response) {
             console.log("doCall", url, response);
-            callback(response);
+            if (callback) {
+                callback(response);
+            }
         });
     };
 
     createParty = function (name, invited_friends, callback) {
-        doCall("createparty", {name: name, invited_friends: invited_friends.join(",")}, callback);
+        doCall("createparty", {name: name, invited_user_ids: invited_friends.join(",")}, callback);
+    };
+
+    removeSong = function (party_id, position, callback) {
+        doCall("removesong", {party_id: party_id, position: position}, callback);
     };
 
     init = function () {
     };
 
     return {
-        createParty: createParty
+        createParty: createParty,
+        removeSong: removeSong
     };
 };

@@ -13,6 +13,7 @@
     "RequiredPermissions": [
 	"https://*.facebook.com/",
 	"http://*.facebook.com/",
-	"http://*.facebook.net/"
+	"http://*.facebook.net/",
+        "http://localhost:8081/"
     ]
 }
