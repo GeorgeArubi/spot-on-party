@@ -92,11 +92,23 @@ class RemoveSong(RequestHandlerBase):
         action = party.remove_song(position, user, self.loggedin_user())
         self.reply_jsonp(action.for_api_use())
 
+class PlayPosition(RequestHandlerBase):
+    def get(self):
+        party = model.Party.get_by_id(long(self.request.get("party_id")))
+        if self.request.get("sp"):
+            user = model.get_party_owner_user()
+        else:
+            user = self.loggedin_user()
+        position = long(self.request.get("position"))
+        action = party.play_position(position, user, self.loggedin_user())
+        self.reply_jsonp(action.for_api_use())
+
 
 logging.getLogger().setLevel(logging.DEBUG)
 app = webapp2.WSGIApplication([
         ('/api/1/createparty', CreateParty),
-        ('/api/1/removesong', RemoveSong)
+        ('/api/1/removesong', RemoveSong),
+        ('/api/1/playposition', PlayPosition)
                                ], debug=True)
 
 

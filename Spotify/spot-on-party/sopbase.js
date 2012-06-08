@@ -14,6 +14,7 @@ var SOPBase = function (accesstoken) {
 
     var createParty;
     var removeSong;
+    var playPosition;
 
     doCall = function (methodname, parameters, callback) {
         var defaultparams = {at: accesstoken, sp: 1};
@@ -34,11 +35,16 @@ var SOPBase = function (accesstoken) {
         doCall("removesong", {party_id: party_id, position: position}, callback);
     };
 
+    playPosition = function (party_id, position, callback) {
+        doCall("playposition", {party_id: party_id, position: position}, callback);
+    };
+
     init = function () {
     };
 
     return {
         createParty: createParty,
-        removeSong: removeSong
+        removeSong: removeSong,
+        playPosition: playPosition
     };
 };

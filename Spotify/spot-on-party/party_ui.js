@@ -1,5 +1,5 @@
 /*jslint browser: true, vars: true, newcap: true, bitwise:true */
-/*global PartyUI:true, $ */
+/*global PartyUI:true, $, Party */
 
 /**
  * Reponsible for all interaction.
@@ -13,6 +13,9 @@ var PartyUI = function (party, facebook, sopbase, spotify) {
 
     var updateInfo;
     var updatePlaylist;
+    var updatePlayerStatus;
+    var setCurrentlyPlayingPlaylistPosition;
+
     var getSongDom;
     var getUserDom;
     var getNewsfeedItemDom;
@@ -21,10 +24,7 @@ var PartyUI = function (party, facebook, sopbase, spotify) {
     var setFramesetLeftFromTop;
     var setFramesetRightFromTop;
 
-    var playlist;
-    var joined_userlist;
-    var invited_userlist;
-    var newsfeed;
+    var last_playstate_action_id;
 
     updateInfo = function () {
         $("#party_info .name").text(party.getPartyInfo().name);
@@ -64,6 +64,21 @@ var PartyUI = function (party, facebook, sopbase, spotify) {
         });
     };
 
+    updatePlayerStatus = function (is_playing, spotify_playlist_position) {
+        if (spotify_playlist_position === null) {
+            setCurrentlyPlayingPlaylistPosition(null);
+        } else {
+            setCurrentlyPlayingPlaylistPosition(party.getPartyInfoPositionFromSpotifyPlaylistPosition(spotify_playlist_position));
+        }
+    };
+
+    setCurrentlyPlayingPlaylistPosition = function (position) {
+        $("#party_playlist .song.playing").removeClass("playing");
+        if (position !== null) {
+            $("#playlist_item_" + position).addClass("playing");
+        }
+    };
+
     setFramesetFromRight = function (width) {
         $("#party_playlist, #party_info").css("right", width + "px");
         $("#party_users, #party_newsfeed").css("width", width + "px");
@@ -80,6 +95,7 @@ var PartyUI = function (party, facebook, sopbase, spotify) {
     };
 
     init = function () {
+
         setFramesetFromRight(300);
         setFramesetRightFromTop(400);
         setFramesetLeftFromTop(150);
@@ -87,6 +103,14 @@ var PartyUI = function (party, facebook, sopbase, spotify) {
             var position = $(this).parent(".song").attr("position");
             console.log("Removing from position " + position);
             sopbase.removeSong(party.getPartyInfo().id, position, function (action) {
+                party.feed(action);
+                update();
+            });
+        });
+        $("#party_playlist").on("click", ".btn_play", function (event) {
+            var position = $(this).parent(".song").attr("position");
+            console.log("Playing from position " + position);
+            sopbase.playPosition(party.getPartyInfo().id, position, function (action) {
                 party.feed(action);
                 update();
             });
@@ -103,7 +127,8 @@ var PartyUI = function (party, facebook, sopbase, spotify) {
     init();
 
     return {
-        update: update
+        update: update,
+        updatePlayerStatus: updatePlayerStatus
     };
 };
 

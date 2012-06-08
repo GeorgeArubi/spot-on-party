@@ -78,6 +78,13 @@ class Party(db.Model):
         #TODO: fanout via channel
         return action
 
+    def play_position(self, position, user, loggedin_user):
+        self._loggedin_user_is_invited(loggedin_user)
+        action = PartyPositionPlayAction(party=self, user=user, position=position)
+        action.put()
+        #TODO: fanout via channel
+        return action
+
     def for_api_use(self):
         return {
             "type": self.__class__.__name__,
@@ -98,7 +105,7 @@ class PartyAction(polymodel.PolyModel):
             "user_id": self.user.id(),
             "created": self.created}
 
-class PartyChangeNameAction(PartyAction): #NOTE: do not call directly; use Party.change_name
+class PartyChangeNameAction(PartyAction):
     name = db.StringProperty()
     
     def for_api_use(self):
@@ -108,13 +115,13 @@ class PartyChangeNameAction(PartyAction): #NOTE: do not call directly; use Party
 class PartyCreateAction(PartyChangeNameAction):
     pass
 
-class PartyInviteAction(PartyAction): #TODO: update the party "users"
+class PartyInviteAction(PartyAction):
     invited_user = db.ReferenceProperty(reference_class=User)
 
     def for_api_use(self):
         return dict(super(PartyInviteAction, self).for_api_use().items() + [('invited_user_id', self.invited_user.id()),])
 
-class PartyKickAction(PartyAction): #TODO: update the party "users"
+class PartyKickAction(PartyAction):
     kicked_user = db.ReferenceProperty(reference_class=User)
 
     def for_api_use(self):
@@ -138,19 +145,15 @@ class PartySongRemoveAction(PartyAction):
     def for_api_use(self):
         return dict(super(PartySongRemoveAction, self).for_api_use().items() + [("position", self.position)])
 
-
-class PartyStartPlayAction(PartyAction):
-    song = db.ReferenceProperty(reference_class=Song)
+class PartyPositionPlayAction(PartyAction):
     position = db.IntegerProperty()
-    play_position = db.IntegerProperty()
-    natural = db.BooleanProperty() #true if the new play was the result of the previous song ending
 
     def for_api_use(self):
-        return dict(super(PartyStartPlayAction, self).for_api_use().items() +
-                    [('song_id', self.song.id()),
-                     ("position", self.position),
-                     ("play_position", self.play_position),
-                     ("natural", self.natural)])
+        return dict(super(PartyPositionPlayAction, self).for_api_use().items() +
+                    [("position", self.position)])
+
+class PartyPlayAction(PartyAction):
+    pass
 
 class PartyPauseAction(PartyAction):
     pass

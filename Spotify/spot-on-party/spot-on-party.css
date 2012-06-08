@@ -109,6 +109,10 @@
     -webkit-animation: appear 1s;
 }
 
+#party_playlist .playing {
+    background-color: #333377;
+}
+
 #party_playlist .song.removed {
     -webkit-animation: disappear 1s;
     height: 0px;

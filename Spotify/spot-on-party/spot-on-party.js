@@ -17,6 +17,10 @@ var SpotOnParty = function () {
      * will show the party-pane, and make sure all the interaction works
      **/
     var showParty;
+    /**
+      * callback that a new play command has been received
+      **/
+    var partyCommandReceived;
 
     var onfacebooklogin;
     var onfacebooklogout;
@@ -48,7 +52,7 @@ var SpotOnParty = function () {
         sopbase = SOPBase(facebook.getAccessToken());
         /// START: shortcut code
         sopbase.createParty("auto_party_name", ["501480496", "1234318345", "100001726650746"], function (response) {
-            party = Party(response.id, response.owner_id);
+            party = Party(response.id, response.owner_id, spotify, partyCommandReceived);
             $.each(response.actions, function (index, action) {
                 party.feed(action);
             });
@@ -70,6 +74,26 @@ var SpotOnParty = function () {
         });
     };
 
+    // assumes to be called only AFTER the party and the ui has been updated
+    partyCommandReceived = function (command, parameters) {
+        var song_id, spotify_playlist, spotify_playlist_position;
+        if (parameters && parameters.position !== undefined) {
+            song_id = party.getPartyInfo().song_ids[parameters.position];
+            spotify_playlist = party.getSpotifyPlaylist();
+            spotify_playlist_position = party.getSpotifyPlaylistPositionFromPartyInfoPosition(parameters.position);
+        }
+        switch (command) {
+        case Party.COMMAND_PLAY_POSITION:
+            spotify.play(song_id, spotify_playlist, spotify_playlist_position);
+            break;
+        case Party.COMMAND_PLAY_IF_STOPPED:
+            if (spotify.isStoppedOrNotPlayingFromApp()) {
+                spotify.play(song_id, spotify_playlist, spotify_playlist_position);
+            }
+            break;
+        }
+    };
+
     createStartPartyBehaviour = function () {
         $("#start_party_button").click(function (event) {
             $("#start_party_name_form").addClass("active");
@@ -86,7 +110,7 @@ var SpotOnParty = function () {
             } else {
                 selectFacebookFriends(function (facebook_ids) {
                     sopbase.createParty(name, facebook_ids, function (response) {
-                        party = Party(response.id, response.owner_id);
+                        party = Party(response.id, response.owner_id, spotify, partyCommandReceived);
                         $.each(response.actions, function (index, action) {
                             party.feed(action);
                         });
@@ -125,7 +149,11 @@ var SpotOnParty = function () {
         facebook = Facebook(onfacebooklogin, onfacebooklogout);
         /// END: shortcut code
         party = null;
-        spotify = Spotify();
+        spotify = Spotify(function (is_playing, spotify_playlist_position) {
+            if (party_ui) {
+                party_ui.updatePlayerStatus(is_playing, spotify_playlist_position);
+            }
+        });
     };
 
     init();
