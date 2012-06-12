@@ -14,27 +14,10 @@ var MINIMUM_TOKEN_TTL = 10; // allow 10 seconds for transfer latency etc
 
 var Facebook = function (login_handler, logout_handler) {
     var init;
-    var onlogin;
-    var onlogout;
     var getAccessToken;
 
     var accesstoken;
     var accesstokenexpires;
-
-    onlogin = function () {
-        if (login_handler) {
-            window.setTimeout(function () {
-                login_handler();
-            }, 1);
-        }
-    };
-
-    onlogout = function () {
-        accesstoken = null;
-        if (logout_handler) {
-            window.setTimeout(logout_handler, 1);
-        }
-    };
 
     getAccessToken = function () {
         if (accesstoken && (new Date() < accesstokenexpires)) {

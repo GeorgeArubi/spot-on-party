@@ -52,7 +52,7 @@ var SpotOnParty = function () {
         sopbase = SOPBase(facebook.getAccessToken());
         /// START: shortcut code
         sopbase.createParty("auto_party_name", ["501480496", "1234318345", "100001726650746"], function (response) {
-            party = Party(response.id, response.owner_id, spotify, partyCommandReceived);
+            party = Party(response.id, response.owner_id, spotify.getPlaylist(), partyCommandReceived);
             $.each(response.actions, function (index, action) {
                 party.feed(action);
             });

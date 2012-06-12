@@ -11,3 +11,5 @@
 /sopbase/war/WEB-INF/appengine-generated
 *.pyc
 .#*
+.sass-cache
+sencha-touch-?.?.?.?

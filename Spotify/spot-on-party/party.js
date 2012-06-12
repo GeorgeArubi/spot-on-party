@@ -6,7 +6,7 @@
  **/
 "use strict";
 
-var Party = function (id, owner_id, spotify, command_callback) {
+var Party = function (id, owner_id, spotify_playlist, command_callback) {
     var init;
 
     /**
@@ -35,8 +35,6 @@ var Party = function (id, owner_id, spotify, command_callback) {
       **/
     var synchronizeSpotifyPlaylist;
 
-    var spotify_playlist;
-
     var doCommandCallback;
 
     /**
@@ -54,13 +52,14 @@ var Party = function (id, owner_id, spotify, command_callback) {
             song_ids: [],
             state: Party.STATE_OFF
         }}];
-        spotify_playlist = spotify.getPlaylist();
     };
 
     doCommandCallback = function (command, parameters) {
-        window.setTimeout(function () {
-            command_callback(command, parameters);
-        }, 1);
+        if (command_callback) {
+            window.setTimeout(function () {
+                command_callback(command, parameters);
+            }, 1);
+        }
     };
 
     getSpotifyPlaylist = function () {
@@ -68,6 +67,9 @@ var Party = function (id, owner_id, spotify, command_callback) {
     };
 
     getSpotifyPlaylistPositionFromPartyInfoPosition = function (position) {
+        if (!spotify_playlist) {
+            return null;
+        }
         var spotify_playlist_position = 0, i, song_ids = getPartyInfo().song_ids;
         if (!song_ids[position]) {
             //track has been removed, has no spotify playlist position
@@ -82,6 +84,9 @@ var Party = function (id, owner_id, spotify, command_callback) {
     };
 
     getPartyInfoPositionFromSpotifyPlaylistPosition = function (spotify_playlist_position) {
+        if (!spotify_playlist) {
+            return null;
+        }
         var position = -1, i = -1, song_ids = getPartyInfo().song_ids;
         do {
             position += 1;
@@ -138,9 +143,8 @@ var Party = function (id, owner_id, spotify, command_callback) {
         case "PartySongRemoveAction":
             var spotify_playlist_position = getSpotifyPlaylistPositionFromPartyInfoPosition(action.position);
             party.song_ids[action.position] = null;
-            if (spotify_playlist_position !== null) {
+            if (spotify_playlist_position !== null && spotify_playlist) {
                 spotify_playlist.remove(spotify_playlist_position); //this may be incorrect if actions don't arrive in order; in that case it will get fixed in the end
-                console.log("removing at index", spotify_playlist_position)
             }
             changed |= Party.PLAYLIST;
             doCommandCallback(Party.COMMAND_NEXT_IF_POSITION, {position: action.position});
@@ -196,6 +200,9 @@ var Party = function (id, owner_id, spotify, command_callback) {
     };
 
     synchronizeSpotifyPlaylist = function () {
+        if (!spotify_playlist) {
+            return null;
+        }
         var song_id_position = 0, spotify_playlist_position = 0, song_ids = getPartyInfo().song_ids;
         var track_ids = $.map(spotify_playlist.tracks, function (track) {return track.uri; });
         while (true) {
@@ -210,16 +217,13 @@ var Party = function (id, owner_id, spotify, command_callback) {
                 spotify_playlist_position += 1;
             }
         }
-        console.log("broke at", song_id_position, spotify_playlist_position, song_ids, track_ids)
         //remove extra entries from spotify playlist
         while (spotify_playlist_position < spotify_playlist.length) {
             spotify_playlist.remove(spotify_playlist.length - 1);
-            console.log("removing from playlist")
         }
         //add extra entries from song_ids
         while (song_id_position < song_ids.length) {
             if (song_ids[song_id_position] !== null) {
-                console.log("adding to playlist")
                 spotify_playlist.add(song_ids[song_id_position]);
             }
             song_id_position += 1;

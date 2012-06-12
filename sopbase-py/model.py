@@ -90,8 +90,9 @@ class Party(db.Model):
             "type": self.__class__.__name__,
             "id": self.key().id(),
             "owner_id": self.owner.id(),
+            "name": self.name,
+            "created": self.created,
             "actions": [party_action.for_api_use() for party_action in self.party_actions.order("__key__")]}
-                
 
 class PartyAction(polymodel.PolyModel):
     party = db.ReferenceProperty(reference_class=Party, collection_name="party_actions")

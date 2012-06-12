@@ -89,7 +89,7 @@ class RemoveSong(RequestHandlerBase):
         else:
             user = self.loggedin_user()
         position = long(self.request.get("position"))
-        action = party.remove_song(position, user, self.loggedin_user())
+        action = party.remove_song(position, user, self.loggedin_user()) #pylint: disable=E1103
         self.reply_jsonp(action.for_api_use())
 
 class PlayPosition(RequestHandlerBase):
@@ -100,15 +100,21 @@ class PlayPosition(RequestHandlerBase):
         else:
             user = self.loggedin_user()
         position = long(self.request.get("position"))
-        action = party.play_position(position, user, self.loggedin_user())
+        action = party.play_position(position, user, self.loggedin_user()) #pylint: disable=E1103
         self.reply_jsonp(action.for_api_use())
 
+class GetActiveParties(RequestHandlerBase):
+    def get(self):
+        loggedin_user = self.loggedin_user()
+        parties = model.Party.all().filter("active", True).filter("invited_user_ids", loggedin_user.key())
+        self.reply_jsonp([party.for_api_use() for party in parties])
 
 logging.getLogger().setLevel(logging.DEBUG)
 app = webapp2.WSGIApplication([
         ('/api/1/createparty', CreateParty),
         ('/api/1/removesong', RemoveSong),
-        ('/api/1/playposition', PlayPosition)
+        ('/api/1/playposition', PlayPosition),
+        ('/api/1/getactiveparties', GetActiveParties)
                                ], debug=True)
 
 

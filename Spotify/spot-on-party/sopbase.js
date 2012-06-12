@@ -15,9 +15,10 @@ var SOPBase = function (accesstoken) {
     var createParty;
     var removeSong;
     var playPosition;
+    var getActiveParties;
 
     doCall = function (methodname, parameters, callback) {
-        var defaultparams = {at: accesstoken, sp: 1};
+        var defaultparams = {at: accesstoken, sp: (window.location.protocol === "sp:" ? 1 : 0)};
         var url = SOPBASE_BACKEND + "api/1/" + methodname + "?" + $.param($.extend(defaultparams, parameters));
         $.getJSON(url + "&callback=?", function (response) {
             console.log("doCall", url, response);
@@ -39,12 +40,17 @@ var SOPBase = function (accesstoken) {
         doCall("playposition", {party_id: party_id, position: position}, callback);
     };
 
+    getActiveParties = function (callback) {
+        doCall("getactiveparties", {}, callback);
+    };
+
     init = function () {
     };
 
     return {
         createParty: createParty,
         removeSong: removeSong,
-        playPosition: playPosition
+        playPosition: playPosition,
+        getActiveParties: getActiveParties
     };
 };

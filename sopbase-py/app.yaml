@@ -5,8 +5,25 @@ api_version: 1
 threadsafe: true
 
 handlers:
-- url: /.*
+- url: /api/1/.*
   script: main.app
+  
+- url: /old/
+  static_files: static/index.html
+  upload: static/index\.html
+
+- url: /old/
+  static_dir: static
+
+- url: /sencha-touch-2.0.1.1/
+  static_dir: sencha-touch-2.0.1.1
+
+- url: /
+  static_files: sencha-app/index.html
+  upload: sencha-app/index\.html
+
+- url: /
+  static_dir: sencha-app
 
 libraries:
 - name: django

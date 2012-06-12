@@ -40,9 +40,15 @@ var PartyUI = function (party, facebook, sopbase, spotify) {
             .append($('<a>remove</a>').addClass("btn_remove"))
             .append($('<a>play</a>').addClass("btn_play"));
         spotify.getTrack(song_id, function (track) {
+            console.log(track);
             var artistname;
             dom.removeClass("loading");
-            dom.find("img.coverart").attr({src: track.image});
+            if (track.image) {
+                dom.find("img.coverart").attr({src: track.image});
+            } else {
+                //web api doesn't have covertart (license issue supposedly)
+                dom.addClass("nocoverart");
+            }
             artistname = $.map(track.artists, function (artist) {return artist.name; }).join(", ");
             dom.find("div.artistname").text(artistname);
             dom.find("div.trackname").text(track.name);
