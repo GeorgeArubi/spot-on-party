@@ -1,4 +1,4 @@
-/*jslint browser:true */
+/*jslint browser:true, vars: true */
 /*globals Ext, FB, SOP*/
 "use strict";
 
@@ -9,7 +9,7 @@
  */
 Ext.define('SOP.controller.Facebook', {
     extend: 'Ext.app.Controller',
-    requires: ['Ext.MessageBox'],
+    requires: ['Ext.MessageBox', "SOP.controller.Parties"],
 
     config: {
         control: {
@@ -38,37 +38,35 @@ Ext.define('SOP.controller.Facebook', {
     },
 
     onFacebookInit: function () {
+        var that = this;
 
-        if (SOP.app.facebookAppId === '') {return; }
+        if (SOP.app.facebookAppId === '') {
+            throw new Error("no facebook app id");
+        }
 
-        var me = this;
+        var onStatusChange = function (response) {
+            clearTimeout(that.fbLoginTimeout);
+            SOP.authResponse = response.authResponse;
+            if (response.authResponse) {
+                that.onLogin(response.authResponse);
+            } else {
+                that.onLogout();
+            }
+        };
+
+        FB.Event.subscribe('auth.statusChange', onStatusChange);
 
         FB.init({
             appId  : SOP.app.facebookAppId,
-            cookie : true
+            cookie : false,
+            status : false,
         });
 
-        FB.Event.subscribe('auth.logout', Ext.bind(me.onLogout, me));
+        that.fbLoginTimeout = Ext.defer(function () {
 
-        FB.getLoginStatus(function (response) {
-
-            clearTimeout(me.fbLoginTimeout);
-
-            me.hasCheckedStatus = true;
-            Ext.Viewport.setMasked(false);
-
-            Ext.fly('appLoadingIndicator').destroy();
-
-            if (response.status === 'connected') {
-                me.onLogin();
-            } else {
-                me.login();
+            if (Ext.fly('appLoadingIndicator')) {
+                Ext.fly('appLoadingIndicator').destroy();
             }
-        });
-
-        me.fbLoginTimeout = Ext.defer(function () {
-
-            Ext.Viewport.setMasked(false);
 
             Ext.create('Ext.MessageBox', {
                 title: 'Facebook Error',
@@ -81,57 +79,27 @@ Ext.define('SOP.controller.Facebook', {
             }).show();
 
         }, 10000);
+
+        FB.getLoginStatus(onStatusChange);
     },
 
-    login: function () {
+    onLogout: function () {
+        var that = this;
         Ext.Viewport.setMasked(false);
-        var splash = Ext.getCmp('login');
-        if (!splash) {
+
+        if (!Ext.getCmp('login')) {
             Ext.Viewport.add({ xclass: 'SOP.view.Login', id: 'login' });
         }
         Ext.getCmp('login').showLoginText();
     },
 
     onLogin: function () {
-
-        var me = this,
-            errTitle;
-
-        FB.api('/me', function (response) {
-
-            if (response.error) {
-                FB.logout();
-
-                errTitle = "Facebook " + response.error.type + " error";
-                Ext.Msg.alert(errTitle, response.error.message, function () {
-                    me.login();
-                });
-            } else {
-                SOP.userData = response;
-                if (!me.main) {
-                    me.main = Ext.create('SOP.view.ChooseParty', {
-                    });
-                }
-                Ext.Viewport.setActiveItem(me.main);
-            }
-        });
+        Ext.create('SOP.view.ChooseParty', {
+        }); // will switch to active as soon as it has loaded the parties
     },
 
     logout: function () {
         Ext.Viewport.setMasked({xtype: 'loadmask', message: 'Logging out...'});
         FB.logout();
-    },
-
-    /**
-     * Called when the Logout button is tapped
-     */
-    onLogout: function () {
-
-        if (!this.hasCheckedStatus) {return; }
-
-        this.login();
-
-        Ext.Viewport.setMasked(false);
-        Ext.Viewport.setActiveItem(Ext.getCmp('login'));
     },
 });

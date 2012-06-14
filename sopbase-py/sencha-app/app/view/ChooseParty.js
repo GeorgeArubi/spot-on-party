@@ -6,7 +6,6 @@ Ext.define("SOP.view.ChooseParty", {
     extend: "Ext.NavigationView",
 
     config: {
-        fullscreen: true,
         id: "mainNav",
         items: [{
             title: "Choose Party",

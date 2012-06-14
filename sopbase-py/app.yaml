@@ -19,11 +19,11 @@ handlers:
   static_dir: sencha-touch-2.0.1.1
 
 - url: /
-  static_files: sencha-app/index.html
-  upload: sencha-app/index\.html
+  static_files: sencha-sop/index.html
+  upload: sencha-sop/index\.html
 
 - url: /
-  static_dir: sencha-app
+  static_dir: sencha-sop
 
 libraries:
 - name: django

@@ -1,5 +1,38 @@
 from google.appengine.ext import db
 from google.appengine.ext.db import polymodel
+from google.appengine.api import memcache
+import logging
+import util
+
+def hooked_class(original_class): #decorator
+    original_put = original_class.put
+    def put(self, **kwargs):
+        pre_func = getattr(self, "pre_put", None)
+        if callable(pre_func):
+            pre_func()
+        original_put(self, **kwargs)
+        post_func = getattr(self, "post_put", None)
+        if callable(post_func):
+            post_func()
+
+    original_class.put = put
+    return original_class
+
+old_put = db.put
+
+def hooked_put(models, **kwargs):
+    for model in models:
+        pre_func = getattr(model, "pre_put", None)
+        if callable(pre_func):
+            pre_func()
+    old_put(models, **kwargs)
+    for model in models:
+        post_func = getattr(model, "post_put", None)
+        if callable(post_func):
+            post_func()
+
+db.put = hooked_put
+
 
 _get_party_owner_user_saved = False
 def get_party_owner_user():
@@ -10,6 +43,7 @@ def get_party_owner_user():
         _get_party_owner_user_saved = True
     return user
 
+@hooked_class
 class User(db.Model):
     "NB: the indentifier is the external id"
     name = db.StringProperty()
@@ -23,6 +57,7 @@ class User(db.Model):
         db.put(users)
         return users
 
+@hooked_class
 class Song(db.Model):
     "NB: the indentifier is the external id"
     name = db.StringProperty()
@@ -34,6 +69,7 @@ class Song(db.Model):
 class SecurityException(Exception):
     pass
 
+@hooked_class
 class Party(db.Model):
     name = db.StringProperty()
     owner = db.ReferenceProperty(reference_class=User)
@@ -78,6 +114,24 @@ class Party(db.Model):
         #TODO: fanout via channel
         return action
 
+    def get_actions(self, bigger_than_action_id, loggedin_user):
+        self._loggedin_user_is_invited(loggedin_user)
+        min_nr = bigger_than_action_id + 1
+        max_nr = self.get_actionid_globalcounter().current()
+        memcached_keys = [PartyAction.get_memcached_key(self, nr) for nr in range(min_nr, max_nr + 1)]
+        actions_dict = memcache.Client().get_multi(memcached_keys)
+        if len(actions_dict) == len(memcached_keys): #all were found
+            actions = [actions_dict[key] for key in memcached_keys]
+        else:
+            actions = self.party_actions.order("nr").filter("nr >", bigger_than_action_id)
+            to_set = {}
+            for action in actions:
+                memcache_key = PartyAction.get_memcached_key(self, action.nr)
+                if not actions_dict.has_key(memcache_key):
+                    to_set[memcache_key] = action
+            memcache.Client().set_multi(to_set)
+        return actions
+
     def play_position(self, position, user, loggedin_user):
         self._loggedin_user_is_invited(loggedin_user)
         action = PartyPositionPlayAction(party=self, user=user, position=position)
@@ -85,24 +139,51 @@ class Party(db.Model):
         #TODO: fanout via channel
         return action
 
+    def get_actionid_function(self):
+        try:
+            highest_action = self.party_actions.order("-nr").get()
+        except db.KindError:
+            return 0
+        if not highest_action:
+            return 0
+        return highest_action.nr
+        
+        
+    def get_actionid_globalcounter(self):
+        return util.GlobalCounter("PartyAction_%d" % self.key().id(), getattr(self, "get_actionid_function"))
+
     def for_api_use(self):
         return {
             "type": self.__class__.__name__,
             "id": self.key().id(),
             "owner_id": self.owner.id(),
             "name": self.name,
-            "created": self.created,
-            "actions": [party_action.for_api_use() for party_action in self.party_actions.order("__key__")]}
+            "created": self.created}
 
+@hooked_class
 class PartyAction(polymodel.PolyModel):
     party = db.ReferenceProperty(reference_class=Party, collection_name="party_actions")
     created = db.DateTimeProperty(auto_now_add=True)
     user = db.ReferenceProperty(reference_class=User)
+    nr = db.IntegerProperty()
+
+    @staticmethod
+    def get_memcached_key(party, action_nr):
+        return "PartyAction_%d_%d" % (party.key().id(), action_nr)
+
+    def pre_put(self):
+        if not self.is_saved():
+            counter = self.party.get_actionid_globalcounter()
+            self.nr = counter.next()
+            
+    def post_put(self):
+        memcache_key = PartyAction.get_memcached_key(self.party, self.nr)
+        memcache.Client().set(memcache_key, self)
 
     def for_api_use(self):
         return {
             "type": self.__class__.__name__,
-            "id": self.key().id(),
+            "nr": self.key().nr(),
             "user_id": self.user.id(),
             "created": self.created}
 

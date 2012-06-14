@@ -2,7 +2,7 @@ import webapp2
 import model
 import util
 
-import urllib, urllib2, logging, json, threading
+import urllib, urllib2, logging, json, threading, re
 
 def to_qs(params):
     "transfers parameters to querystring format; takes special care of values that are arrays, will become csv"
@@ -64,8 +64,10 @@ class RequestHandlerBase(webapp2.RequestHandler):
     def reply_jsonp(self, data):
         self.response.headers['Content-Type'] = 'application/json'
         callback_name = self.request.get("callback")
-        self.response.out.write("window[%s](%s);" % (
-                json.dumps(callback_name),
+        if not re.match("^[a-zA-Z0-9_$.]+$", callback_name):
+            raise Exception("Not a valid callback name")
+        self.response.out.write("%s(%s);" % (
+                callback_name,
                 json.dumps(data, default=util.json_default_handler)))
         
 
@@ -103,6 +105,13 @@ class PlayPosition(RequestHandlerBase):
         action = party.play_position(position, user, self.loggedin_user()) #pylint: disable=E1103
         self.reply_jsonp(action.for_api_use())
 
+class GetActions(RequestHandlerBase):
+    def get(self):
+        party = model.Party.get_by_id(long(self.request.get("party_id")))
+        last_action_id = long(self.request.get("last_action_id", 0))
+        actions = party.get_actions(last_action_id, self.loggedin_user()) #pylint: disable=E1103
+        self.reply_jsonp([action.for_api_use() for action in actions])
+
 class GetActiveParties(RequestHandlerBase):
     def get(self):
         loggedin_user = self.loggedin_user()
@@ -110,11 +119,13 @@ class GetActiveParties(RequestHandlerBase):
         self.reply_jsonp([party.for_api_use() for party in parties])
 
 logging.getLogger().setLevel(logging.DEBUG)
+
 app = webapp2.WSGIApplication([
         ('/api/1/createparty', CreateParty),
         ('/api/1/removesong', RemoveSong),
         ('/api/1/playposition', PlayPosition),
-        ('/api/1/getactiveparties', GetActiveParties)
+        ('/api/1/getactiveparties', GetActiveParties),
+        ('/api/1/getactions', GetActions),
                                ], debug=True)
 
 
