@@ -338,7 +338,11 @@ Ext.define('Ext.data.Operation', {
 
         for (i = 0; i < ln; i++) {
             record = records[i];
-            processedRecords.push(new Model(record.data, record.id, record.node));
+            if (record.node instanceof Model) {
+                processedRecords.push(record.node);
+            } else {
+                processedRecords.push(new Model(record.data, record.id));
+            }
         }
 
         this.setRecords(processedRecords);

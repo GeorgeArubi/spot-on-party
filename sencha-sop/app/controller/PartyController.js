@@ -6,7 +6,7 @@
  */
 Ext.define('SOP.controller.PartyController', {
     extend: 'SOP.controller.FacebookAuthenticatedController',
-//    requires: ["SOP.view.ChooseParty"],
+    requires: ["SOP.view.ChooseParty", "SOP.model.Party"],
 
     config: {
         routes: {
@@ -16,6 +16,16 @@ Ext.define('SOP.controller.PartyController', {
 
 
     showChooseParty: function () {
-        console.log("choosePartyView");
+        var that = this;
+        SOP.model.Party.loadActivePartiesForLoggedinUser(function (parties) {
+            var store = Ext.create("Ext.data.Store", {
+                model: "SOP.model.Party",
+                data: parties,
+                id: "PartyStore",
+            });
+            var view = Ext.create("SOP.view.ChooseParty", {store: store});
+            that.stopLoading();
+            Ext.Viewport.add(view);
+        });
     },
 });
