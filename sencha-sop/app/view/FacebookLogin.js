@@ -1,6 +1,5 @@
-/*jslint browser: true*/
+/*jslint browser: true, sloppy: true */
 /*globals Ext, SOP, FB*/
-"use strict";
 
 /**
  * This view shows the 'Initializing' loading mask, as well as displaying the Login text and button
@@ -13,18 +12,19 @@ Ext.define('SOP.view.FacebookLogin', {
     config: {
     },
 
-    init: function () {
+    constructor: function () {
+        this.callParent(arguments);
         this.setHtml([
             '<h2>Spot On Party</h2>',
             '<p>Spot On Party allows you to colaboratively control a party playlist</p>',
             '<a class="fbLogin" href="https://m.facebook.com/dialog/oauth?',
             Ext.Object.toQueryString({
                 redirect_uri: window.location.protocol + "//" + window.location.host + window.location.pathname,
-                client_id: Ext.create("SOP.domain.FacebookDomain").FACEBOOK_APP_ID,
+                client_id: SOP.domain.FacebookDomain.FACEBOOK_APP_ID,
                 response_type: 'token'
             }),
             '"></a>',
-            '<div class="fb-facepile" data-app-id="' + SOP.app.facebookAppId + '" data-max-rows="2" data-width="300"></div>'
+            '<div class="fb-facepile" data-app-id="' + SOP.domain.FacebookDomain.FACEBOOK_APP_ID + '" data-max-rows="2" data-width="300"></div>'
         ].join(''));
     },
 

@@ -1,6 +1,5 @@
-/*jslint browser:true, vars: true */
+/*jslint browser:true, vars: true, sloppy: true, forin: true */
 /*globals Ext, SOP*/
-"use strict";
 
 /**
  */
@@ -9,31 +8,43 @@ Ext.define('SOP.controller.FacebookAuthenticatedController', {
     requires: ["SOP.domain.FacebookDomain", "SOP.view.FacebookLogin"],
 
     init: function () {
+        this.callParent(arguments);
         SOP.domain.FacebookDomain.init();
-        //TODO: set before on all routes
+        //set before on all routes
+        var routes = this.getRoutes(), path;
+        var before = this.getBefore();
+        for (path in routes) {
+            var method = routes[path];
+            if (!before[method]) {
+                before[method] = [];
+            }
+            before[method].push("checkAndDoFacebookLogin");
+        }
+        this.setBefore(before);
     },
 
     /**
      * before filter
      */
     checkAndDoFacebookLogin: function (action) {
+        var that = this;
         this.startLoading();
         SOP.domain.FacebookDomain.isLoggedin(function (loggedin) {
             if (loggedin) {
                 action.resume();
             } else {
                 SOP.domain.FacebookDomain.callbackOnceLoggedin(function (fb_status) {
-                    this.hideLogin();
+                    that.hideLogin();
                     action.resume();
                 });
-                this.showLogin();
+                that.showLogin();
             }
         });
     },
 
     hideLogin: function () {
-        if (Ext.get('login')) {
-            Ext.get('login').destroy();
+        if (Ext.getCmp('login')) {
+            Ext.getCmp('login').destroy();
         }
     },
 
@@ -41,6 +52,6 @@ Ext.define('SOP.controller.FacebookAuthenticatedController', {
     showLogin: function () {
         this.hideLogin(); //supposedly we could reuse this login component, just no sure how
         Ext.Viewport.add({ xclass: 'SOP.view.FacebookLogin', id: 'login' });
-        SOP.domain.FacebookDomain.parseXFBML();
+        this.stopLoading();
     }
 });

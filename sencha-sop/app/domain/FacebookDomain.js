@@ -35,19 +35,18 @@ Ext.define('SOP.domain.FacebookDomain', {
         });
 
         FB.getLoginStatus(function (response) {
-            that = this;
             var authchange = function (response) {
                 that.fb_status = response;
             };
             FB.Event.subscribe('auth.authResponseChange', authchange);
             authchange(response);
 
-            this.inited = true;
-            Ext.each(this.afterInitCalls, function (func) {
+            that.inited = true;
+            Ext.each(that.afterInitCalls, function (func) {
                 var boundFunc = Ext.bind(func, that);
                 boundFunc();
             });
-            this.afterInitCalls = [];
+            that.afterInitCalls = [];
         });
 
     },
@@ -77,7 +76,7 @@ Ext.define('SOP.domain.FacebookDomain', {
     callbackOnceLoggedin: function (callback) {
         var that = this;
         this.callAfterInit(function () {
-            if (this.fb_status.status === "connected") {
+            if (that.fb_status.status === "connected") {
                 Ext.defer(function () {callback(that.fb_status); }, 1);
             } else {
                 var event_handler = function (response) {
@@ -93,7 +92,7 @@ Ext.define('SOP.domain.FacebookDomain', {
     },
 
     isLoggedin: function (callback) {
-        this.getLoginStatus(function (fb_status) {
+        this.getLoggedinStatus(function (fb_status) {
             callback(fb_status.status === "connected");
         });
     },
@@ -110,8 +109,4 @@ Ext.define('SOP.domain.FacebookDomain', {
             callback(fb_status.authResponse.accessToken);
         });
     },
-
-    parseXFBML: function () {
-        FB.XFBML.parse();
-    }
 });

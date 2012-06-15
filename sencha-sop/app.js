@@ -13,6 +13,9 @@ Ext.application({
 
 
     launch: function () {
+        if (!this.getRouter().recognize(window.location.hash.substr(1))) {
+            window.location.hash = "";
+        }
     },
 
 });
