@@ -46,6 +46,15 @@ Ext.define("SOP.domain.SopBaseDomain", {
     getActiveParties: function (callback) {
         this.doCall("getactiveparties", {}, callback);
     },
+
+    getParty: function (party_id, callback) {
+        this.doCall("getparty", {party_id: party_id}, callback);
+    },
+
+    followParty: function (callback) {
+//        this.doCall("followparty", {}, callback)
+    },
+
     getActions: function (party_id, last_action_id, callback) {
         this.doCall("getactions", {party_id: party_id, last_action_id: last_action_id}, callback);
     },

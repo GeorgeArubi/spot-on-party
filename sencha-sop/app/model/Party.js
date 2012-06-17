@@ -1,12 +1,34 @@
-/*jslint sloppy: true, plusplus:true, vars:true, bitwise:true, plusplus: true  */
+/*jslint plusplus:true, vars:true, bitwise:true, plusplus: true  */
 /*globals Ext, SOP*/
+"use strict";
 
 Ext.define("SOP.model.Party", {
     extend: "Ext.data.Model",
     requires: ["SOP.model.Track", "SOP.domain.SopBaseDomain", "Ext.Array"],
 
     config: {
-        fields: [ 'id', "name", "owner_id", "log"],
+        fields: [
+            'id',
+            "name",
+            "active",
+            "owner_id",
+            {
+                name: "log",
+                defaultValue: [
+                    {
+                        action: {type: null},
+                        party_state: {
+                            owner_id: null,
+                            name: null,
+                            invited_user_ids: {},
+                            joined_user_ids: {},
+                            track_entries: [],
+                            active: 1, //ACTIVE_OFF, can't use static yes because it hasn't been defined yet
+                        }
+                    }
+                ],
+            }
+        ],
     },
 
     statics: {
@@ -19,6 +41,38 @@ Ext.define("SOP.model.Party", {
                 }));
             });
         },
+        /**
+         * loads a single party (when party is not active or loggedin user is not invited "null" is returned
+         * afterwards starts following the party, by retrieving 
+         */
+        loadActiveAndFollow: function (party_id, callback) {
+            var that = this;
+            var followParty = function (party) {
+                //TODO: set up the channel here
+                party.getAndFeedActions(function () {
+                    callback(party);
+                });
+            };
+            var cachedParty =  Ext.data.Model.cache[Ext.data.Model.generateCacheId(that.getName(), party_id)];
+            if (cachedParty) {
+                var party = Ext.create(that, {}, party_id);
+                followParty(party);
+            } else {
+                SOP.domain.SopBaseDomain.getParty(party_id, function (party_info) {
+                    if (!party_info) {
+                        callback(null);
+                        return;
+                    }
+                    var party = Ext.create(that, party_info);
+                    if (!party.get('active')) {
+                        callback(null);
+                        return;
+                    }
+                    followParty(party);
+                });
+            }
+        },
+
         ACTIVE_OFF: 1,
         ACTIVE_ON: 2,
         CHANGE_NAME: 1 << 0,
@@ -29,20 +83,8 @@ Ext.define("SOP.model.Party", {
         CHANGE_NEWSFEED: 1 << 5,
     },
 
-    constructor: function (config) {
-        var that = this;
-        this.callParent(arguments);
-        this.set('log', [{action: {type: null}, party_state: {
-            id: config.id,
-            owner_id: config.owner_id,
-            name: "",
-            invited_user_ids: {},
-            joined_user_ids: {},
-            track_entries: [],
-            active: this.self.ACTIVE_OFF
-        }}]);
-        console.log("pre", config);
-        console.log("post", this.get('id'));
+    toUrl: function () {
+        return "party/" + this.get('id');
     },
 
     /**
@@ -58,11 +100,19 @@ Ext.define("SOP.model.Party", {
         return i - 1;
     },
 
-    getActions: function () {
+    getAndFeedActions: function (callback) {
         var that = this;
         SOP.domain.SopBaseDomain.getActions(this.get('id'), this.calculateLastActionId(), function (actions) {
             that.feed(actions);
+            if (callback) {
+                callback();
+            }
         });
+    },
+
+    getPartyState: function () {
+        var party_log = this.get('log');
+        return party_log[party_log.length - 1].party_state;
     },
 
     feed: function (actions) {
@@ -71,7 +121,7 @@ Ext.define("SOP.model.Party", {
             if (party_log[action.nr]) {
                 return; //already fed
             }
-            party_log[action.nr] = action;
+            party_log[action.nr] = {action: action};
             new_items[action.nr] = true;
             lowest_changed = Math.min(lowest_changed, action.nr);
         });
@@ -79,6 +129,10 @@ Ext.define("SOP.model.Party", {
         for (i = lowest_changed; i < party_log.length; i++) {
             this.recalculateParty(i, !!new_items[i]);
         }
+        var party_state = this.getPartyState();
+        this.set('name', party_state.name);
+        this.set('active', (party_state.active === this.self.ACTIVE_ON));
+        this.set('owner_id', party_state.owner_id);
     },
 
     recalculateParty: function (position, is_new) {

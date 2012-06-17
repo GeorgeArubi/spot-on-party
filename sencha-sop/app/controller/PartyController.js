@@ -6,16 +6,18 @@
  */
 Ext.define('SOP.controller.PartyController', {
     extend: 'SOP.controller.FacebookAuthenticatedController',
-    requires: ["SOP.view.ChooseParty", "SOP.model.Party"],
+    requires: ["SOP.model.Party"],
 
     config: {
         routes: {
-            "": "showChooseParty"
+            "": "showChooseParty",
+            "party/:party_id": "showParty",
         },
+        choosePartyPickerView: null,
     },
 
 
-    showChooseParty: function () {
+    generateAndAddChoosePartyView: function (callback) {
         var that = this;
         SOP.model.Party.loadActivePartiesForLoggedinUser(function (parties) {
             var store = Ext.create("Ext.data.Store", {
@@ -24,8 +26,61 @@ Ext.define('SOP.controller.PartyController', {
                 id: "PartyStore",
             });
             var view = Ext.create("SOP.view.ChooseParty", {store: store});
-            that.stopLoading();
+            view.on("listitemtap", that.onListItemTap, that);
+            view.on("back", that.onBack, that);
             Ext.Viewport.add(view);
+            that.setChoosePartyPickerView(view);
+            callback();
         });
+    },
+
+    showChooseParty: function () {
+        var that = this;
+        var view = that.getChoosePartyPickerView();
+        if (!view) {
+            //new
+            that.startLoading();
+            that.generateAndAddChoosePartyView(function () {
+                that.stopLoading();
+            });
+        } else {
+            that.stopLoading();
+            view.pop(view.items.length - 2); // 2 items need to remain (it won't pop more anyways) 
+        }
+    },
+
+    showParty: function (party_id_string) {
+        var that = this;
+        var party_id = parseInt(party_id_string, 10);
+        this.startLoading();
+        var loadAndShowView = function () {
+            SOP.model.Party.loadActiveAndFollow(party_id, function (party) {
+                if (!party) {
+                    console.log("help, party doesn't exist");
+                    SOP.app.redirectTo("");
+                } else {
+                    that.stopLoading();
+                    var view = Ext.create("SOP.view.PartyTabs", {party: party});
+                    that.getChoosePartyPickerView().push(view);
+                }
+            });
+        };
+        if (!that.getChoosePartyPickerView()) {
+            //hasn't been loaded yet, direct access, load it first
+            that.generateAndAddChoosePartyView(loadAndShowView);
+        } else {
+            loadAndShowView();
+        }
+
+    },
+
+    onListItemTap: function (view, party) {
+        this.startLoading();
+        SOP.app.redirectTo(party);
+    },
+
+    onBack: function (view) {
+        SOP.app.redirectTo("");
+        return false;
     },
 });

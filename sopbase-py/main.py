@@ -112,6 +112,13 @@ class GetActions(RequestHandlerBase):
         actions = party.get_actions(last_action_id, self.loggedin_user()) #pylint: disable=E1103
         self.reply_jsonp([action.for_api_use() for action in actions])
 
+class GetParty(RequestHandlerBase):
+    def get(self):
+        loggedin_user = self.loggedin_user()
+        party = model.Party.get_by_id(long(self.request.get("party_id")))
+        party.loggedin_user_is_invited(loggedin_user) #pylint: disable=E1103
+        self.reply_jsonp(party.for_api_use()) #pylint: disable=E1103
+
 class GetActiveParties(RequestHandlerBase):
     def get(self):
         loggedin_user = self.loggedin_user()
@@ -125,6 +132,7 @@ app = webapp2.WSGIApplication([
         ('/api/1/removesong', RemoveSong),
         ('/api/1/playposition', PlayPosition),
         ('/api/1/getactiveparties', GetActiveParties),
+        ('/api/1/getparty', GetParty),
         ('/api/1/getactions', GetActions),
                                ], debug=True)
 

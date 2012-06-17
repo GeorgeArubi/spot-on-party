@@ -8,7 +8,7 @@ Ext.application({
     requires: [
     ],
 
-    views: ["FacebookLogin", "ChooseParty"],
+    views: ["FacebookLogin", "ChooseParty", "PartyTabs"],
     controllers: ["BaseController", "FacebookAuthenticatedController", "PartyController"],
 
 

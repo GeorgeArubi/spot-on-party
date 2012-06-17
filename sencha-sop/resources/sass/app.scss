@@ -18,7 +18,7 @@
 
 // Your custom code goes here...
 
-#appLoadingIndicator {z-index: 1;  top: -2000px; opacity: 0; -webkit-transition-property: opacity, top; -webkit-transition-duration: 250ms,0; -webkit-transition-delay: 0, 250ms; }
+#appLoadingIndicator {z-index: 100;  top: -2000px; opacity: 0; -webkit-transition-property: opacity, top; -webkit-transition-duration: 250ms,0; -webkit-transition-delay: 0, 250ms; }
 body.sop_loading #appLoadingIndicator { opacity: 1; top: 0; -webkit-transition-delay: 0,0;}
 
 .fbLogin { width: 152px; height: 22px; background: url(../images/login.png) no-repeat; display: block; margin: 15px 0; }

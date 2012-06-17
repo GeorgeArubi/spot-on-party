@@ -102,20 +102,20 @@ class Party(db.Model):
         db.put([PartySongAddAction(song=song, party=party, user=invited_users[0]) for song in songs])
         return party
 
-    def _loggedin_user_is_invited(self, loggedin_user):
+    def loggedin_user_is_invited(self, loggedin_user):
         if not loggedin_user.key() in self.invited_user_ids:
             raise SecurityException("Loggedin user %s may not invite (%s)" % (loggedin_user.key(), ", ".join(self.invited_user_ids)))
         
 
     def remove_song(self, position, user, loggedin_user):
-        self._loggedin_user_is_invited(loggedin_user)
+        self.loggedin_user_is_invited(loggedin_user)
         action = PartySongRemoveAction(party=self, user=user, position=position)
         action.put()
         #TODO: fanout via channel
         return action
 
     def get_actions(self, bigger_than_action_id, loggedin_user):
-        self._loggedin_user_is_invited(loggedin_user)
+        self.loggedin_user_is_invited(loggedin_user)
         min_nr = bigger_than_action_id + 1
         max_nr = self.get_actionid_globalcounter().current()
         memcached_keys = [PartyAction.get_memcached_key(self, nr) for nr in range(min_nr, max_nr + 1)]
@@ -133,7 +133,7 @@ class Party(db.Model):
         return actions
 
     def play_position(self, position, user, loggedin_user):
-        self._loggedin_user_is_invited(loggedin_user)
+        self.loggedin_user_is_invited(loggedin_user)
         action = PartyPositionPlayAction(party=self, user=user, position=position)
         action.put()
         #TODO: fanout via channel
@@ -158,6 +158,7 @@ class Party(db.Model):
             "id": self.key().id(),
             "owner_id": self.owner.id(),
             "name": self.name,
+            "active": self.active,
             "created": self.created}
 
 @hooked_class
@@ -183,7 +184,7 @@ class PartyAction(polymodel.PolyModel):
     def for_api_use(self):
         return {
             "type": self.__class__.__name__,
-            "nr": self.key().nr(),
+            "nr": self.nr,
             "user_id": self.user.id(),
             "created": self.created}
 
