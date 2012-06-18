@@ -109,4 +109,10 @@ Ext.define('SOP.domain.FacebookDomain', {
             callback(fb_status.authResponse.accessToken);
         });
     },
+
+    lookupUsers: function (user_ids, callback) {
+        var params = {ids: user_ids.join(","), fields: "id,name"};
+        var url = "?" + Ext.Object.toQueryString(params);
+        FB.api(url, callback);
+    },
 });
