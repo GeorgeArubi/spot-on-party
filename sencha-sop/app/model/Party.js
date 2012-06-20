@@ -1,12 +1,17 @@
-/*jslint plusplus:true, vars:true, bitwise:true, plusplus: true  */
+/*jslint vars:true, bitwise:true, plusplus: true  */
 /*globals Ext, SOP*/
 "use strict";
 
 Ext.define("SOP.model.Party", {
     extend: "Ext.data.Model",
-    requires: ["SOP.model.Track", "SOP.domain.SopBaseDomain", "Ext.Array"],
+    requires: ["SOP.model.Track", "SOP.model.User", "SOP.model.PlaylistEntry", "SOP.domain.SopBaseDomain", "Ext.Array"],
 
     config: {
+        playlistEntryStore: Ext.create("Ext.data.Store", {
+            model: "SOP.model.PlaylistEntry",
+            data: [],
+            sorters: [{property: "position", direction: "ASC"}],
+        }),
         fields: [
             'id',
             "name",
@@ -22,12 +27,12 @@ Ext.define("SOP.model.Party", {
                             name: null,
                             invited_user_ids: {},
                             joined_user_ids: {},
-                            track_entries: [],
+                            playlist_entries: [],
                             active: 1, //ACTIVE_OFF, can't use static yes because it hasn't been defined yet
                         }
                     }
                 ],
-            }
+            },
         ],
     },
 
@@ -146,7 +151,7 @@ Ext.define("SOP.model.Party", {
         case "PartyCreateAction":
             party_state.active = this.self.ACTIVE_ON;
             party_state.name = action.name;
-            party_state.owner_id = action.user_id;
+            party_state.owner = SOP.model.User.loadLazy([action.user_id])[0];
             changed |= this.self.CHANGED_NAME | this.self.CHANGED_ACTIVE;
             break;
         case "PartyChangeNameAction":
@@ -154,19 +159,19 @@ Ext.define("SOP.model.Party", {
             changed |= this.self.CHANGED_NAME;
             break;
         case "PartyInviteAction":
-            party_state.invited_user_ids[action.invited_user_id] = action.created;
+            party_state.invited_user_ids[action.user_id] = {invited_user: SOP.model.User.loadLazy([action.invited_user_id])[0], created: action.created};
             changed |= this.self.CHANGED_INVITED;
             break;
         case "PartyKickAction":
             delete party_state.invited_user_ids[action.kicked_user_id];
             changed |= this.self.CHANGED_INVITED;
-            if (party_state.joined_user_ids[action.kicked_user_id]) {
-                delete party_state.joined_user_ids[action.kicked_user_id];
+            if (party_state.joined_users[action.kicked_user_id]) {
+                delete party_state.joined_users[action.kicked_user_id];
                 changed |= this.self.CHANGED_JOINED;
             }
             break;
         case "PartyJoinedAction":
-            party_state.joined_user_ids[action.user_id] = action.created;
+            party_state.joined_users[action.user_id] = {user: SOP.model.User.loadLazy([action.user_id])[0], created: action.created};
             changed |= this.self.CHANGED_INVITED;
             break;
         case "PartyLeftAction":
@@ -174,16 +179,29 @@ Ext.define("SOP.model.Party", {
             changed |= this.self.CHANGED_JOINED;
             break;
         case "PartySongAddAction":
-            party_state.track_entries.push({song: Ext.create("SOP.model.Track", {id: action.song_id}),
-                                           user_id: action.user_id,
-                                           deleted_by_user_id: null});
+            var playlist_entry = Ext.create("SOP.model.PlaylistEntry", {
+                id: this.get('id') + "_" + action.nr, //makes sure that the object is reused and updated if it already exists
+                track: SOP.model.Track.loadLazy([action.song_id])[0],
+                user: SOP.model.User.loadLazy([action.user_id])[0],
+                created: action.created,
+                deleted: null,
+                deleted_by_user: null,
+                position: party_state.playlist_entries.length,
+            });
+            party_state.playlist_entries.push(playlist_entry);
+            if (is_new) {
+                //add the record to the store
+                this.getPlaylistEntryStore().add(playlist_entry);
+            }
             changed |= this.self.CHANGED_PLAYLIST;
-/*            if (is_new) {
+            /*
+            if (is_new) {
                 doCommandCallback(Party.COMMAND_PLAY_IF_STOPPED, {position: party.song_ids.length - 1});
             }*/
             break;
         case "PartySongRemoveAction":
-            party_state.song_entries[action.position].deleted_by_user_id = action.user_id;
+            party_state.song_entries[action.position].set('deleted_by_user', SOP.model.User.loadLazy([action.user_id])[0]);
+            party_state.song_entries[action.position].set('deleted', action.created);
             changed |= this.self.CHANGED_PLAYLIST;
             /*
             if (is_new) {

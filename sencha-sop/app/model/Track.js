@@ -3,8 +3,8 @@
 "use strict";
 
 Ext.define("SOP.model.Track", {
-    extend: "Ext.data.Model",
-    requires: ["SOP.domain.SpotifyExternalDomain"],
+    extend: "SOP.model.LazyBaseModel",
+    requires: ["SOP.domain.SpotifyExternalDomain", "Ext.util.Format"],
 
 
     statics: {
@@ -37,5 +37,16 @@ Ext.define("SOP.model.Track", {
 
     config: {
         fields: ["id", "name", "artist", "loaded"],
-    }
+    },
+
+    getNameHtml: function () {
+        var that = this;
+        return that.getLazyFieldHtml("name", "----");
+    },
+
+    getArtistHtml: function () {
+        var that = this;
+        return that.getLazyFieldHtml("artist", "----");
+    },
+
 });

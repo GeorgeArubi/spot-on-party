@@ -5,11 +5,11 @@
 Ext.application({
     name: 'SOP',
 
-    requires: [
+    requires: ["Ext.data.Store",
     ],
 
-    models: ["User", "Track", "Party"],
-    views: ["FacebookLogin", "ChooseParty", "PartyTabs"],
+    models: ["PlaylistEntry", "User", "Track", "Party"],
+    views: ["FacebookLogin", "ChooseParty", "PartyTabs", "PlaylistView"],
     controllers: ["BaseController", "FacebookAuthenticatedController", "PartyController"],
 
 

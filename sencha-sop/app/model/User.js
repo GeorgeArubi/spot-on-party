@@ -3,7 +3,7 @@
 "use strict";
 
 Ext.define("SOP.model.User", {
-    extend: "Ext.data.Model",
+    extend: "SOP.model.LazyBaseModel",
     requires: ["SOP.domain.FacebookDomain"],
 
 
@@ -41,5 +41,11 @@ Ext.define("SOP.model.User", {
 
     config: {
         fields: ["id", "name", "loaded"],
-    }
+    },
+
+    getNameHtml: function () {
+        var that = this;
+        return that.getLazyFieldHtml("name", "----");
+    },
+
 });
