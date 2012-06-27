@@ -28,12 +28,31 @@ body.sop_loading #appLoadingIndicator { opacity: 1; top: 0; -webkit-transition-d
   p { padding-top: 10px; }
 }
 
-.playlist_row { height: 50px; color: #333333; overflow: hidden; position: relative;
-  .playlist_name {}
-  .playlist_artist {font-size: 0.6em; color: #555555; float: left; }
-  .playlist_user_added {font-size: 0.6em; color: #555555; float: left; }
-  .playlist_user_added:before {content: "-- added by: "}
-  .buttons {position: absolute; top: 3px; right: 3px; }  
-  .playlist_play_btn:before {content: "play"; }
-  .playlist_remove_btn:before {content: "del"; }
+.playlist-entry {height: 50px; color: #333333; overflow: hidden; position: relative;
+  .playlist-name {}
+  .playlist-artist {font-size: 0.6em; color: #555555; float: left; }
+  .playlist-user-added {font-size: 0.6em; color: #555555; float: left;
+    .x-innerhtml {display: inline; }
+  }
+  .playlist-user-added:before {content: " -- added by: "}
+
+  .playlist-user-deleted {font-size: 0.9em; color: red; position: absolute; background-color:rgba(200,200,200,.8); top: 0; width: 100%; height: 100%; text-align: center; display: none; padding-top: 10px;
+    .x-innerhtml {display: inline; }
+  }
+  .playlist-user-deleted:before {content: " removed by: "}
+  .buttons {position: absolute; top: 3px; right: 3px; -webkit-transition: opacity 300ms}
+  .delete-confirm-overlay {display: none; position: absolute; z-index: 10;width: 100%; height: 100%; } 
+  .delete-confirm-btn-mask {position: absolute; overflow: hidden; z-index: 11; right: 0px; width: 0px; height: 100%; -webkit-transition: width 300ms}
+  .delete-confirm-btn {position: absolute; right: 10px; top: 5px; }
+}
+
+.delete-confirm-mask .playlist-entry .delete-confirm-overlay {display: block; }
+.playlist-entry.delete-confirm {
+  .delete-confirm-btn-mask {width: 100px; }
+  .buttons {opacity: 0; }
+}
+
+.playlist-entry.deleted {height: 0px; -webkit-transition: height 2s ease 10s;
+  .buttons {display: none; }
+  .playlist-user-deleted {display: block; }  
 }

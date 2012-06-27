@@ -63,8 +63,14 @@ Ext.define('SOP.controller.PartyController', {
                     SOP.app.redirectTo("");
                 } else {
                     that.stopLoading();
-                    var view = Ext.create("SOP.view.PartyTabs", {party: party});
+                    var view = Ext.create("SOP.view.PartyTabs", {party: party, myNavigationView: that.getChoosePartyPickerView()});
                     that.getChoosePartyPickerView().push(view);
+                    view.down("playlistview").on("itemdelete", function (playlistEntry) {
+                        SOP.domain.SopBaseDomain.removeSong(party.get('id'), playlistEntry.position, function (action) {
+                            console.log("removed: ", action);
+                            party.feed([action]);
+                        });
+                    });
                 }
             });
         };

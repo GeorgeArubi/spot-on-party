@@ -1,9 +1,10 @@
-/*jslint sloppy: true*/
+/*jslint sloppy: true, vars: true*/
 /*globals Ext, SOP*/
 
 Ext.define("SOP.view.ChooseParty", {
     extend: "Ext.navigation.View",
-    requires: ["Ext.dataview.List", "Ext.MessageBox"],
+    xtype: "chooseparty",
+    requires: ["Ext.dataview.List", "Ext.MessageBox", "Ext.Button", ],
 
     config: {
         id: "choosePartyPicker",
@@ -12,6 +13,10 @@ Ext.define("SOP.view.ChooseParty", {
             layout: "vbox",
         }],
         useTitleForBackButtonText: true,
+        rightButton: null,
+        listeners: {
+            activeitemchange: "onActiveItemChange",
+        }
     },
 
     initialize: function () {
@@ -47,6 +52,34 @@ Ext.define("SOP.view.ChooseParty", {
             });
         } else {
             Ext.Msg.hide();
+        }
+    },
+
+    applyRightButton: function (value, oldValue) {
+        var that = this;
+        if (value) {
+            var button = Ext.create("Ext.Button", Ext.merge({xtype: "button", align: "right"}, value));
+            return button;
+        }
+        return null;
+    },
+
+    updateRightButton: function (value, oldValue) {
+        var that = this;
+        if (oldValue) {
+            oldValue.destroy();
+        }
+        if (value) {
+            that.getNavigationBar().add(value);
+        }
+    },
+
+    onActiveItemChange: function (container, value, oldValue) {
+        if (oldValue.rightButtonSetter) {
+            oldValue.rightButtonSetter(oldValue, null, oldValue.getActiveItem());
+        }
+        if (value.rightButtonSetter) {
+            value.rightButtonSetter(value, value.getActiveItem(), null);
         }
     },
 });

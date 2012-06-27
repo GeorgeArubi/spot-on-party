@@ -19,6 +19,7 @@ Ext.define("SOP.domain.SopBaseDomain", {
         var that = this;
         SOP.domain.FacebookDomain.getAccessToken(function (accesstoken) {
             if (that.channel_info === null) {
+//                goog.appengine.Socket.POLLING_TIMEOUT_MS = 3000; //decreasing polling interval results in lost data
                 that.channel_info = "loading";
                 that.doCall_helper("getchanneltoken", {}, accesstoken, function (channel_info) {
                     that.channel_info = channel_info;

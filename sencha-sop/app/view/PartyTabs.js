@@ -1,5 +1,6 @@
-/*jslint sloppy: true*/
+/*jslint vars: true*/
 /*globals Ext, SOP*/
+"use strict";
 
 Ext.define("SOP.view.PartyTabs", {
     extend: "Ext.TabPanel",
@@ -8,6 +9,13 @@ Ext.define("SOP.view.PartyTabs", {
         tabBarPosition: 'bottom',
         party: null,
         title: null,
+        listeners: {
+            initialize: "onInitialize",
+            show: "onShow",
+            hide: "onHide",
+            activeitemchange: "rightButtonSetter",
+        },
+        myNavigationView: null,
     },
 
     updateName: function () {
@@ -15,21 +23,35 @@ Ext.define("SOP.view.PartyTabs", {
     },
 
     onShow: function () {
-        this.getParty().on("namechanged", this.updateName, this);
-        this.updateName();
+        var that = this;
+        that.getParty().on("namechanged", this.updateName, this);
+        that.updateName();
     },
 
     onHide: function () {
-        this.getParty().un("namechanged", this.updateName);
+        var that = this;
+        that.getParty().un("namechanged", this.updateName);
     },
 
-
-    initialize: function () {
-        this.callParent(arguments);
+    onInitialize: function () {
         this.add(Ext.create("SOP.view.PlaylistView", {
             store: this.getParty().getPlaylistEntryStore(),
         }));
-        this.on("show", this.onShow, this);
-        this.on("hide", this.onHide, this);
+        this.add(Ext.create("Ext.Button", {
+            text: "hello",
+            "title": "hi",
+        }));
+    },
+
+    rightButtonSetter: function (container, value, oldValue) {
+        var that = this;
+        if (value !== oldValue) {
+            if (value && value.getRightButtonInfo && value.getRightButtonInfo()) {
+                that.getMyNavigationView().setRightButton(value.getRightButtonInfo());
+                that.getMyNavigationView().getRightButton().on("tap", function () {value.fireEvent("rightbuttontap"); });
+            } else {
+                that.getMyNavigationView().setRightButton(null);
+            }
+        }
     },
 });

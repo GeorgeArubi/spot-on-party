@@ -11,6 +11,22 @@ Ext.define("SOP.model.Party", {
             model: "SOP.model.PlaylistEntry",
             data: [],
             sorters: [{property: "position", direction: "ASC"}],
+            listeners: {
+                // this is needed because the playlistentry contains other objects, and in those cases the stores don't
+                // get notified of the update
+                addrecords: function (store, records) {
+                    var that = this;
+                    Ext.each(records, function (playlistEntry) {
+                        var storeInteface = {
+                            afterEdit: function () { store.afterEdit(playlistEntry, ['track', 'user'], {}); },
+                            afterCommit: function () { },
+                            afterErase: function () { },
+                        };
+                        playlistEntry.get('track').join(storeInteface);
+                        playlistEntry.get('user').join(storeInteface);
+                    });
+                }
+            }
         }),
         fields: [
             'id',
@@ -203,8 +219,10 @@ Ext.define("SOP.model.Party", {
             }*/
             break;
         case "PartySongRemoveAction":
-            party_state.song_entries[action.position].set('deleted_by_user', SOP.model.User.loadLazy([action.user_id])[0]);
-            party_state.song_entries[action.position].set('deleted', action.created);
+            party_state.playlist_entries[action.position].set({
+                deleted_by_user: SOP.model.User.loadLazy([action.user_id])[0],
+                deleted: action.created,
+            });
             changed |= this.self.CHANGED_PLAYLIST;
             /*
             if (is_new) {

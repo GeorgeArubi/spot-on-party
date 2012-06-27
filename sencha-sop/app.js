@@ -8,7 +8,7 @@ Ext.application({
     requires: ["Ext.data.Store", ],
 
     models: ["PlaylistEntry", "User", "Track", "Party"],
-    views: ["FacebookLogin", "ChooseParty", "PartyTabs", "PlaylistView", "PlaylistEntryView"],
+    views: ["FacebookLogin", "ChooseParty", "PartyTabs", "PlaylistView", "PlaylistEntryView", ],
     controllers: ["BaseController", "FacebookAuthenticatedController", "PartyController"],
 
 
