@@ -1,34 +1,78 @@
 /*jslint vars: true */
-/*globals Ext, SOP */
+/*globals Ext, SOP, goog */
 "use strict";
 
 /**
  * parent class for all model classes that connect to the SOP backend
  */
 Ext.define("SOP.domain.SopBaseDomain", {
-    requires: ["Ext.data.JsonP", "SOP.domain.FacebookDomain"],
+    requires: ["Ext.data.JsonP", "SOP.domain.FacebookDomain", "Ext.JSON"],
+    mixins: ['Ext.mixin.Observable'],
 
     singleton: true,
 
     BASE_URL: "//tiggr.local:8081/api/1/",
 
+    channel_info: null,
+
     doCall: function (path, extra_parameters, callback) {
         var that = this;
         SOP.domain.FacebookDomain.getAccessToken(function (accesstoken) {
-            var params = Ext.merge({at: accesstoken}, extra_parameters);
-            var url = that.BASE_URL + path;
-            Ext.data.JsonP.request({
-                url: url,
-                params: params,
-                callbackKey: "callback",
-                success: function (result, request) {
-                    console.log("sop calling:", url, result);
-                    if (callback) {
-                        callback(result);
-                    }
-                }
-            });
+            if (that.channel_info === null) {
+                that.channel_info = "loading";
+                that.doCall_helper("getchanneltoken", {}, accesstoken, function (channel_info) {
+                    that.channel_info = channel_info;
+                    that.channel_info.channel = new goog.appengine.Channel(that.channel_info.token);
+                    var callback_functions;
+                    callback_functions = {
+                        onopen: function () {
+                            console.log("channel open");
+                        },
+                        onmessage: function (message) {
+                            that.onMessage(Ext.JSON.decode(message.data));
+                        },
+                        onerror: function (error) {
+                            console.log("channel error", error);
+                        },
+                        onclose: function () {
+                            console.log("channel close");
+                            //TODO: after 2 hours we need a new token
+                            that.channel_info.channel.open(callback_functions);
+                        }
+                    };
+                    that.channel_info.channel.open(callback_functions);
+                });
+            }
+            that.doCall_helper(path, extra_parameters, accesstoken, callback);
         });
+    },
+
+    doCall_helper: function (path, extra_parameters, accesstoken, callback) {
+        var that = this;
+        var params = Ext.merge({at: accesstoken}, extra_parameters);
+        var url = that.BASE_URL + path;
+        Ext.data.JsonP.request({
+            url: url,
+            params: params,
+            callbackKey: "callback",
+            success: function (result, request) {
+                console.log("sop calling:", url, result);
+                if (callback) {
+                    callback(result);
+                }
+            }
+        });
+    },
+
+    onMessage: function (message_data) {
+        console.log("onmessage", message_data);
+        var that = this;
+        var message_type = message_data.type;
+        switch (message_type) {
+        case "addparty":
+            that.fireEvent(message_type, message_data.party);
+            break;
+        }
     },
 
     createParty: function (name, invited_friends, callback) {

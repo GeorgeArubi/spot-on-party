@@ -135,9 +135,12 @@ Ext.define("SOP.model.Party", {
             this.recalculateParty(i, !!new_items[i]);
         }
         var party_state = this.getPartyState();
-        this.set('name', party_state.name);
+        if (this.get('name') !== party_state.name) {
+            this.set('name', party_state.name);
+            this.fireEvent("namechanged");
+        }
         this.set('active', (party_state.active === this.self.ACTIVE_ON));
-        this.set('owner_id', party_state.owner_id);
+        this.set('owner_id', party_state.owner.get('id'));
     },
 
     recalculateParty: function (position, is_new) {

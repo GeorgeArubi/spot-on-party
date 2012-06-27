@@ -27,3 +27,13 @@ body.sop_loading #appLoadingIndicator { opacity: 1; top: 0; -webkit-transition-d
   h2 { font-weight: bold; }
   p { padding-top: 10px; }
 }
+
+.playlist_row { height: 50px; color: #333333; overflow: hidden; position: relative;
+  .playlist_name {}
+  .playlist_artist {font-size: 0.6em; color: #555555; float: left; }
+  .playlist_user_added {font-size: 0.6em; color: #555555; float: left; }
+  .playlist_user_added:before {content: "-- added by: "}
+  .buttons {position: absolute; top: 3px; right: 3px; }  
+  .playlist_play_btn:before {content: "play"; }
+  .playlist_remove_btn:before {content: "del"; }
+}

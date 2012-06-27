@@ -3,7 +3,7 @@
 
 Ext.define("SOP.view.ChooseParty", {
     extend: "Ext.navigation.View",
-    requires: ["Ext.dataview.List"],
+    requires: ["Ext.dataview.List", "Ext.MessageBox"],
 
     config: {
         id: "choosePartyPicker",
@@ -15,14 +15,19 @@ Ext.define("SOP.view.ChooseParty", {
     },
 
     initialize: function () {
-        this.callParent(arguments);
-        this.list = Ext.create("Ext.dataview.List", {
+        var that = this;
+        that.callParent(arguments);
+        that.list = Ext.create("Ext.dataview.List", {
             flex: 1,
             itemTpl: '{name}',
-            store: this.store,
+            store: that.store,
         });
-        this.items.first().add([this.list]);
-        this.list.on("itemtap", this.onListItemTap, this);
+        that.items.first().add([this.list]);
+        that.list.on("itemtap", that.onListItemTap, that);
+        Ext.each(["addrecords", "clear", "removerecords", "updaterecord"], function (eventname) {
+            that.store.on(eventname, that.onStoreChange, that);
+        });
+        that.onStoreChange();
     },
 
     onListItemTap: function (list, index, target, record, event) {
@@ -30,6 +35,19 @@ Ext.define("SOP.view.ChooseParty", {
         Ext.defer(function () {
             list.deselectAll();
         }, 200);
-    }
+    },
+
+    onStoreChange: function () {
+        var that = this;
+        if (that.store.getAllCount() === 0) {
+            Ext.Msg.show({
+                title       : "No parties",
+                message     : "Nobody has invited you to a party yet",
+                buttons     : [],
+            });
+        } else {
+            Ext.Msg.hide();
+        }
+    },
 });
 

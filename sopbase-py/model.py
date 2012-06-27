@@ -1,8 +1,10 @@
 from google.appengine.ext import db
 from google.appengine.ext.db import polymodel
 from google.appengine.api import memcache
-import logging
+from google.appengine.api import channel
+import logging, json
 import util
+
 
 def hooked_class(original_class): #decorator
     original_put = original_class.put
@@ -81,17 +83,17 @@ class Party(db.Model):
         party_actions = db.Query()
 
     @classmethod
-    def create(cls, name, owner, invited_users):
+    def create(cls, name, owner):
         party = cls()
         party.name = name
         party.owner = owner
         party.active = True
-        party.invited_user_ids = [user.key() for user in invited_users]
+        party.invited_user_ids = [owner.key()]
         party.put()
         
         PartyCreateAction(party=party, user=get_party_owner_user(), name=name).put()
 
-        db.put([PartyInviteAction(party=party, user=get_party_owner_user(), invited_user=user) for user in invited_users])
+        party.invite_user(owner, owner)
         songs = [
             Song(key_name="spotify:track:7gSeGMqiOrv7ftmxYLFaOA", name="Moondance"),
             Song(key_name="spotify:track:3HReViQnCFUk56f4PXO3Tx", name="A night like this"),
@@ -99,13 +101,22 @@ class Party(db.Model):
             
         db.put(songs)
 
-        db.put([PartySongAddAction(song=song, party=party, user=invited_users[0]) for song in songs])
+        db.put([PartySongAddAction(song=song, party=party, user=owner) for song in songs])
         return party
 
     def loggedin_user_is_invited(self, loggedin_user):
         if not loggedin_user.key() in self.invited_user_ids:
-            raise SecurityException("Loggedin user %s may not invite (%s)" % (loggedin_user.key(), ", ".join(self.invited_user_ids)))
+            raise SecurityException("Loggedin user %s is not part of the party (%s)" % (loggedin_user.key(), ", ".join(self.invited_user_ids)))
+
+    def loggedin_user_is_admin(self, loggedin_user):
+        if loggedin_user.key() != self.owner.key():
+            raise SecurityException("Loggedin user %s is not admin of the party (%s)" % (loggedin_user.key(), self.owner.key()))
         
+
+    def invite_user(self, user, loggedin_user):
+        self.loggedin_user_is_admin(loggedin_user)
+        action = PartyInviteAction(party=self, user=loggedin_user, invited_user=user)
+        action.put()
 
     def remove_song(self, position, user, loggedin_user):
         self.loggedin_user_is_invited(loggedin_user)
@@ -201,11 +212,23 @@ class PartyCreateAction(PartyChangeNameAction):
 class PartyInviteAction(PartyAction):
     invited_user = db.ReferenceProperty(reference_class=User)
 
+    def post_put(self):
+        user_channels = UserChannel.get_all_for_user(self.invited_user)
+        message = json.dumps({"type": "addparty", "party": self.party.for_api_use()}, default=util.json_default_handler) 
+        for user_channel in user_channels:
+            user_channel.send_message(message)
+
     def for_api_use(self):
         return dict(super(PartyInviteAction, self).for_api_use().items() + [('invited_user_id', self.invited_user.id()),])
 
 class PartyKickAction(PartyAction):
     kicked_user = db.ReferenceProperty(reference_class=User)
+    
+    def post_put(self):
+        user_channels = UserChannel.get_all_for_user(self.kicked_user)
+        message = json.dumps({"type": "removeparty", "party": self.party.for_api_use}) 
+        for user_channel in user_channels:
+            user_channel.send_message(message)
 
     def for_api_use(self):
         return dict(super(PartyKickAction, self).for_api_use().items() + [('kicked_user_id', self.kicked_user.id()),])
@@ -242,7 +265,50 @@ class PartyPauseAction(PartyAction):
     pass
 
 class PartyOnAction(PartyAction):
-    pass #TODO: update the party "active" state
+    pass
 class PartyOffACtion(PartyAction):
-    pass #TODO: update the party "active" state
+    pass
 
+@hooked_class
+class UserChannel(db.Model):
+    user = db.ReferenceProperty(reference_class=User)
+    created = db.DateTimeProperty(auto_now_add = True)
+    modified = db.DateTimeProperty(auto_now = True)
+    
+    @classmethod
+    def init_for_user(cls, user):
+        user_channel = UserChannel(user = user)
+        user_channel.put()
+        return user_channel
+
+    @classmethod
+    def get_all_for_user(cls, user):
+        user_channels = cls.all().filter("user = ", user)
+        return user_channels
+
+    def on_disconnect(self):
+        self.delete()
+
+    def get_channel_id(self):
+        return str(self.key().id_or_name())
+
+    def get_token(self):
+        self.put() # will update the modified field
+        return channel.create_channel(self.get_channel_id())
+
+    def send_message(self, message):
+        channel.send_message(self.get_channel_id(), message)
+
+@hooked_class
+class ChannelList(db.Model):
+    user_channel_ids = db.ListProperty(db.Key)
+    created = db.DateTimeProperty(auto_now_add = True)
+    modified = db.DateTimeProperty(auto_now = True)
+
+    @classmethod
+    def addUserChannel(cls, channel_list_id, user_channel):
+        channel_list = cls.get_or_insert(channel_list_id)
+        channel_list.user_channel_ids.append(user_channel.key())
+        channel_list.put()
+
+    

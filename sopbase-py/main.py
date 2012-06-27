@@ -74,12 +74,7 @@ class RequestHandlerBase(webapp2.RequestHandler):
 class CreateParty(RequestHandlerBase):
     def get(self):
         name = self.request.get("name")
-        invited_user_ids = self.request.get("invited_user_ids").split(",")
-        if not self.loggedin_user().id() in invited_user_ids:
-            invited_user_ids.append(self.loggedin_user().id())
-        invited_users = self.get_users(invited_user_ids)
-
-        party = model.Party.create(name, self.loggedin_user(), invited_users)
+        party = model.Party.create(name, self.loggedin_user())
 
         self.reply_jsonp(party.for_api_use())
 
@@ -125,6 +120,26 @@ class GetActiveParties(RequestHandlerBase):
         parties = model.Party.all().filter("active", True).filter("invited_user_ids", loggedin_user.key())
         self.reply_jsonp([party.for_api_use() for party in parties])
 
+class GetChannelToken(RequestHandlerBase):
+    def get(self):
+        loggedin_user = self.loggedin_user()
+        channel_id = self.request.get("channel_id")
+        if (channel_id):
+            pass
+        else:
+            user_channel = model.UserChannel.init_for_user(loggedin_user)
+        token = user_channel.get_token()
+        self.reply_jsonp({"channel_id": user_channel.get_channel_id(), "token": token})
+
+class InviteUsers(RequestHandlerBase):
+    def get(self):
+        loggedin_user = self.loggedin_user()
+        party = model.Party.get_by_id(long(self.request.get("party_id")))
+        invited_user_ids = self.request.get("invited_user_ids").split(",")
+        invited_users = self.get_users(invited_user_ids)
+        actions = [party.invite_user(user, loggedin_user) for user in invited_users] #pylint: disable=E1103
+        self.reply_jsonp([action.for_api_use() for action in actions])
+
 logging.getLogger().setLevel(logging.DEBUG)
 
 app = webapp2.WSGIApplication([
@@ -133,6 +148,7 @@ app = webapp2.WSGIApplication([
         ('/api/1/playposition', PlayPosition),
         ('/api/1/getactiveparties', GetActiveParties),
         ('/api/1/getparty', GetParty),
+        ('/api/1/getchanneltoken', GetChannelToken),
         ('/api/1/getactions', GetActions),
                                ], debug=True)
 

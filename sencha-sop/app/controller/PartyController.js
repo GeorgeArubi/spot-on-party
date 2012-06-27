@@ -23,7 +23,10 @@ Ext.define('SOP.controller.PartyController', {
             var store = Ext.create("Ext.data.Store", {
                 model: "SOP.model.Party",
                 data: parties,
-                id: "PartyStore",
+            });
+            SOP.domain.SopBaseDomain.on("addparty", function (party_info) {
+                var party = new SOP.model.Party(party_info);
+                store.add(party);
             });
             var view = Ext.create("SOP.view.ChooseParty", {store: store});
             view.on("listitemtap", that.onListItemTap, that);
