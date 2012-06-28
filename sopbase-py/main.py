@@ -89,6 +89,17 @@ class RemoveSong(RequestHandlerBase):
         action = party.remove_song(position, user, self.loggedin_user()) #pylint: disable=E1103
         self.reply_jsonp(action.for_api_use())
 
+class AddSong(RequestHandlerBase):
+    def get(self):
+        party = model.Party.get_by_id(long(self.request.get("party_id")))
+        if self.request.get("sp"):
+            user = model.get_party_owner_user()
+        else:
+            user = self.loggedin_user()
+        song_id = self.request.get("song_id")
+        action = party.add_song(song_id, user, self.loggedin_user()) #pylint: disable=E1103
+        self.reply_jsonp(action.for_api_use())
+
 class PlayPosition(RequestHandlerBase):
     def get(self):
         party = model.Party.get_by_id(long(self.request.get("party_id")))
@@ -103,6 +114,15 @@ class PlayPosition(RequestHandlerBase):
 class GetActions(RequestHandlerBase):
     def get(self):
         party = model.Party.get_by_id(long(self.request.get("party_id")))
+        last_action_id = long(self.request.get("last_action_id", 0))
+        actions = party.get_actions(last_action_id, self.loggedin_user()) #pylint: disable=E1103
+        self.reply_jsonp([action.for_api_use() for action in actions])
+
+class JoinParty(RequestHandlerBase):
+    def get(self):
+        party = model.Party.get_by_id(long(self.request.get("party_id")))
+        channel_id = long(self.request.get("channel_id"))
+        
         last_action_id = long(self.request.get("last_action_id", 0))
         actions = party.get_actions(last_action_id, self.loggedin_user()) #pylint: disable=E1103
         self.reply_jsonp([action.for_api_use() for action in actions])
@@ -144,11 +164,13 @@ logging.getLogger().setLevel(logging.DEBUG)
 
 app = webapp2.WSGIApplication([
         ('/api/1/createparty', CreateParty),
+        ('/api/1/addsong', AddSong),
         ('/api/1/removesong', RemoveSong),
         ('/api/1/playposition', PlayPosition),
         ('/api/1/getactiveparties', GetActiveParties),
         ('/api/1/getparty', GetParty),
         ('/api/1/getchanneltoken', GetChannelToken),
+        ('/api/1/joinparty', JoinParty),
         ('/api/1/getactions', GetActions),
                                ], debug=True)
 

@@ -28,15 +28,32 @@ Ext.define("SOP.model.Track", {
             SOP.domain.SpotifyExternalDomain.lookup(track_id, function (info) {
                 track.set('name', info.track.name);
                 track.set('artist', Ext.Array.map(info.track.artists, function (artist) {return artist.name; }).join(", "));
+                track.set('album', info.track.album.name);
                 track.set('loaded', true);
                 track.fireEvent("loaded");
             });
             return track;
-        }
+        },
+
+        /**
+          * does a spotify search for these terms, returns song objects
+          **/
+        search: function (terms, callback) {
+            var that = this;
+            SOP.domain.SpotifyExternalDomain.search(terms, function (result) {
+                callback(Ext.Array.map(result.tracks, function (track_info) {
+                    var id = track_info.href;
+                    var name = track_info.name;
+                    var artist = Ext.Array.map(track_info.artists, function (artist) {return artist.name; }).join(", ");
+                    var album = track_info.album.name;
+                    return Ext.create(that, {id: id, name: name, artist: artist, album: album, loaded: true});
+                }));
+            });
+        },
     },
 
     config: {
-        fields: ["id", "name", "artist", "loaded"],
+        fields: ["id", "name", "artist", "album", "loaded"],
     },
 
     getNameHtml: function () {

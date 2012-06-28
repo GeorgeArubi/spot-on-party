@@ -125,6 +125,16 @@ class Party(db.Model):
         #TODO: fanout via channel
         return action
 
+    def add_song(self, song_id, user, loggedin_user):
+        self.loggedin_user_is_invited(loggedin_user)
+        Song(key_name="spotify:track:04zm16Wb5rUuQzhpC8JsZh", name="That Man")
+        song = Song(key_name=song_id, name="to_be_resolved") #TODO: spotify lookup: does track actually exist
+        song.put()
+        action = PartySongAddAction(party=self, user=user, song=song)
+        action.put()
+        #TODO: fanout via channel
+        return action
+
     def get_actions(self, bigger_than_action_id, loggedin_user):
         self.loggedin_user_is_invited(loggedin_user)
         min_nr = bigger_than_action_id + 1
@@ -300,13 +310,14 @@ class UserChannel(db.Model):
         channel.send_message(self.get_channel_id(), message)
 
 @hooked_class
-class ChannelList(db.Model):
+class Listeners(db.Model):
     user_channel_ids = db.ListProperty(db.Key)
     created = db.DateTimeProperty(auto_now_add = True)
     modified = db.DateTimeProperty(auto_now = True)
 
     @classmethod
-    def addUserChannel(cls, channel_list_id, user_channel):
+    def addPartyListener(cls, party, user_channel, loggedin_user):
+        channel_list_id = "party_%d" % party.id
         channel_list = cls.get_or_insert(channel_list_id)
         channel_list.user_channel_ids.append(user_channel.key())
         channel_list.put()

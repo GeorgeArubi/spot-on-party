@@ -14,7 +14,10 @@ Ext.define("SOP.view.PlaylistView", {
         defaultType: "playlistentry",
 
         listeners: {
-            rightbuttontap: function () {console.log("rightbuttontap"); },
+            rightbuttontap: function () {
+                var that = this;
+                that.up("partytabs").fireEvent("addsongbuttontap");
+            },
             itemswipe: "onItemSwipe",
         },
         rightButtonInfo: {iconCls: "add", iconMask: true, ui: "action"},

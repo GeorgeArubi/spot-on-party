@@ -6,7 +6,7 @@
  */
 Ext.define('SOP.controller.PartyController', {
     extend: 'SOP.controller.FacebookAuthenticatedController',
-    requires: ["SOP.model.Party"],
+    requires: ["SOP.model.Party", "SOP.model.Track", ],
 
     config: {
         routes: {
@@ -14,6 +14,7 @@ Ext.define('SOP.controller.PartyController', {
             "party/:party_id": "showParty",
         },
         choosePartyPickerView: null,
+        addSongsView: null,
     },
 
 
@@ -70,6 +71,34 @@ Ext.define('SOP.controller.PartyController', {
                             console.log("removed: ", action);
                             party.feed([action]);
                         });
+                    });
+                    view.down("playlistview").on("rightbuttontap", function () {
+                        if (!that.getAddSongsView()) {
+                            that.setAddSongsView(Ext.create("SOP.view.AddSongsView"));
+                            that.getAddSongsView().on("cancel", function () {that.getAddSongsView().hide(); });
+                            that.getAddSongsView().on("addtrack", function (track_id) {
+                                SOP.domain.SopBaseDomain.addSong(party.get('id'), track_id, function (action) {
+                                    console.log("added: ", action);
+                                    party.feed([action]);
+                                    that.getAddSongsView().hide();
+                                });
+                            });
+                            that.getAddSongsView().on("invalidatesearchresults", function (terms) {
+                                var searchresults = that.getAddSongsView().down("[localid=searchresults]");
+// -- doesn't work since enter is keyup as well                                searchresults.addCls("clear");
+                            });
+                            that.getAddSongsView().on("search", function (terms) {
+                                var searchresults = that.getAddSongsView().down("[localid=searchresults]");
+                                searchresults.addCls("loading");
+                                searchresults.removeCls("clear");
+                                SOP.model.Track.search(terms, function (tracks) {
+                                    searchresults.removeCls("loading");
+                                    searchresults.down("dataview").getStore().setData(tracks);
+                                });
+                            });
+                            Ext.Viewport.add(that.getAddSongsView());
+                        }
+                        that.getAddSongsView().show();
                     });
                 }
             });

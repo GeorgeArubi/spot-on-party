@@ -29,7 +29,7 @@ body.sop_loading #appLoadingIndicator { opacity: 1; top: 0; -webkit-transition-d
 }
 
 .playlist-entry {height: 50px; color: #333333; overflow: hidden; position: relative;
-  .playlist-name {}
+  .playlist-name {white-space: nowrap; padding-right: 150 px; overflow: hidden; text-overflow: ellipsis;}
   .playlist-artist {font-size: 0.6em; color: #555555; float: left; }
   .playlist-user-added {font-size: 0.6em; color: #555555; float: left;
     .x-innerhtml {display: inline; }
@@ -55,4 +55,20 @@ body.sop_loading #appLoadingIndicator { opacity: 1; top: 0; -webkit-transition-d
 .playlist-entry.deleted {height: 0px; -webkit-transition: height 2s ease 10s;
   .buttons {display: none; }
   .playlist-user-deleted {display: block; }  
+}
+
+.addsongs {
+  .searchresults {
+    .loader {position: absolute; width: 100%; height: 100%; text-align: center; background-color: rgba(200, 200, 200, 0.8); display: none; }
+    .loader:before {content: "loading"; }
+    .x-dataview-item {overflow: hidden; height: 50px; border-bottom: 1px solid #333333;
+      .subtitle {color: #555555; font-size: 0.7em; text-overflow: ellipsis; white-space: nowrap; margin-right: 35px; overflow: hidden; /*doesn't work yet: TODO! */
+      }
+      .subtitle>div {display: inline; }
+    }     
+  }
+  .searchresults.clear>div {visibility: hidden; }
+  .searchresults.loading {
+    .loader {display: block; }
+  }  
 }

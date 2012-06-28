@@ -3,6 +3,7 @@
 "use strict";
 
 Ext.define("SOP.view.PartyTabs", {
+    xtype: "partytabs",
     extend: "Ext.TabPanel",
 
     config: {
