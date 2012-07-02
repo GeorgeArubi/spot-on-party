@@ -13,6 +13,7 @@ Ext.define("SOP.domain.SopBaseDomain", {
 
     BASE_URL: "//tiggr.local:8081/api/1/",
 
+    sid: String(Math.random()).substr(2),
     channel_info: null,
 
     doCall: function (path, extra_parameters, callback) {
@@ -50,7 +51,7 @@ Ext.define("SOP.domain.SopBaseDomain", {
 
     doCall_helper: function (path, extra_parameters, accesstoken, callback) {
         var that = this;
-        var params = Ext.merge({at: accesstoken}, extra_parameters);
+        var params = Ext.merge({at: accesstoken, sid: that.sid}, extra_parameters);
         var url = that.BASE_URL + path;
         Ext.data.JsonP.request({
             url: url,
@@ -73,6 +74,14 @@ Ext.define("SOP.domain.SopBaseDomain", {
         case "addparty":
             that.fireEvent(message_type, message_data.party);
             break;
+        case "removeparty":
+            that.fireEvent(message_type, message_data.party);
+            break;
+        case "partyaction":
+            that.fireEvent(message_type + "_" + message_data.party_id, message_data.action);
+            break;
+        default:
+            throw "Unknown type: " + message_type;
         }
     },
 
@@ -100,8 +109,16 @@ Ext.define("SOP.domain.SopBaseDomain", {
         this.doCall("getparty", {party_id: party_id}, callback);
     },
 
-    followParty: function (callback) {
-//        this.doCall("followparty", {}, callback)
+    joinParty: function (party_id, callback, scope) {
+        var that = this;
+        that.doCall("joinparty", {party_id: party_id}, function () {});
+        that.on("partyaction_" + party_id, callback, scope);
+    },
+
+    leaveParty: function (party_id, callback, scope) {
+        var that = this;
+        that.doCall("leaveparty", {party_id: party_id}, function () {});
+        that.un("partyaction_" + party_id, callback, scope);
     },
 
     getActions: function (party_id, last_action_id, callback) {

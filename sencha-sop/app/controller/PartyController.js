@@ -29,6 +29,10 @@ Ext.define('SOP.controller.PartyController', {
                 var party = new SOP.model.Party(party_info);
                 store.add(party);
             });
+            SOP.domain.SopBaseDomain.on("removeparty", function (party_info) {
+                var party = new SOP.model.Party(party_info);
+                store.remove(party);
+            });
             var view = Ext.create("SOP.view.ChooseParty", {store: store});
             view.on("listitemtap", that.onListItemTap, that);
             view.on("back", that.onBack, that);
@@ -65,6 +69,7 @@ Ext.define('SOP.controller.PartyController', {
                 } else {
                     that.stopLoading();
                     var view = Ext.create("SOP.view.PartyTabs", {party: party, myNavigationView: that.getChoosePartyPickerView()});
+                    view.on("erased", party.stopFollowing, party, {single: true}); // actually I would have preferred to put this on the delete-event but there doesn't seem to be such an event.... Perhaps better to use both the show and hide events....
                     that.getChoosePartyPickerView().push(view);
                     view.down("playlistview").on("itemdelete", function (playlistEntry) {
                         SOP.domain.SopBaseDomain.removeSong(party.get('id'), playlistEntry.position, function (action) {

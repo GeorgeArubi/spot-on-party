@@ -2,7 +2,7 @@ from google.appengine.ext import db
 from google.appengine.ext.db import polymodel
 from google.appengine.api import memcache
 from google.appengine.api import channel
-import logging, json
+import logging, json, hashlib, base64
 import util
 
 
@@ -91,7 +91,7 @@ class Party(db.Model):
         party.invited_user_ids = [owner.key()]
         party.put()
         
-        PartyCreateAction(party=party, user=get_party_owner_user(), name=name).put()
+        PartyCreateAction(parent=party, user=get_party_owner_user(), name=name).put()
 
         party.invite_user(owner, owner)
         songs = [
@@ -101,7 +101,7 @@ class Party(db.Model):
             
         db.put(songs)
 
-        db.put([PartySongAddAction(song=song, party=party, user=owner) for song in songs])
+        db.put([PartySongAddAction(song=song, parent=party, user=owner) for song in songs])
         return party
 
     def loggedin_user_is_invited(self, loggedin_user):
@@ -115,24 +115,33 @@ class Party(db.Model):
 
     def invite_user(self, user, loggedin_user):
         self.loggedin_user_is_admin(loggedin_user)
-        action = PartyInviteAction(party=self, user=loggedin_user, invited_user=user)
+        action = PartyInviteAction(parent=self, user=loggedin_user, invited_user=user)
         action.put()
 
+    def join(self, loggedin_user):
+        self.loggedin_user_is_invited(loggedin_user)
+        action = PartyJoinedAction(parent=self, user=loggedin_user)
+        action.put()
+        return action
+        
+    def leave(self, loggedin_user):
+        self.loggedin_user_is_invited(loggedin_user)
+        action = PartyLeftAction(parent=self, user=loggedin_user)
+        action.put()
+        return action
+        
     def remove_song(self, position, user, loggedin_user):
         self.loggedin_user_is_invited(loggedin_user)
-        action = PartySongRemoveAction(party=self, user=user, position=position)
+        action = PartySongRemoveAction(parent=self, user=user, position=position)
         action.put()
-        #TODO: fanout via channel
         return action
 
     def add_song(self, song_id, user, loggedin_user):
         self.loggedin_user_is_invited(loggedin_user)
-        Song(key_name="spotify:track:04zm16Wb5rUuQzhpC8JsZh", name="That Man")
-        song = Song(key_name=song_id, name="to_be_resolved") #TODO: spotify lookup: does track actually exist
+        song = Song(key_name=song_id) #TODO: spotify lookup: does track actually exist
         song.put()
-        action = PartySongAddAction(party=self, user=user, song=song)
+        action = PartySongAddAction(parent=self, user=user, song=song)
         action.put()
-        #TODO: fanout via channel
         return action
 
     def get_actions(self, bigger_than_action_id, loggedin_user):
@@ -144,9 +153,9 @@ class Party(db.Model):
         if len(actions_dict) == len(memcached_keys): #all were found
             actions = [actions_dict[key] for key in memcached_keys]
         else:
-            actions = self.party_actions.order("nr").filter("nr >", bigger_than_action_id)
+            actions = PartyAction.all().ancestor(self).order("-nr").filter("nr >", bigger_than_action_id)
             to_set = {}
-            for action in actions:
+            for action in reversed(list(actions)):
                 memcache_key = PartyAction.get_memcached_key(self, action.nr)
                 if not actions_dict.has_key(memcache_key):
                     to_set[memcache_key] = action
@@ -155,14 +164,13 @@ class Party(db.Model):
 
     def play_position(self, position, user, loggedin_user):
         self.loggedin_user_is_invited(loggedin_user)
-        action = PartyPositionPlayAction(party=self, user=user, position=position)
+        action = PartyPositionPlayAction(parent=self, user=user, position=position)
         action.put()
-        #TODO: fanout via channel
         return action
 
     def get_actionid_function(self):
         try:
-            highest_action = self.party_actions.order("-nr").get()
+            highest_action = PartyAction.all().ancestor(self).order("-nr").get()
         except db.KindError:
             return 0
         if not highest_action:
@@ -184,7 +192,6 @@ class Party(db.Model):
 
 @hooked_class
 class PartyAction(polymodel.PolyModel):
-    party = db.ReferenceProperty(reference_class=Party, collection_name="party_actions")
     created = db.DateTimeProperty(auto_now_add=True)
     user = db.ReferenceProperty(reference_class=User)
     nr = db.IntegerProperty()
@@ -195,12 +202,17 @@ class PartyAction(polymodel.PolyModel):
 
     def pre_put(self):
         if not self.is_saved():
-            counter = self.party.get_actionid_globalcounter()
+            counter = self.parent().get_actionid_globalcounter()
             self.nr = counter.next()
             
     def post_put(self):
-        memcache_key = PartyAction.get_memcached_key(self.party, self.nr)
+        memcache_key = PartyAction.get_memcached_key(self.parent(), self.nr)
         memcache.Client().set(memcache_key, self)
+
+        user_channels = PartyListener.getUserChannelsForParty(self.parent())
+        message = json.dumps({"type": "partyaction", "party_id": self.parent().key().id_or_name(), "action": self.for_api_use()}, default=util.json_default_handler) 
+        for user_channel in user_channels:
+            user_channel.send_message(message)
 
     def for_api_use(self):
         return {
@@ -223,8 +235,9 @@ class PartyInviteAction(PartyAction):
     invited_user = db.ReferenceProperty(reference_class=User)
 
     def post_put(self):
+        super(PartyInviteAction, self).post_put()
         user_channels = UserChannel.get_all_for_user(self.invited_user)
-        message = json.dumps({"type": "addparty", "party": self.party.for_api_use()}, default=util.json_default_handler) 
+        message = json.dumps({"type": "addparty", "party": self.parent().for_api_use()}, default=util.json_default_handler) 
         for user_channel in user_channels:
             user_channel.send_message(message)
 
@@ -235,8 +248,9 @@ class PartyKickAction(PartyAction):
     kicked_user = db.ReferenceProperty(reference_class=User)
     
     def post_put(self):
+        super(PartyKickAction, self).post_put()
         user_channels = UserChannel.get_all_for_user(self.kicked_user)
-        message = json.dumps({"type": "removeparty", "party": self.party.for_api_use}) 
+        message = json.dumps({"type": "removeparty", "party": self.parent().for_api_use()}) 
         for user_channel in user_channels:
             user_channel.send_message(message)
 
@@ -281,19 +295,16 @@ class PartyOffACtion(PartyAction):
 
 @hooked_class
 class UserChannel(db.Model):
-    user = db.ReferenceProperty(reference_class=User)
     created = db.DateTimeProperty(auto_now_add = True)
     modified = db.DateTimeProperty(auto_now = True)
     
     @classmethod
-    def init_for_user(cls, user):
-        user_channel = UserChannel(user = user)
-        user_channel.put()
-        return user_channel
+    def get_or_init_for_user_and_channel_id(cls, user, channel_id):
+        return cls.get_or_insert(channel_id, parent = user)
 
     @classmethod
     def get_all_for_user(cls, user):
-        user_channels = cls.all().filter("user = ", user)
+        user_channels = cls.all().ancestor(user)
         return user_channels
 
     def on_disconnect(self):
@@ -310,16 +321,20 @@ class UserChannel(db.Model):
         channel.send_message(self.get_channel_id(), message)
 
 @hooked_class
-class Listeners(db.Model):
-    user_channel_ids = db.ListProperty(db.Key)
+class PartyListener(db.Model):
+    user_channel = db.ReferenceProperty(reference_class=UserChannel)
     created = db.DateTimeProperty(auto_now_add = True)
-    modified = db.DateTimeProperty(auto_now = True)
 
     @classmethod
-    def addPartyListener(cls, party, user_channel, loggedin_user):
-        channel_list_id = "party_%d" % party.id
-        channel_list = cls.get_or_insert(channel_list_id)
-        channel_list.user_channel_ids.append(user_channel.key())
-        channel_list.put()
+    def addListener(cls, party, user_channel):
+        cls.get_or_insert(user_channel.key().id_or_name(), parent=party, user_channel = user_channel)
 
-    
+    @classmethod
+    def removeListener(cls, party, user_channel):
+        listener = cls.get_by_key_name(user_channel.key().id_or_name(), parent=party)
+        if listener:
+            cls.delete(listener)
+
+    @classmethod
+    def getUserChannelsForParty(cls, party):
+        return [partylistener.user_channel for partylistener in cls.all().ancestor(party)]

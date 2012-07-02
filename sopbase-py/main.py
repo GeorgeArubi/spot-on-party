@@ -1,6 +1,7 @@
 import webapp2
 import model
 import util
+import hashlib
 
 import urllib, urllib2, logging, json, threading, re
 
@@ -15,6 +16,14 @@ def to_qs(params):
     return urllib.urlencode(newparams)
 
 class RequestHandlerBase(webapp2.RequestHandler):
+
+    def get_channel_id_from_request(self):
+        SALT = "&zWJ4Er#i5 cGH-WPOkSVy!&p3qx2Mh.ZUoe["
+        m = hashlib.md5()
+        m.update(SALT)
+        m.update(self.request.get("sid"))
+        m.update(self.loggedin_user().id())
+        return m.hexdigest()
         
     def get_access_token_from_request(self):
         return self.request.get("at")
@@ -121,11 +130,22 @@ class GetActions(RequestHandlerBase):
 class JoinParty(RequestHandlerBase):
     def get(self):
         party = model.Party.get_by_id(long(self.request.get("party_id")))
-        channel_id = long(self.request.get("channel_id"))
-        
-        last_action_id = long(self.request.get("last_action_id", 0))
-        actions = party.get_actions(last_action_id, self.loggedin_user()) #pylint: disable=E1103
-        self.reply_jsonp([action.for_api_use() for action in actions])
+        action = party.join(self.loggedin_user()) #pylint: disable=E1103
+
+        channel_id = self.get_channel_id_from_request()
+        user_channel = model.UserChannel.get_or_init_for_user_and_channel_id(self.loggedin_user(), channel_id)
+        model.PartyListener.addListener(party, user_channel)
+        self.reply_jsonp([action.for_api_use()])
+
+class LeaveParty(RequestHandlerBase):
+    def get(self):
+        party = model.Party.get_by_id(long(self.request.get("party_id")))
+        action = party.leave(self.loggedin_user()) #pylint: disable=E1103
+
+        channel_id = self.get_channel_id_from_request()
+        user_channel = model.UserChannel.get_or_init_for_user_and_channel_id(self.loggedin_user(), channel_id)
+        model.PartyListener.removeListener(party, user_channel)
+        self.reply_jsonp([action.for_api_use()])
 
 class GetParty(RequestHandlerBase):
     def get(self):
@@ -143,11 +163,8 @@ class GetActiveParties(RequestHandlerBase):
 class GetChannelToken(RequestHandlerBase):
     def get(self):
         loggedin_user = self.loggedin_user()
-        channel_id = self.request.get("channel_id")
-        if (channel_id):
-            pass
-        else:
-            user_channel = model.UserChannel.init_for_user(loggedin_user)
+        channel_id = self.get_channel_id_from_request()
+        user_channel = model.UserChannel.get_or_init_for_user_and_channel_id(loggedin_user, channel_id)
         token = user_channel.get_token()
         self.reply_jsonp({"channel_id": user_channel.get_channel_id(), "token": token})
 
@@ -171,6 +188,7 @@ app = webapp2.WSGIApplication([
         ('/api/1/getparty', GetParty),
         ('/api/1/getchanneltoken', GetChannelToken),
         ('/api/1/joinparty', JoinParty),
+        ('/api/1/leaveparty', LeaveParty),
         ('/api/1/getactions', GetActions),
                                ], debug=True)
 

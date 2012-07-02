@@ -69,7 +69,7 @@ Ext.define("SOP.model.Party", {
         loadActiveAndFollow: function (party_id, callback) {
             var that = this;
             var followParty = function (party) {
-                //TODO: set up the channel here
+                party.startFollowing();
                 party.getAndFeedActions(function () {
                     callback(party);
                 });
@@ -131,6 +131,16 @@ Ext.define("SOP.model.Party", {
         });
     },
 
+    startFollowing: function () {
+        var that = this;
+        SOP.domain.SopBaseDomain.joinParty(that.get('id'), that.feed, that);
+    },
+
+    stopFollowing: function () {
+        var that = this;
+        SOP.domain.SopBaseDomain.leaveParty(that.get('id'), that.feed, that);
+    },
+
     getPartyState: function () {
         var party_log = this.get('log');
         return party_log[party_log.length - 1].party_state;
@@ -190,7 +200,7 @@ Ext.define("SOP.model.Party", {
             }
             break;
         case "PartyJoinedAction":
-            party_state.joined_users[action.user_id] = {user: SOP.model.User.loadLazy([action.user_id])[0], created: action.created};
+            party_state.joined_user_ids[action.user_id] = {user: SOP.model.User.loadLazy([action.user_id])[0], created: action.created};
             changed |= this.self.CHANGED_INVITED;
             break;
         case "PartyLeftAction":
