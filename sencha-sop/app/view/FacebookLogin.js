@@ -7,7 +7,6 @@
  */
 Ext.define('SOP.view.FacebookLogin', {
     extend: 'Ext.Container',
-    requires: ["SOP.domain.FacebookDomain"],
 
     config: {
     },

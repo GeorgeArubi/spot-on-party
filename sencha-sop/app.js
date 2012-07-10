@@ -10,6 +10,7 @@ Ext.application({
     models: ["PlaylistEntry", "User", "Track", "Party"],
     views: ["FacebookLogin", "ChooseParty", "PartyTabs", "PlaylistView", "PlaylistEntryView", "AddSongsView", ],
     controllers: ["BaseController", "FacebookAuthenticatedController", "PartyController"],
+    profiles: ["SpotifyApp", "Default"],
 
 
     launch: function () {

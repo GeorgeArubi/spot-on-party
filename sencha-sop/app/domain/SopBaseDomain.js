@@ -1,4 +1,4 @@
-/*jslint vars: true */
+/*jslint browser: true, vars: true */
 /*globals Ext, SOP, goog */
 "use strict";
 
@@ -6,12 +6,12 @@
  * parent class for all model classes that connect to the SOP backend
  */
 Ext.define("SOP.domain.SopBaseDomain", {
-    requires: ["Ext.data.JsonP", "SOP.domain.FacebookDomain", "Ext.JSON"],
+    requires: ["Ext.data.JsonP", "Ext.JSON"],
     mixins: ['Ext.mixin.Observable'],
 
     singleton: true,
 
-    BASE_URL: "//tiggr.local:8081/api/1/",
+    BASE_URL:  (window.location.protocol === "https" ? "https:" : "http:") + "//tiggr.local:8081/api/1/",
 
     sid: String(Math.random()).substr(2),
     channel_info: null,
@@ -20,30 +20,45 @@ Ext.define("SOP.domain.SopBaseDomain", {
         var that = this;
         SOP.domain.FacebookDomain.getAccessToken(function (accesstoken) {
             if (that.channel_info === null) {
-//                goog.appengine.Socket.POLLING_TIMEOUT_MS = 3000; //decreasing polling interval results in lost data
-                that.channel_info = "loading";
-                that.doCall_helper("getchanneltoken", {}, accesstoken, function (channel_info) {
-                    that.channel_info = channel_info;
-                    that.channel_info.channel = new goog.appengine.Channel(that.channel_info.token);
-                    var callback_functions;
-                    callback_functions = {
-                        onopen: function () {
-                            console.log("channel open");
-                        },
-                        onmessage: function (message) {
-                            that.onMessage(Ext.JSON.decode(message.data));
-                        },
-                        onerror: function (error) {
-                            console.log("channel error", error);
-                        },
-                        onclose: function () {
-                            console.log("channel close");
-                            //TODO: after 2 hours we need a new token
+                var google_channel_api_url = that.BASE_URL + "../../_ah/channel/jsapi";
+                var newScript = window.document.createElement('script');
+                newScript.type = 'text/javascript';
+                newScript.src = google_channel_api_url;
+                window.document.getElementsByTagName("head")[0].appendChild(newScript);
+
+                var to_execute;
+                to_execute = function () {
+                    if (window.goog && window.goog.appengine && window.goog.appengine.Channel) {
+                        goog.appengine.Socket.BASE_URL = that.BASE_URL + "../.." + goog.appengine.Socket.BASE_URL;
+//                  goog.appengine.Socket.POLLING_TIMEOUT_MS = 3000; //decreasing polling interval results in lost data
+                        that.channel_info = "loading";
+                        that.doCall_helper("getchanneltoken", {}, accesstoken, function (channel_info) {
+                            that.channel_info = channel_info;
+                            that.channel_info.channel = new goog.appengine.Channel(that.channel_info.token);
+                            var callback_functions;
+                            callback_functions = {
+                                onopen: function () {
+                                    console.log("channel open");
+                                },
+                                onmessage: function (message) {
+                                    that.onMessage(Ext.JSON.decode(message.data));
+                                },
+                                onerror: function (error) {
+                                    console.log("channel error", error);
+                                },
+                                onclose: function () {
+                                    console.log("channel close");
+                                    //TODO: after 2 hours we need a new token
+                                    that.channel_info.channel.open(callback_functions);
+                                }
+                            };
                             that.channel_info.channel.open(callback_functions);
-                        }
-                    };
-                    that.channel_info.channel.open(callback_functions);
-                });
+                        });
+                    } else {
+                        window.setTimeout(to_execute, 20); // probably some browsers will have a callback, but this will do for now
+                    }
+                };
+                to_execute();
             }
             that.doCall_helper(path, extra_parameters, accesstoken, callback);
         });

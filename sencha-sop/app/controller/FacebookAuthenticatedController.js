@@ -5,11 +5,10 @@
  */
 Ext.define('SOP.controller.FacebookAuthenticatedController', {
     extend: 'SOP.controller.BaseController',
-    requires: ["SOP.domain.FacebookDomain", "SOP.view.FacebookLogin"],
+    requires: ["SOP.view.FacebookLogin"],
 
     init: function () {
         this.callParent(arguments);
-        SOP.domain.FacebookDomain.init();
         //set before on all routes
         var routes = this.getRoutes(), path;
         var before = this.getBefore();
@@ -33,7 +32,7 @@ Ext.define('SOP.controller.FacebookAuthenticatedController', {
             if (loggedin) {
                 action.resume();
             } else {
-                SOP.domain.FacebookDomain.callbackOnceLoggedin(function (fb_status) {
+                SOP.domain.FacebookDomain.callAfterLogin(function () {
                     that.hideLogin();
                     action.resume();
                 });

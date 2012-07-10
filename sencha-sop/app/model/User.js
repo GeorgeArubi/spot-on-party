@@ -4,7 +4,6 @@
 
 Ext.define("SOP.model.User", {
     extend: "SOP.model.LazyBaseModel",
-    requires: ["SOP.domain.FacebookDomain"],
 
 
     statics: {
