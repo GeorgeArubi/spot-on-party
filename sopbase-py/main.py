@@ -96,7 +96,19 @@ class RemoveSong(RequestHandlerBase):
             user = self.loggedin_user()
         position = long(self.request.get("position"))
         action = party.remove_song(position, user, self.loggedin_user()) #pylint: disable=E1103
-        self.reply_jsonp(action.for_api_use())
+        self.reply_jsonp([action.for_api_use()])
+
+class PartyOn(RequestHandlerBase):
+    def get(self):
+        party = model.Party.get_by_id(long(self.request.get("party_id")))
+        action = party.activate(self.loggedin_user()) #pylint: disable=E1103
+        self.reply_jsonp([action.for_api_use()])
+
+class PartyOff(RequestHandlerBase):
+    def get(self):
+        party = model.Party.get_by_id(long(self.request.get("party_id")))
+        action = party.deactivate(self.loggedin_user()) #pylint: disable=E1103
+        self.reply_jsonp([action.for_api_use()])
 
 class AddSong(RequestHandlerBase):
     def get(self):
@@ -107,7 +119,7 @@ class AddSong(RequestHandlerBase):
             user = self.loggedin_user()
         song_id = self.request.get("song_id")
         action = party.add_song(song_id, user, self.loggedin_user()) #pylint: disable=E1103
-        self.reply_jsonp(action.for_api_use())
+        self.reply_jsonp([action.for_api_use()])
 
 class PlayPosition(RequestHandlerBase):
     def get(self):
@@ -118,7 +130,7 @@ class PlayPosition(RequestHandlerBase):
             user = self.loggedin_user()
         position = long(self.request.get("position"))
         action = party.play_position(position, user, self.loggedin_user()) #pylint: disable=E1103
-        self.reply_jsonp(action.for_api_use())
+        self.reply_jsonp([action.for_api_use()])
 
 class GetActions(RequestHandlerBase):
     def get(self):
@@ -154,10 +166,22 @@ class GetParty(RequestHandlerBase):
         party.loggedin_user_is_invited(loggedin_user) #pylint: disable=E1103
         self.reply_jsonp(party.for_api_use()) #pylint: disable=E1103
 
+class GetOwnedParties(RequestHandlerBase):
+    def get(self):
+        loggedin_user = self.loggedin_user()
+        parties = model.Party.all().filter("owner", loggedin_user).order("-__key__")
+        self.reply_jsonp([party.for_api_use() for party in parties])
+
 class GetActiveParties(RequestHandlerBase):
     def get(self):
         loggedin_user = self.loggedin_user()
-        parties = model.Party.all().filter("active", True).filter("invited_user_ids", loggedin_user.key())
+        parties = model.Party.all().filter("active", True).filter("invited_user_ids", loggedin_user.key()).order("-__key__")
+        self.reply_jsonp([party.for_api_use() for party in parties])
+
+class GetInactiveParties(RequestHandlerBase):
+    def get(self):
+        loggedin_user = self.loggedin_user()
+        parties = model.Party.all().filter("active", False).filter("invited_user_ids", loggedin_user.key()).order("-__key__")
         self.reply_jsonp([party.for_api_use() for party in parties])
 
 class GetChannelToken(RequestHandlerBase):
@@ -181,10 +205,15 @@ logging.getLogger().setLevel(logging.DEBUG)
 
 app = webapp2.WSGIApplication([
         ('/api/1/createparty', CreateParty),
+        ('/api/1/partyon', PartyOn),
+        ('/api/1/partyoff', PartyOff),
+        ('/api/1/inviteusers', InviteUsers),
         ('/api/1/addsong', AddSong),
         ('/api/1/removesong', RemoveSong),
         ('/api/1/playposition', PlayPosition),
         ('/api/1/getactiveparties', GetActiveParties),
+        ('/api/1/getinactiveparties', GetInactiveParties),
+        ('/api/1/getownedparties', GetOwnedParties),
         ('/api/1/getparty', GetParty),
         ('/api/1/getchanneltoken', GetChannelToken),
         ('/api/1/joinparty', JoinParty),

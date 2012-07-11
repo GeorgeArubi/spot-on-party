@@ -4,7 +4,7 @@
 
 Ext.define("SOP.model.Track", {
     extend: "SOP.model.LazyBaseModel",
-    requires: ["SOP.domain.SpotifyExternalDomain", "Ext.util.Format"],
+    requires: ["Ext.util.Format"],
 
 
     statics: {
@@ -25,11 +25,17 @@ Ext.define("SOP.model.Track", {
                 Ext.defer(function () {track.fireEvent("loaded"); }, 1); //first allow listeners to be attached to object
                 return track;
             }
-            SOP.domain.SpotifyExternalDomain.lookup(track_id, function (info) {
-                track.set('name', info.track.name);
-                track.set('artist', Ext.Array.map(info.track.artists, function (artist) {return artist.name; }).join(", "));
-                track.set('album', info.track.album.name);
+            if (track.get('loading')) {
+                //do nothing, already loading
+                return track;
+            }
+            track.set("loading", true);
+            SOP.domain.SpotifyDomain.lookup(track_id, function (info) {
+                track.set('name', info.name);
+                track.set('artist', Ext.Array.map(info.artists, function (artist) {return artist.name; }).join(", "));
+                track.set('album', info.album.name);
                 track.set('loaded', true);
+                track.set("loading", false);
                 track.fireEvent("loaded");
             });
             return track;
@@ -40,8 +46,8 @@ Ext.define("SOP.model.Track", {
           **/
         search: function (terms, callback) {
             var that = this;
-            SOP.domain.SpotifyExternalDomain.search(terms, function (result) {
-                callback(Ext.Array.map(result.tracks, function (track_info) {
+            SOP.domain.SpotifyDomain.search(terms, function (track_infos) {
+                callback(Ext.Array.map(track_infos, function (track_info) {
                     var id = track_info.href;
                     var name = track_info.name;
                     var artist = Ext.Array.map(track_info.artists, function (artist) {return artist.name; }).join(", ");

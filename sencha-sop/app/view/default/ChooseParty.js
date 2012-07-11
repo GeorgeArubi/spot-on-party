@@ -1,7 +1,7 @@
 /*jslint sloppy: true, vars: true*/
 /*globals Ext, SOP*/
 
-Ext.define("SOP.view.ChooseParty", {
+Ext.define("SOP.view.default.ChooseParty", {
     extend: "Ext.navigation.View",
     xtype: "chooseparty",
     requires: ["Ext.dataview.List", "Ext.MessageBox", "Ext.Button", ],
@@ -12,7 +12,6 @@ Ext.define("SOP.view.ChooseParty", {
             title: "Choose Party",
             layout: "vbox",
         }],
-        useTitleForBackButtonText: true,
         rightButton: null,
         listeners: {
             activeitemchange: "onActiveItemChange",

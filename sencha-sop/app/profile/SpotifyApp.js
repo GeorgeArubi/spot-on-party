@@ -9,6 +9,8 @@ Ext.define('SOP.profile.SpotifyApp', {
 
     config: {
         name: "SpotifyApp",
+        views: ["ChooseParty", "PartyPane", ],
+        controllers: ["PartyController", ],
     },
 
     isActive: function () {
@@ -17,7 +19,7 @@ Ext.define('SOP.profile.SpotifyApp', {
 
     launch: function () {
         console.log("SposityApp profile activated");
-        Ext.syncRequire("SOP.domain.FacebookSpotifyDomain");
+        Ext.syncRequire(["SOP.domain.FacebookSpotifyDomain", "SOP.domain.SpotifySpotifyDomain"]);
     },
 
 });

@@ -2,7 +2,7 @@ from google.appengine.ext import db
 from google.appengine.ext.db import polymodel
 from google.appengine.api import memcache
 from google.appengine.api import channel
-import logging, json, hashlib, base64
+import logging, json
 import util
 
 
@@ -88,10 +88,10 @@ class Party(db.Model):
         party.name = name
         party.owner = owner
         party.active = True
-        party.invited_user_ids = [owner.key()]
+        party.invited_user_ids = []
         party.put()
         
-        PartyCreateAction(parent=party, user=get_party_owner_user(), name=name).put()
+        PartyCreateAction(parent=party, user=owner, name=name).put()
 
         party.invite_user(owner, owner)
         songs = [
@@ -117,6 +117,28 @@ class Party(db.Model):
         self.loggedin_user_is_admin(loggedin_user)
         action = PartyInviteAction(parent=self, user=loggedin_user, invited_user=user)
         action.put()
+        self.invited_user_ids.append(user.key())
+        self.put()
+        return action
+
+    def activate(self, loggedin_user):
+        self.loggedin_user_is_admin(loggedin_user)
+        for other_party in Party.all().filter("owner", loggedin_user):
+            if other_party.active and other_party.key().id() != self.key().id():
+                other_party.deactivate(loggedin_user)
+        self.active = True
+        self.put()
+        action = PartyOnAction(parent=self, user=loggedin_user)
+        action.put()
+        return action
+        
+    def deactivate(self, loggedin_user):
+        self.loggedin_user_is_admin(loggedin_user)
+        self.active = False
+        self.put()
+        action = PartyOffAction(parent=self, user=loggedin_user)
+        action.put()
+        return action
 
     def join(self, loggedin_user):
         self.loggedin_user_is_invited(loggedin_user)
@@ -250,7 +272,7 @@ class PartyKickAction(PartyAction):
     def post_put(self):
         super(PartyKickAction, self).post_put()
         user_channels = UserChannel.get_all_for_user(self.kicked_user)
-        message = json.dumps({"type": "removeparty", "party": self.parent().for_api_use()}) 
+        message = json.dumps({"type": "removeparty", "party": self.parent().for_api_use()}, default=util.json_default_handler)
         for user_channel in user_channels:
             user_channel.send_message(message)
 
@@ -289,9 +311,22 @@ class PartyPauseAction(PartyAction):
     pass
 
 class PartyOnAction(PartyAction):
-    pass
-class PartyOffACtion(PartyAction):
-    pass
+    def post_put(self):
+        super(PartyOnAction, self).post_put()
+        for user in User.get(self.parent().invited_user_ids):
+            user_channels = UserChannel.get_all_for_user(user)
+            message = json.dumps({"type": "addparty", "party": self.parent().for_api_use()}, default=util.json_default_handler) 
+            for user_channel in user_channels:
+                user_channel.send_message(message)
+
+class PartyOffAction(PartyAction):
+    def post_put(self):
+        super(PartyOffAction, self).post_put()
+        for user in User.get(self.parent().invited_user_ids):
+            user_channels = UserChannel.get_all_for_user(user)
+            message = json.dumps({"type": "removeparty", "party": self.parent().for_api_use()}, default=util.json_default_handler)
+            for user_channel in user_channels:
+                user_channel.send_message(message)
 
 @hooked_class
 class UserChannel(db.Model):

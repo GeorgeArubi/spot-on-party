@@ -9,6 +9,8 @@ Ext.define('SOP.profile.Default', {
 
     config: {
         name: "Default",
+        views: ["ChooseParty", "PartyTabs", ],
+        controllers: ["PartyController", ],
     },
 
     isActive: function () {
@@ -17,7 +19,7 @@ Ext.define('SOP.profile.Default', {
 
     launch: function () {
         console.log("Default profile activated");
-        Ext.syncRequire("SOP.domain.FacebookWebDomain");
+        Ext.syncRequire(["SOP.domain.FacebookWebDomain", "SOP.domain.SpotifyWebDomain"]);
     },
 
 });

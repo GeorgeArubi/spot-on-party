@@ -8,8 +8,8 @@ Ext.application({
     requires: ["Ext.data.Store", ],
 
     models: ["PlaylistEntry", "User", "Track", "Party"],
-    views: ["FacebookLogin", "ChooseParty", "PartyTabs", "PlaylistView", "PlaylistEntryView", "AddSongsView", ],
-    controllers: ["BaseController", "FacebookAuthenticatedController", "PartyController"],
+    views: ["FacebookLogin", "PlaylistView", "PlaylistEntryView", "AddSongsView", ],
+    controllers: [],
     profiles: ["SpotifyApp", "Default"],
 
 

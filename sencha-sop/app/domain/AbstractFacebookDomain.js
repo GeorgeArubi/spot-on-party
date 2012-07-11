@@ -71,6 +71,13 @@ Ext.define('SOP.domain.AbstractFacebookDomain', {
             });
         },
 
+        getLoggedinUserId: function (callback) {
+            var that = this;
+            that.callAfterLogin(function () {
+                callback(that.fb_status.authResponse.userID);
+            });
+        },
+
         lookupUsers: function (user_ids, callback) {
             var that = this;
             that.getAccessToken(function (accessToken) {
@@ -80,7 +87,6 @@ Ext.define('SOP.domain.AbstractFacebookDomain', {
                     params: params,
                     callbackKey: "callback",
                     success: function (result, request) {
-                        console.log("facebook api:", params, result);
                         if (callback) {
                             callback(result);
                         }

@@ -61,14 +61,12 @@ Ext.define("SOP.view.AddSongsView", {
     },
 
     onHide: function () {
-        console.log("hide");
         var that = this;
         that.down("searchfield").blur();
     },
 
     onAfterShowAnimation: function () {
         var that = this;
-        console.log("afye show");
         that.down("searchfield").focus();
     }
 });

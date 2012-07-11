@@ -18,16 +18,24 @@ Ext.define("SOP.model.User", {
             Ext.Array.each(users, function (user) {
                 if (user.get('loaded')) {
                     Ext.defer(function () {user.fireEvent("loaded"); }, 1);  //first allow listeners to be attached to object
+                } else if (user.get('loading')) {
+                    // Already loading
+                    var x = "do nothing";
                 } else {
                     user_ids_to_lazyload[user.get('id')] = user;
                 }
             });
-            if (user_ids_to_lazyload) {
+            if (Ext.Object.getSize(user_ids_to_lazyload) > 0) {
+                //TODO: avoid thundering herd
+                Ext.Object.each(user_ids_to_lazyload, function (user_id, user) {
+                    user.set('loading', true);
+                });
                 SOP.domain.FacebookDomain.lookupUsers(Ext.Object.getKeys(user_ids_to_lazyload), function (user_infos) {
                     Ext.Object.each(user_ids_to_lazyload, function (user_id, user) {
                         if (user_infos[user_id]) {
                             user.set('name', user_infos[user_id].name);
                             user.set('loaded', true);
+                            user.set('loading', false);
                             Ext.defer(function () {user.fireEvent("loaded"); }, 1);
                         }
                     });
@@ -39,7 +47,7 @@ Ext.define("SOP.model.User", {
     },
 
     config: {
-        fields: ["id", "name", "loaded"],
+        fields: ["id", "name", "loaded", "loading"],
     },
 
     getNameHtml: function () {

@@ -20,6 +20,7 @@ Ext.define("SOP.domain.SopBaseDomain", {
         var that = this;
         SOP.domain.FacebookDomain.getAccessToken(function (accesstoken) {
             if (that.channel_info === null) {
+                that.channel_info = "loading";
                 var google_channel_api_url = that.BASE_URL + "../../_ah/channel/jsapi";
                 var newScript = window.document.createElement('script');
                 newScript.type = 'text/javascript';
@@ -29,9 +30,10 @@ Ext.define("SOP.domain.SopBaseDomain", {
                 var to_execute;
                 to_execute = function () {
                     if (window.goog && window.goog.appengine && window.goog.appengine.Channel) {
+                        Ext.defer(function () {
+                            goog.appengine.Socket.POLLING_TIMEOUT_MS = 300000; //decreasing polling interval results in lost data
+                        }, 60000);
                         goog.appengine.Socket.BASE_URL = that.BASE_URL + "../.." + goog.appengine.Socket.BASE_URL;
-//                  goog.appengine.Socket.POLLING_TIMEOUT_MS = 3000; //decreasing polling interval results in lost data
-                        that.channel_info = "loading";
                         that.doCall_helper("getchanneltoken", {}, accesstoken, function (channel_info) {
                             that.channel_info = channel_info;
                             that.channel_info.channel = new goog.appengine.Channel(that.channel_info.token);
@@ -100,8 +102,20 @@ Ext.define("SOP.domain.SopBaseDomain", {
         }
     },
 
-    createParty: function (name, invited_friends, callback) {
-        this.doCall("createparty", {name: name, invited_user_ids: invited_friends.join(",")}, callback);
+    createParty: function (name, callback) {
+        this.doCall("createparty", {name: name}, callback);
+    },
+
+    activate: function (party_id, callback) {
+        this.doCall("partyon", {party_id: party_id}, callback);
+    },
+
+    deactivate: function (party_id, callback) {
+        this.doCall("partyoff", {party_id: party_id}, callback);
+    },
+
+    inviteUsers: function (party_id, user_ids, callback) {
+        this.doCall("inviteusers", {party_id: party_id, invited_user_ids: user_ids.join(",")}, callback);
     },
 
     addSong: function (party_id, song_id, callback) {
@@ -118,6 +132,14 @@ Ext.define("SOP.domain.SopBaseDomain", {
 
     getActiveParties: function (callback) {
         this.doCall("getactiveparties", {}, callback);
+    },
+
+    getInactiveParties: function (callback) {
+        this.doCall("getinactiveparties", {}, callback);
+    },
+
+    getOwnedParties: function (callback) {
+        this.doCall("getownedparties", {}, callback);
     },
 
     getParty: function (party_id, callback) {
