@@ -40,6 +40,7 @@ Ext.define("SOP.view.PlaylistEntryView", {
         var delete_confirm_overlay = that.down("[localid=delete-confirm-overlay]");
         var delete_confirm_btn = that.down("[localid=delete-confirm-btn]");
 
+        play_btn.on("tap", function () {that.getPlaylistView().fireEvent("play", that.playlistEntry); });
         delete_btn.on("tap", that.showDeleteConfirm, that);
         delete_confirm_overlay.element.on("tap", function () {that.getPlaylistView().fireEvent("deleteconfirmcancelled"); });
         delete_confirm_btn.on("tap", function () {
@@ -114,6 +115,11 @@ Ext.define("SOP.view.PlaylistEntryView", {
             that.addCls("deleted");
         } else {
             that.removeCls("deleted");
+        }
+        if (playlistEntry.is_playing) {
+            that.addCls("playing");
+        } else {
+            that.removeCls("playing");
         }
         Ext.defer(function () {that.removeCls("new"); }, 1); //allows for new animation
     },

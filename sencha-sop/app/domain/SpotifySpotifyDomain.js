@@ -14,17 +14,6 @@ Ext.define('SOP.domain.SpotifySpotifyDomain', { //strange name, means domain FOR
             var that = this;
             var sp = getSpotifyApi(1);
             that.models = sp.require('sp://import/scripts/api/models');
-/*            that.models.player.observe(that.models.EVENT.CHANGE, function (event) {
-              if (player_change_callback) {
-                if (isStoppedOrNotPlayingFromApp()) {
-                    player_change_callback(false, null);
-                        } else {
-                    player_change_callback(models.player.playing, models.player.index);
-                        }
-                    }
-                }
-            });
- */
         },
 
         search: function (terms, callback) {

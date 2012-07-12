@@ -53,6 +53,8 @@ body.sop_loading #appLoadingIndicator { opacity: 1; top: 0; -webkit-transition-d
   .buttons {opacity: 0; }
 }
 
+.playlist-entry.playing {background-color: #CCCCCC;}
+
 .playlist-entry.deleted {height: 0px; -webkit-transition-delay: 10s;
   .buttons {display: none; }
   .playlist-user-deleted {display: block; }  

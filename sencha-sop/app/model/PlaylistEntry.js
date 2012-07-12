@@ -13,6 +13,7 @@ Ext.define("SOP.model.PlaylistEntry", {
             "created",
             "deleted",
             "position",
+            "is_playing",
         ],
     },
 

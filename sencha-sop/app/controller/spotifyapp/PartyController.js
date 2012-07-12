@@ -50,8 +50,12 @@ Ext.define('SOP.controller.spotifyapp.PartyController', {
                     SOP.app.redirectTo("");
                 } else {
                     that.stopLoading();
+                    that.fireEvent("activateparty", party);
                     var view = Ext.create("SOP.view.spotifyapp.PartyPane", {party: party, myNavigationView: that.getChoosePartyPickerView()});
-                    view.on("erased", function () {party.deactivate(); }, {single: true}); // actually I would have preferred to put this on the delete-event but there doesn't seem to be such an event.... Perhaps better to use both the show and hide events....
+                    view.on("erased", function () {
+                        party.deactivate();
+                        that.fireEvent("deactivateparty", party);
+                    }, {single: true}); // actually I would have preferred to put this on the delete-event but there doesn't seem to be such an event.... Perhaps better to use both the show and hide events....
                     that.getChoosePartyPickerView().push(view);
                     that.setPartyEventHandlers(view, party);
                 }

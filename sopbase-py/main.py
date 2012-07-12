@@ -113,10 +113,7 @@ class PartyOff(RequestHandlerBase):
 class AddSong(RequestHandlerBase):
     def get(self):
         party = model.Party.get_by_id(long(self.request.get("party_id")))
-        if self.request.get("sp"):
-            user = model.get_party_owner_user()
-        else:
-            user = self.loggedin_user()
+        user = self.loggedin_user()
         song_id = self.request.get("song_id")
         action = party.add_song(song_id, user, self.loggedin_user()) #pylint: disable=E1103
         self.reply_jsonp([action.for_api_use()])
@@ -124,12 +121,17 @@ class AddSong(RequestHandlerBase):
 class PlayPosition(RequestHandlerBase):
     def get(self):
         party = model.Party.get_by_id(long(self.request.get("party_id")))
-        if self.request.get("sp"):
-            user = model.get_party_owner_user()
-        else:
-            user = self.loggedin_user()
         position = long(self.request.get("position"))
-        action = party.play_position(position, user, self.loggedin_user()) #pylint: disable=E1103
+        action = party.play_position(position, self.loggedin_user()) #pylint: disable=E1103
+        self.reply_jsonp([action.for_api_use()])
+
+class UpdatePlayStatus(RequestHandlerBase):
+    def get(self):
+        party = model.Party.get_by_id(long(self.request.get("party_id")))
+        playing = self.request.get("playing") != "false"
+        position = long(self.request.get("position"))
+        miliseconds = long(self.request.get("miliseconds"))
+        action = party.update_play_status(playing, position, miliseconds, self.loggedin_user()) #pylint: disable=E1103
         self.reply_jsonp([action.for_api_use()])
 
 class GetActions(RequestHandlerBase):
@@ -221,6 +223,7 @@ app = webapp2.WSGIApplication([
         ('/api/1/addsong', AddSong),
         ('/api/1/removesong', RemoveSong),
         ('/api/1/playposition', PlayPosition),
+        ('/api/1/updateplaystatus', UpdatePlayStatus),
         ('/api/1/getactiveparties', GetActiveParties),
         ('/api/1/getinactiveparties', GetInactiveParties),
         ('/api/1/getownedparties', GetOwnedParties),

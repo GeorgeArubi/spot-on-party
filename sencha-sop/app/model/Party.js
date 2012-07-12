@@ -250,6 +250,7 @@ Ext.define("SOP.model.Party", {
 
     feed: function (actions) {
         var party_log = this.get('log'), lowest_changed = party_log.length, i, new_items = {};
+        var commands = [];
         Ext.Array.each(actions, function (action) {
             if (party_log[action.nr]) {
                 return; //already fed
@@ -260,7 +261,10 @@ Ext.define("SOP.model.Party", {
         });
         this.set('log', party_log);
         for (i = lowest_changed; i < party_log.length; i++) {
-            this.recalculateParty(i, !!new_items[i]);
+            var command = this.recalculateParty(i, !!new_items[i]);
+            if (command) {
+                commands.push(command);
+            }
         }
         var party_state = this.getPartyState();
         if (this.get('name') !== party_state.name) {
@@ -272,12 +276,17 @@ Ext.define("SOP.model.Party", {
             this.fireEvent("activechanged");
         }
         this.set('owner_id', party_state.owner.get('id'));
+        this.fireEvent("fed");
+        if (commands.length > 0) {
+            this.fireEvent("commands", commands);
+        }
     },
 
     recalculateParty: function (position, is_new) {
         //assert: position > 0
         var that = this;
         var party_log = this.get('log');
+        var command = null;
         if (!party_log[position]) {
             party_log[position] = {}; // create dummy entry when actions arrive out of order
         }
@@ -333,59 +342,39 @@ Ext.define("SOP.model.Party", {
                     created: action.created,
                     deleted: null,
                     deleted_by_user: null,
+                    is_playing: false,
                     position: party_state.playlist_entries.length,
                 });
+                party_state.playlist_entries.push(playlist_entry);
                 if (is_new) {
-                    party_state.playlist_entries.push(playlist_entry);
+                    //add the record to the store
+                    this.getPlaylistEntryStore().add(playlist_entry);
                 }
-                //add the record to the store
-                this.getPlaylistEntryStore().add(playlist_entry);
-                /*
-                  if (is_new) {
-                  doCommandCallback(Party.COMMAND_PLAY_IF_STOPPED, {position: party.song_ids.length - 1});
-                  }*/
                 break;
             case "PartySongRemoveAction":
                 party_state.playlist_entries[action.position].set({
                     deleted_by_user: SOP.model.User.loadLazy([action.user_id])[0],
                     deleted: action.created,
                 });
-                /*
-                  if (is_new) {
-                  doCommandCallback(Party.COMMAND_NEXT_IF_POSITION, {position: action.position});
-                */
                 break;
             case "PartyPositionPlayAction":
-                /*
-                  if (is_new) {
-                  doCommandCallback(Party.COMMAND_PLAY_POSITION, {position: action.position});
-                  }
-                */
+                if (is_new) {
+                    command = {type: "playposition", position: action.position};
+                }
                 break;
-            case "PartyPlayAction":
-                /*
-                  if (is_new) {
-                  doCommandCallback(Party.COMMAND_PLAY);
-                  }
-                */
-                break;
-            case "PartyPauseAction":
-                /*
-                  if (is_new) {
-                  doCommandCallback(Party.COMMAND_PAUSE);
-                  }
-                */
+            case "PartyPlayStatusUpdateAction":
+                Ext.each(party_state.playlist_entries, function (playlistEntry) {
+                    var is_playing = (playlistEntry.get('position') === action.position);
+                    if (playlistEntry.get('is_playing') !== is_playing) {
+                        playlistEntry.set('is_playing', is_playing);
+                    }
+                });
                 break;
             case "PartyOnAction":
                 party_state.active = this.self.ACTIVE_ON;
                 break;
             case "PartyOffAction":
                 party_state.active = this.self.ACTIVE_OFF;
-                /*
-                  if (is_new) {
-                  doCommandCallback(Party.COMMAND_STOP);
-                  }
-                */
                 break;
             default:
                 console.log("Don't know how to handle action type " + action.type + " at position " + position, party_log);
@@ -393,6 +382,7 @@ Ext.define("SOP.model.Party", {
             }
         }
         this.set('log', party_log);
+        return command;
     },
 
 });

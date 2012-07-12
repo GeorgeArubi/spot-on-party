@@ -50,6 +50,12 @@ Ext.define('SOP.controller.PartyController', {
                 party.feed(actions);
             });
         });
+        view.down("playlistview").on("play", function (playlistEntry) {
+            SOP.domain.SopBaseDomain.playPosition(party.get('id'), playlistEntry.position, function (actions) {
+                console.log("playPosition: ", actions);
+                party.feed(actions);
+            });
+        });
         view.down("userlistview").on("itemdelete", function (userInParty) {
             SOP.domain.SopBaseDomain.kickUsers(party.get('id'), [userInParty.user.get('id')], function (actions) {
                 console.log("kicked: ", actions);

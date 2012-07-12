@@ -1,5 +1,5 @@
 /*jslint browser:true, vars: true */
-/*globals Ext */
+/*globals Ext, SOP */
 "use strict";
 
 /**
@@ -19,7 +19,8 @@ Ext.define('SOP.profile.SpotifyApp', {
 
     launch: function () {
         console.log("SposityApp profile activated");
-        Ext.syncRequire(["SOP.domain.FacebookSpotifyDomain", "SOP.domain.SpotifySpotifyDomain"]);
+        Ext.syncRequire(["SOP.domain.FacebookSpotifyDomain", "SOP.domain.SpotifySpotifyDomain", "SOP.domain.SpotifyAppIntegrator"]);
+        SOP.domain.SpotifyAppIntegrator.init();
     },
 
 });

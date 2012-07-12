@@ -186,9 +186,15 @@ class Party(db.Model):
             memcache.Client().set_multi(to_set)
         return actions
 
-    def play_position(self, position, user, loggedin_user):
+    def play_position(self, position, loggedin_user):
         self.loggedin_user_is_invited(loggedin_user)
-        action = PartyPositionPlayAction(parent=self, user=user, position=position)
+        action = PartyPositionPlayAction(parent=self, user=loggedin_user, position=position)
+        action.put()
+        return action
+
+    def update_play_status(self, playing, position, miliseconds, loggedin_user):
+        self.loggedin_user_is_admin(loggedin_user)
+        action = PartyPlayStatusUpdateAction(parent=self, user=loggedin_user, playing=playing, miliseconds=miliseconds, position=position)
         action.put()
         return action
 
@@ -306,11 +312,16 @@ class PartyPositionPlayAction(PartyAction):
         return dict(super(PartyPositionPlayAction, self).for_api_use().items() +
                     [("position", self.position)])
 
-class PartyPlayAction(PartyAction):
-    pass
+class PartyPlayStatusUpdateAction(PartyAction):
+    playing = db.BooleanProperty()
+    position = db.IntegerProperty()
+    miliseconds = db.IntegerProperty()
 
-class PartyPauseAction(PartyAction):
-    pass
+    def for_api_use(self):
+        return dict(super(PartyPlayStatusUpdateAction, self).for_api_use().items() +
+                    [("playing", self.playing),
+                     ("position", self.position),
+                     ("miliseconds", self.miliseconds)])
 
 class PartyOnAction(PartyAction):
     def post_put(self):

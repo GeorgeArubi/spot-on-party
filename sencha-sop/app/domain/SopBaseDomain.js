@@ -134,6 +134,15 @@ Ext.define("SOP.domain.SopBaseDomain", {
         this.doCall("playposition", {party_id: party_id, position: position}, callback);
     },
 
+    updatePlayStatus: function (party_id, playing, position, miliseconds, callback) {
+        this.doCall("updateplaystatus", {
+            party_id: party_id,
+            playing: (playing ? "true" : "false"),
+            position: position,
+            miliseconds: miliseconds,
+        }, callback);
+    },
+
     getActiveParties: function (callback) {
         this.doCall("getactiveparties", {}, callback);
     },
