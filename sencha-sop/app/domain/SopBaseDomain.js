@@ -118,6 +118,10 @@ Ext.define("SOP.domain.SopBaseDomain", {
         this.doCall("inviteusers", {party_id: party_id, invited_user_ids: user_ids.join(",")}, callback);
     },
 
+    kickUsers: function (party_id, user_ids, callback) {
+        this.doCall("kickusers", {party_id: party_id, kicked_user_ids: user_ids.join(",")}, callback);
+    },
+
     addSong: function (party_id, song_id, callback) {
         this.doCall("addsong", {party_id: party_id, song_id: song_id}, callback);
     },

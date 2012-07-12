@@ -7,6 +7,7 @@ Ext.define("SOP.model.Party", {
 
     config: {
         playlistEntryStore: null,
+        userInPartyStore: null,
         fields: [
             'id',
             "name",
@@ -61,18 +62,16 @@ Ext.define("SOP.model.Party", {
         loadOwnAndActivate: function (party_id, callback) {
             var that = this;
             that.loadCached(party_id, function (party) {
-                SOP.domain.FacebookDomain.getLoggedinUserId(function (userId) {
-                    if (party && party.get('owner_id') === userId) {
-                        party.startFollowing();
-                        party.getAndFeedActions(function () {
-                            party.activate(function () {
-                                callback(party);
-                            });
+                if (party && party.get('owner_id') === SOP.domain.FacebookDomain.getLoggedinUserId()) {
+                    party.startFollowing();
+                    party.getAndFeedActions(function () {
+                        party.activate(function () {
+                            callback(party);
                         });
-                    } else {
-                        callback(null);
-                    }
-                });
+                    });
+                } else {
+                    callback(null);
+                }
             });
         },
         /**
@@ -106,12 +105,6 @@ Ext.define("SOP.model.Party", {
 
         ACTIVE_OFF: 1,
         ACTIVE_ON: 2,
-        CHANGE_NAME: 1 << 0,
-        CHANGE_ACTIVE: 1 << 1,
-        CHANGE_INVITED: 1 << 2,
-        CHANGE_JOINED: 1 << 3,
-        CHANGE_PLAYLIST: 1 << 4,
-        CHANGE_NEWSFEED: 1 << 5,
     },
 
     init: function () {
@@ -133,6 +126,30 @@ Ext.define("SOP.model.Party", {
                         };
                         playlistEntry.get('track').join(storeInteface);
                         playlistEntry.get('user').join(storeInteface);
+                    });
+                }
+            }
+        }));
+        that.setUserInPartyStore(Ext.create("Ext.data.Store", {
+            model: "SOP.model.UserInParty",
+            data: [],
+            sorters: [
+                {property: "is_owner", direction: "DESC"},
+                {property: "joined", direction: "DESC"},
+                {property: "created", direction: "ASC"},
+            ],
+            listeners: {
+                // this is needed because the playlistentry contains other objects, and in those cases the stores don't
+                // get notified of the update
+                addrecords: function (store, records) {
+                    var that = this;
+                    Ext.each(records, function (userInParty) {
+                        var storeInteface = {
+                            afterEdit: function () { store.afterEdit(userInParty, ['user'], {}); },
+                            afterCommit: function () { },
+                            afterErase: function () { },
+                        };
+                        userInParty.get('user').join(storeInteface);
                     });
                 }
             }
@@ -167,6 +184,11 @@ Ext.define("SOP.model.Party", {
             }
         }
         return i - 1;
+    },
+
+    loggedinUserIsAdmin: function () {
+        var that = this;
+        return (SOP.domain.FacebookDomain.getLoggedinUserId() === that.get('owner_id'));
     },
 
     getAndFeedActions: function (callback) {
@@ -218,8 +240,12 @@ Ext.define("SOP.model.Party", {
     },
 
     getPartyState: function () {
-        var party_log = this.get('log');
-        return party_log[party_log.length - 1].party_state;
+        var party_log = this.get('log'), i;
+        for (i = party_log.length - 1; i > 0; i--) {
+            if (party_log[i] && party_log[i].party_state) {
+                return party_log[i].party_state;
+            }
+        }
     },
 
     feed: function (actions) {
@@ -250,6 +276,7 @@ Ext.define("SOP.model.Party", {
 
     recalculateParty: function (position, is_new) {
         //assert: position > 0
+        var that = this;
         var party_log = this.get('log');
         if (!party_log[position]) {
             party_log[position] = {}; // create dummy entry when actions arrive out of order
@@ -257,38 +284,46 @@ Ext.define("SOP.model.Party", {
         var action = party_log[position].action;
         var party_state = Ext.clone(party_log[position - 1].party_state);
         party_log[position].party_state = party_state;
-        var changed = 0;
         if (action) {
             switch (action.type) {
             case "PartyCreateAction":
                 party_state.active = this.self.ACTIVE_ON;
                 party_state.name = action.name;
                 party_state.owner = SOP.model.User.loadLazy([action.user_id])[0];
-                changed |= this.self.CHANGED_NAME | this.self.CHANGED_ACTIVE;
                 break;
             case "PartyChangeNameAction":
                 party_state.name = action.name;
-                changed |= this.self.CHANGED_NAME;
                 break;
             case "PartyInviteAction":
-                party_state.invited_user_ids[action.user_id] = {invited_user: SOP.model.User.loadLazy([action.invited_user_id])[0], created: action.created};
-                changed |= this.self.CHANGED_INVITED;
+                if (party_state.invited_user_ids[action.invited_user_id]) {
+                    party_state.invited_user_ids[action.invited_user_id].set('deleted', action.created);
+                }
+                party_state.invited_user_ids[action.invited_user_id] = Ext.create("SOP.model.UserInParty", {
+                    user: SOP.model.User.loadLazy([action.invited_user_id])[0],
+                    party: that,
+                    created: action.created,
+                    joined: false,
+                    is_owner: action.invited_user_id === that.get("owner_id"),
+                });
+                if (is_new) {
+                    that.getUserInPartyStore().add(party_state.invited_user_ids[action.invited_user_id]);
+                }
                 break;
             case "PartyKickAction":
-                delete party_state.invited_user_ids[action.kicked_user_id];
-                changed |= this.self.CHANGED_INVITED;
-                if (party_state.joined_users[action.kicked_user_id]) {
-                    delete party_state.joined_users[action.kicked_user_id];
-                    changed |= this.self.CHANGED_JOINED;
+                if (party_state.invited_user_ids[action.kicked_user_id]) {
+                    party_state.invited_user_ids[action.kicked_user_id].set('deleted', action.created);
+                    delete party_state.invited_user_ids[action.kicked_user_id];
                 }
                 break;
             case "PartyJoinedAction":
-                party_state.joined_user_ids[action.user_id] = {user: SOP.model.User.loadLazy([action.user_id])[0], created: action.created};
-                changed |= this.self.CHANGED_INVITED;
+                if (party_state.invited_user_ids[action.user_id]) {
+                    party_state.invited_user_ids[action.user_id].set('joined', true);
+                }
                 break;
             case "PartyLeftAction":
-                delete party_state.joined_user_ids[action.user_id];
-                changed |= this.self.CHANGED_JOINED;
+                if (party_state.invited_user_ids[action.user_id]) {
+                    party_state.invited_user_ids[action.user_id].set('joined', false);
+                }
                 break;
             case "PartySongAddAction":
                 var playlist_entry = Ext.create("SOP.model.PlaylistEntry", {
@@ -300,12 +335,11 @@ Ext.define("SOP.model.Party", {
                     deleted_by_user: null,
                     position: party_state.playlist_entries.length,
                 });
-                party_state.playlist_entries.push(playlist_entry);
                 if (is_new) {
-                    //add the record to the store
-                    this.getPlaylistEntryStore().add(playlist_entry);
+                    party_state.playlist_entries.push(playlist_entry);
                 }
-                changed |= this.self.CHANGED_PLAYLIST;
+                //add the record to the store
+                this.getPlaylistEntryStore().add(playlist_entry);
                 /*
                   if (is_new) {
                   doCommandCallback(Party.COMMAND_PLAY_IF_STOPPED, {position: party.song_ids.length - 1});
@@ -316,7 +350,6 @@ Ext.define("SOP.model.Party", {
                     deleted_by_user: SOP.model.User.loadLazy([action.user_id])[0],
                     deleted: action.created,
                 });
-                changed |= this.self.CHANGED_PLAYLIST;
                 /*
                   if (is_new) {
                   doCommandCallback(Party.COMMAND_NEXT_IF_POSITION, {position: action.position});
@@ -345,11 +378,9 @@ Ext.define("SOP.model.Party", {
                 break;
             case "PartyOnAction":
                 party_state.active = this.self.ACTIVE_ON;
-                changed |= this.self.CHANGED_ACTIVE;
                 break;
             case "PartyOffAction":
                 party_state.active = this.self.ACTIVE_OFF;
-                changed |= this.self.CHANGED_ACTIVE;
                 /*
                   if (is_new) {
                   doCommandCallback(Party.COMMAND_STOP);
@@ -362,7 +393,6 @@ Ext.define("SOP.model.Party", {
             }
         }
         this.set('log', party_log);
-        return changed;
     },
 
 });

@@ -71,11 +71,12 @@ Ext.define('SOP.domain.AbstractFacebookDomain', {
             });
         },
 
-        getLoggedinUserId: function (callback) {
+        /**
+          * Please note: function is synchronous, so will not wait for user_id to arrive. Don't call too early
+          */
+        getLoggedinUserId: function () {
             var that = this;
-            that.callAfterLogin(function () {
-                callback(that.fb_status.authResponse.userID);
-            });
+            return that.fb_status.authResponse.userID;
         },
 
         lookupUsers: function (user_ids, callback) {
@@ -87,9 +88,27 @@ Ext.define('SOP.domain.AbstractFacebookDomain', {
                     params: params,
                     callbackKey: "callback",
                     success: function (result, request) {
-                        if (callback) {
-                            callback(result);
-                        }
+                        callback(result);
+                    }
+                });
+            });
+        },
+
+        getProfilePictureUrl: function (user_id) {
+            var that = this;
+            return that.FACEBOOK_GRAPH_URL + user_id + "/picture";
+        },
+
+        getAllFriends: function (callback) {
+            var that = this;
+            that.getAccessToken(function (accessToken) {
+                var params = {fields: "id,name", access_token: accessToken};
+                Ext.data.JsonP.request({
+                    url: that.FACEBOOK_GRAPH_URL + "me/friends",
+                    params: params,
+                    callbackKey: "callback",
+                    success: function (result, request) {
+                        callback(result.data);
                     }
                 });
             });

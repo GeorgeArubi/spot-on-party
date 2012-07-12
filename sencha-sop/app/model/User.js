@@ -43,16 +43,27 @@ Ext.define("SOP.model.User", {
 
             }
             return users;
-        }
+        },
+        /**
+          * Loads all facebook friends for the loggedin user
+          **/
+        loadAllFriends: function (callback) {
+            var that = this;
+            SOP.domain.FacebookDomain.getAllFriends(function (users_info) {
+                var users = Ext.Array.map(users_info, function (user_info) {
+                    return Ext.create(that, Ext.merge(user_info, {loaded: true}));
+                });
+                callback(users);
+            });
+        },
     },
 
     config: {
         fields: ["id", "name", "loaded", "loading"],
     },
 
-    getNameHtml: function () {
-        var that = this;
-        return that.getLazyFieldHtml("name", "----");
+    getProfilePictureUrl: function () {
+        return SOP.domain.FacebookDomain.getProfilePictureUrl(this.get('id'));
     },
 
 });

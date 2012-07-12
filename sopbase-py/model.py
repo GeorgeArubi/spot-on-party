@@ -92,16 +92,8 @@ class Party(db.Model):
         party.put()
         
         PartyCreateAction(parent=party, user=owner, name=name).put()
+        party.invite_users([owner], owner)
 
-        party.invite_user(owner, owner)
-        songs = [
-            Song(key_name="spotify:track:7gSeGMqiOrv7ftmxYLFaOA", name="Moondance"),
-            Song(key_name="spotify:track:3HReViQnCFUk56f4PXO3Tx", name="A night like this"),
-            Song(key_name="spotify:track:04zm16Wb5rUuQzhpC8JsZh", name="That Man")]
-            
-        db.put(songs)
-
-        db.put([PartySongAddAction(song=song, parent=party, user=owner) for song in songs])
         return party
 
     def loggedin_user_is_invited(self, loggedin_user):
@@ -113,13 +105,23 @@ class Party(db.Model):
             raise SecurityException("Loggedin user %s is not admin of the party (%s)" % (loggedin_user.key(), self.owner.key()))
         
 
-    def invite_user(self, user, loggedin_user):
+    def invite_users(self, users, loggedin_user):
         self.loggedin_user_is_admin(loggedin_user)
-        action = PartyInviteAction(parent=self, user=loggedin_user, invited_user=user)
-        action.put()
-        self.invited_user_ids.append(user.key())
-        self.put()
-        return action
+        actions = []
+        for user in users: 
+            actions.append(PartyInviteAction(parent=self, user=loggedin_user, invited_user=user))
+            self.invited_user_ids.append(user.key())
+        db.put([self] + actions)
+        return actions
+
+    def kick_users(self, users, loggedin_user):
+        actions = []
+        for user in users: 
+            if user.key() != self.owner.key(): #filter out the owner: owner can't be kicked
+                actions.append(PartyKickAction(parent=self, user=loggedin_user, kicked_user=user))
+                self.invited_user_ids.remove(user.key())
+        db.put([self] + actions)
+        return actions
 
     def activate(self, loggedin_user):
         self.loggedin_user_is_admin(loggedin_user)

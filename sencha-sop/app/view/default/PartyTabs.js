@@ -65,9 +65,9 @@ Ext.define("SOP.view.default.PartyTabs", {
         this.add(Ext.create("SOP.view.PlaylistView", {
             store: this.getParty().getPlaylistEntryStore(),
         }));
-        this.add(Ext.create("Ext.Button", {
-            text: "hello",
-            "title": "hi",
+        this.add(Ext.create("SOP.view.UserlistView", {
+            store: this.getParty().getUserInPartyStore(),
+            party: this.getParty(),
         }));
     },
 

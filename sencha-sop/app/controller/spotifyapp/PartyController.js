@@ -17,11 +17,9 @@ Ext.define('SOP.controller.spotifyapp.PartyController', {
             });
             SOP.domain.SopBaseDomain.on("addparty", function (party_info) {
                 var party = new SOP.model.Party(party_info);
-                SOP.domain.FacebookDomain.getLoggedinUserId(function (userId) {
-                    if (party.get("owner_id") === userId) {
-                        store.add(party);
-                    }
-                });
+                if (party.get("owner_id") === SOP.domain.FacebookDomain.getLoggedinUserId()) {
+                    store.add(party);
+                }
             });
             var view = Ext.create("SOP.view.spotifyapp.ChooseParty", {store: store});
             view.on("createparty", that.onCreateParty, that);

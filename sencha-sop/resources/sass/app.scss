@@ -28,8 +28,9 @@ body.sop_loading #appLoadingIndicator { opacity: 1; top: 0; -webkit-transition-d
   p { padding-top: 10px; }
 }
 
-.playlist-entry {height: 50px; color: #333333; overflow: hidden; position: relative;
-  .playlist-name {white-space: nowrap; padding-right: 150 px; overflow: hidden; text-overflow: ellipsis;}
+.playlist-entry.new {height: 0; }
+.playlist-entry {height: 50px; color: #333333; overflow: hidden; position: relative; -webkit-transition: height 2s;
+  .playlist-name {white-space: nowrap; padding-right: 150px; overflow: hidden; text-overflow: ellipsis;}
   .playlist-artist {font-size: 0.6em; color: #555555; float: left; }
   .playlist-user-added {font-size: 0.6em; color: #555555; float: left;
     .x-innerhtml {display: inline; }
@@ -52,9 +53,31 @@ body.sop_loading #appLoadingIndicator { opacity: 1; top: 0; -webkit-transition-d
   .buttons {opacity: 0; }
 }
 
-.playlist-entry.deleted {height: 0px; -webkit-transition: height 2s ease 10s;
+.playlist-entry.deleted {height: 0px; -webkit-transition-delay: 10s;
   .buttons {display: none; }
   .playlist-user-deleted {display: block; }  
+}
+
+.userlist-entry.new {height: 0; }
+.userlist-entry {height: 60px; color: #555555; overflow: hidden; position: relative; -webkit-transition: height 2s;
+  .user-image {padding: 5px 15px 5px 5px; float: left;}
+  .user-name {white-space: nowrap; padding: 20px 150px 0 0; overflow: hidden; text-overflow: ellipsis;}
+  .buttons {position: absolute; top: 3px; right: 3px; -webkit-transition: opacity 300ms}
+  .delete-confirm-overlay {display: none; position: absolute; z-index: 10;width: 100%; height: 100%; } 
+  .delete-confirm-btn-mask {position: absolute; overflow: hidden; z-index: 11; right: 0px; width: 0px; height: 100%; -webkit-transition: width 300ms}
+  .delete-confirm-btn {position: absolute; right: 10px; top: 5px; }
+}
+
+.userlist-entry.joined {color: #000000;}
+
+.delete-confirm-mask .userlist-entry .delete-confirm-overlay {display: block; }
+.userlist-entry.delete-confirm {
+  .delete-confirm-btn-mask {width: 100px; }
+  .buttons {opacity: 0; }
+}
+
+.userlist-entry.deleted {height: 0px;
+  .buttons {display: none; }
 }
 
 .addsongs {

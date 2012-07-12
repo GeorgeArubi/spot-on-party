@@ -15,6 +15,7 @@ Ext.define('SOP.controller.PartyController', {
         },
         choosePartyPickerView: null,
         addSongsView: null,
+        inviteUsersView: null,
     },
 
 
@@ -48,6 +49,27 @@ Ext.define('SOP.controller.PartyController', {
                 console.log("removed: ", actions);
                 party.feed(actions);
             });
+        });
+        view.down("userlistview").on("itemdelete", function (userInParty) {
+            SOP.domain.SopBaseDomain.kickUsers(party.get('id'), [userInParty.user.get('id')], function (actions) {
+                console.log("kicked: ", actions);
+                party.feed(actions);
+            });
+        });
+        view.on("adduserbuttontap", function () {
+            if (!that.getInviteUsersView()) {
+                that.setInviteUsersView(Ext.create("SOP.view.InviteUsersView"));
+                that.getInviteUsersView().on("cancel", function () {that.getInviteUsersView().hide(); });
+                that.getInviteUsersView().on("inviteusers", function (user_ids) {
+                    SOP.domain.SopBaseDomain.inviteUsers(party.get('id'), user_ids, function (actions) {
+                        console.log("invited: ", actions);
+                        party.feed(actions);
+                        that.getInviteUsersView().hide();
+                    });
+                });
+                Ext.Viewport.add(that.getInviteUsersView());
+            }
+            that.getInviteUsersView().show();
         });
         view.on("addsongbuttontap", function () {
             if (!that.getAddSongsView()) {

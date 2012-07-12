@@ -198,7 +198,16 @@ class InviteUsers(RequestHandlerBase):
         party = model.Party.get_by_id(long(self.request.get("party_id")))
         invited_user_ids = self.request.get("invited_user_ids").split(",")
         invited_users = self.get_users(invited_user_ids)
-        actions = [party.invite_user(user, loggedin_user) for user in invited_users] #pylint: disable=E1103
+        actions = party.invite_users(invited_users, loggedin_user) #pylint: disable=E1103
+        self.reply_jsonp([action.for_api_use() for action in actions])
+
+class KickUsers(RequestHandlerBase):
+    def get(self):
+        loggedin_user = self.loggedin_user()
+        party = model.Party.get_by_id(long(self.request.get("party_id")))
+        kicked_user_ids = self.request.get("kicked_user_ids").split(",")
+        kicked_users = self.get_users(kicked_user_ids)
+        actions = party.kick_users(kicked_users, loggedin_user) #pylint: disable=E1103
         self.reply_jsonp([action.for_api_use() for action in actions])
 
 logging.getLogger().setLevel(logging.DEBUG)
@@ -208,6 +217,7 @@ app = webapp2.WSGIApplication([
         ('/api/1/partyon', PartyOn),
         ('/api/1/partyoff', PartyOff),
         ('/api/1/inviteusers', InviteUsers),
+        ('/api/1/kickusers', KickUsers),
         ('/api/1/addsong', AddSong),
         ('/api/1/removesong', RemoveSong),
         ('/api/1/playposition', PlayPosition),

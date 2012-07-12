@@ -24,7 +24,7 @@ Ext.define("SOP.view.PlaylistEntryView", {
             ], layout: "hbox"},
         ],
 
-        cls: "playlist-entry",
+        cls: ["playlist-entry", "new", ],
 
         listeners: {
             updatedata: "onUpdateData",
@@ -115,5 +115,6 @@ Ext.define("SOP.view.PlaylistEntryView", {
         } else {
             that.removeCls("deleted");
         }
+        Ext.defer(function () {that.removeCls("new"); }, 1); //allows for new animation
     },
 });

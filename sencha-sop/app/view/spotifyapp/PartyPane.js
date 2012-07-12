@@ -26,11 +26,13 @@ Ext.define("SOP.view.spotifyapp.PartyPane", {
                         xtype: "container",
                         flex: 1,
                         id: "users-pane",
+                        layout: "vbox",
                     },
                     {
                         xtype: "container",
                         flex: 1,
                         id: "newsfeed-pane",
+                        layout: "vbox",
                     },
                 ],
             },
@@ -67,5 +69,14 @@ Ext.define("SOP.view.spotifyapp.PartyPane", {
         that.down("#playlist-pane").add(Ext.merge({xtype: "button", localid: "rightbutton"}, playlistview.getRightButtonInfo()));
         that.down("#playlist-pane").add(playlistview);
         that.down("#playlist-pane").down("button[localid=rightbutton]").on("tap", function () {that.fireEvent("addsongbuttontap"); });
+
+        var userlistview = Ext.create("SOP.view.UserlistView", {
+            store: this.getParty().getUserInPartyStore(),
+            party: this.getParty(),
+        });
+        that.down("#users-pane").add(Ext.merge({xtype: "button", localid: "rightbutton"}, userlistview.getRightButtonInfo()));
+        that.down("#users-pane").add(userlistview);
+        that.down("#users-pane").down("button[localid=rightbutton]").on("tap", function () {that.fireEvent("adduserbuttontap"); });
+
     },
 });

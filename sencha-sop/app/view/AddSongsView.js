@@ -12,7 +12,7 @@ Ext.define("SOP.view.AddSongsView", {
         cls: "addsongs",
         items: [
             {xtype: "titlebar", docked: "top", title: "Add songs", items: [
-                {xtype: "button", text: "cancel", align: "right", localid: "cancel-btn"},
+                {xtype: "button", text: "cancel", align: "left", localid: "cancel-btn", ui: "decline"},
             ]},
             {xtype: "searchfield", },
             {
