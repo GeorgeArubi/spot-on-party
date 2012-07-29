@@ -7,7 +7,8 @@
 Ext.define('SOP.domain.AbstractFacebookDomain', {
 
     inheritableStatics: {
-        FACEBOOK_APP_ID: "233580756759588",
+//        FACEBOOK_APP_ID: "233580756759588",
+        FACEBOOK_APP_ID: "312921805471592", // live
         FACEBOOK_GRAPH_URL: (window.location.protocol === "http" ? "http:" : "https:") + "//graph.facebook.com/",
 
         initStarted: false,

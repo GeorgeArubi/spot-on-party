@@ -16,13 +16,20 @@ Ext.define("SOP.domain.SpotifyAppIntegrator", {
             var that = this;
             var sp = getSpotifyApi(1);
             that.models = sp.require('sp://import/scripts/api/models');
+            var timeout = 0;
 
             that.models.player.observe(that.models.EVENT.CHANGE, function (event) {
-                if (that.isStoppedOrNotPlayingFromApp()) {
-                    that.onPartyPlayStopped();
-                } else {
-                    that.onPartyPlayStarted(that.models.player.index);
+                if (timeout) {
+                    window.clearTimeout(timeout);
                 }
+                timeout = window.setTimeout(function () {
+                    timeout = 0;
+                    if (that.isStoppedOrNotPlayingFromApp()) {
+                        that.onPartyPlayStopped();
+                    } else {
+                        that.onPartyPlayStarted(that.models.player.index);
+                    }
+                }, 100); //only send after 100 ms, because multiple events get fired
             });
 
             SOP.app.getController("SOP.controller.spotifyapp.PartyController").on("activateparty", that.onActivateParty, that);

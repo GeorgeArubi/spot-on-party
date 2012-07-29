@@ -11,7 +11,8 @@ Ext.define("SOP.domain.SopBaseDomain", {
 
     singleton: true,
 
-    BASE_URL:  (window.location.protocol === "https" ? "https:" : "http:") + "//tiggr.local:8081/api/1/",
+//    BASE_URL:  (window.location.protocol === "https" ? "https:" : "http:") + "//tiggr.local:8081/api/1/",
+    BASE_URL:  (window.location.protocol === "https" ? "https:" : "http:") + "//sopbase.appspot.com/api/1/",
 
     sid: String(Math.random()).substr(2),
     channel_info: null,
@@ -31,7 +32,7 @@ Ext.define("SOP.domain.SopBaseDomain", {
                 to_execute = function () {
                     if (window.goog && window.goog.appengine && window.goog.appengine.Channel) {
                         Ext.defer(function () {
-                            goog.appengine.Socket.POLLING_TIMEOUT_MS = 300000; //decreasing polling interval results in lost data
+//                            goog.appengine.Socket.POLLING_TIMEOUT_MS = 300000; //decreasing polling interval results in lost data
                         }, 60000);
                         goog.appengine.Socket.BASE_URL = that.BASE_URL + "../.." + goog.appengine.Socket.BASE_URL;
                         that.doCall_helper("getchanneltoken", {}, accesstoken, function (channel_info) {
@@ -84,7 +85,7 @@ Ext.define("SOP.domain.SopBaseDomain", {
     },
 
     onMessage: function (message_data) {
-        console.log("onmessage", message_data);
+        console.log("onmessage", message_data, message_data.action, (message_data.action ? message_data.action.type : ""));
         var that = this;
         var message_type = message_data.type;
         switch (message_type) {

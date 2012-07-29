@@ -118,6 +118,12 @@ Ext.define("SOP.view.PlaylistEntryView", {
         }
         if (playlistEntry.is_playing) {
             that.addCls("playing");
+            if (that.up("playlistview")) { // else just started; will (hopefully) set the scrolling later
+                var contentHeight = that.element.dom.parentNode.clientHeight;
+                var containerHeight = that.up("playlistview").element.dom.clientHeight;
+                var scrollOffset = Math.max(Math.min(that.element.dom.offsetTop, contentHeight - containerHeight), 0);
+                that.up("playlistview").getScrollable().getScroller().scrollTo(0, scrollOffset, true);
+            }
         } else {
             that.removeCls("playing");
         }
