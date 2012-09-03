@@ -15,7 +15,8 @@ Ext.define("SOP.view.default.ChooseParty", {
         rightButton: null,
         listeners: {
             activeitemchange: "onActiveItemChange",
-        }
+        },
+        store: null,
     },
 
     initialize: function () {
@@ -24,12 +25,12 @@ Ext.define("SOP.view.default.ChooseParty", {
         that.list = Ext.create("Ext.dataview.List", {
             flex: 1,
             itemTpl: '{name}',
-            store: that.store,
+            store: that.getStore(),
         });
         that.items.first().add([this.list]);
         that.list.on("itemtap", that.onListItemTap, that);
         Ext.each(["addrecords", "clear", "removerecords", "updaterecord"], function (eventname) {
-            that.store.on(eventname, that.onStoreChange, that);
+            that.getStore().on(eventname, that.onStoreChange, that);
         });
         that.onStoreChange();
     },
@@ -43,7 +44,7 @@ Ext.define("SOP.view.default.ChooseParty", {
 
     onStoreChange: function () {
         var that = this;
-        if (that.store.getAllCount() === 0) {
+        if (that.getStore().getAllCount() === 0) {
             Ext.Msg.show({
                 title       : "No parties",
                 message     : "Nobody has invited you to a party yet",

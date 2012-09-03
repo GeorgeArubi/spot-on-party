@@ -40,7 +40,8 @@ Ext.define("SOP.view.spotifyapp.ChooseParty", {
         }],
         listeners: {
             initialize: "onInitialize",
-        }
+        },
+        store: null,
     },
 
     onInitialize: function () {
@@ -48,7 +49,7 @@ Ext.define("SOP.view.spotifyapp.ChooseParty", {
         var list = Ext.create("Ext.dataview.List", {
             flex: 1,
             itemTpl: '{name}',
-            store: that.store,
+            store: that.getStore(),
         });
         that.down("[localid=flipside]").add(list);
         that.down("[localid=continue-old-party]").on("tap", function () {
@@ -61,7 +62,7 @@ Ext.define("SOP.view.spotifyapp.ChooseParty", {
         });
         list.on("itemtap", that.onListItemTap, that);
         Ext.each(["addrecords", "clear", "removerecords", "updaterecord"], function (eventname) {
-            that.store.on(eventname, that.onStoreChange, that);
+            that.getStore().on(eventname, that.onStoreChange, that);
         });
         that.down("textfield").on("action", function (partyname) {that.fireEvent("createparty", that, partyname.getValue()); });
 
@@ -77,7 +78,7 @@ Ext.define("SOP.view.spotifyapp.ChooseParty", {
 
     onStoreChange: function () {
         var that = this;
-        if (that.store.getAllCount() === 0) {
+        if (that.getStore().getAllCount() === 0) {
             that.addCls("no-recoverable-parties");
         } else {
             that.removeCls("no-recoverable-parties");

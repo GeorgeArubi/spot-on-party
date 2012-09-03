@@ -17,6 +17,8 @@ Ext.application({
 
 
     launch: function () {
+        SOP.domain.FacebookDomain.init();
+        SOP.domain.SpotifyDomain.init();
         if (!this.getRouter().recognize(window.location.hash.substr(1))) {
             window.location.hash = "";
         }

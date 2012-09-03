@@ -82,10 +82,10 @@ Ext.define('SOP.controller.PartyController', {
                 that.setAddSongsView(Ext.create("SOP.view.AddSongsView"));
                 that.getAddSongsView().on("cancel", function () {that.getAddSongsView().hide(); });
                 that.getAddSongsView().on("addtrack", function (track_id) {
+                    that.getAddSongsView().hide();
                     SOP.domain.SopBaseDomain.addSong(party.get('id'), track_id, function (actions) {
                         console.log("added: ", actions);
                         party.feed(actions);
-                        that.getAddSongsView().hide();
                     });
                 });
                 that.getAddSongsView().on("invalidatesearchresults", function (terms) {

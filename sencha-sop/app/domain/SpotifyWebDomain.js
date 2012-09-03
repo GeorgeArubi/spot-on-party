@@ -5,7 +5,6 @@
 /**
  */
 Ext.define('SOP.domain.SpotifyWebDomain', {
-    alternateClassName: ["SOP.domain.SpotifyDomain"],
 
     inheritableStatics: {
         CALL_DELAY: 150, //nr of ms between calls to spotify API -- rate limited on 10/sec, so we do 7/sec just to be sure
@@ -58,5 +57,7 @@ Ext.define('SOP.domain.SpotifyWebDomain', {
                               success: function (response) {call.callback(Ext.JSON.decode(response.responseText)); },
                              });
         },
+
+        init: function () {},
     },
 });

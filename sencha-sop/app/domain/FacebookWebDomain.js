@@ -6,7 +6,6 @@
  */
 Ext.define('SOP.domain.FacebookWebDomain', {
     extend: "SOP.domain.AbstractFacebookDomain",
-    alternateClassName: ["SOP.domain.FacebookDomain"],
 
     inheritableStatics: {
         onFacebookInit: function () {
@@ -60,5 +59,3 @@ Ext.define('SOP.domain.FacebookWebDomain', {
         },
     },
 });
-
-SOP.domain.FacebookDomain.init();

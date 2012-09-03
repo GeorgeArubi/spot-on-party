@@ -5,7 +5,6 @@
 /**
  */
 Ext.define('SOP.domain.SpotifySpotifyDomain', { //strange name, means domain FOR Spotify interaction, in Spotify app
-    alternateClassName: ["SOP.domain.SpotifyDomain"],
 
     inheritableStatics: {
         models: null,
@@ -43,5 +42,3 @@ Ext.define('SOP.domain.SpotifySpotifyDomain', { //strange name, means domain FOR
         },
     },
 });
-
-SOP.domain.SpotifyDomain.init();

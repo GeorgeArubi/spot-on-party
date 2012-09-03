@@ -7,8 +7,7 @@
 Ext.define('SOP.domain.AbstractFacebookDomain', {
 
     inheritableStatics: {
-//        FACEBOOK_APP_ID: "233580756759588",
-        FACEBOOK_APP_ID: "312921805471592", // live
+        FACEBOOK_APP_ID: (window.location.host === "tiggr.local" ? "233580756759588" : "312921805471592"), //spotify fb has own id
         FACEBOOK_GRAPH_URL: (window.location.protocol === "http" ? "http:" : "https:") + "//graph.facebook.com/",
 
         initStarted: false,

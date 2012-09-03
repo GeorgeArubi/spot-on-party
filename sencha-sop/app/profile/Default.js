@@ -1,11 +1,12 @@
 /*jslint browser:true, vars: true */
-/*globals Ext */
+/*globals Ext, SOP  */
 "use strict";
 
 /**
  */
 Ext.define('SOP.profile.Default', {
     extend: "Ext.app.Profile",
+    requires: ["SOP.domain.FacebookWebDomain", "SOP.domain.SpotifyWebDomain"],
 
     config: {
         name: "Default",
@@ -19,7 +20,8 @@ Ext.define('SOP.profile.Default', {
 
     launch: function () {
         console.log("Default profile activated");
-        Ext.syncRequire(["SOP.domain.FacebookWebDomain", "SOP.domain.SpotifyWebDomain"]);
+        Ext.ClassManager.set("SOP.domain.SpotifyDomain", SOP.domain.SpotifyWebDomain);
+        Ext.ClassManager.set("SOP.domain.FacebookDomain", SOP.domain.FacebookWebDomain);
     },
 
 });
