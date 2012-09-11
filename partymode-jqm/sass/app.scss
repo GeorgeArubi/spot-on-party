@@ -1,0 +1,36 @@
+$spotify-dark-background-color: #363636;
+@mixin big-button {font-size: 30px; border-radius: 15px; height: 50px; border: 0px; outline: none; color: $spotify-dark-background-color; padding: 0;}
+
+
+a {color: inherit; text-decoration: inherit;}
+a:hover {text-decoration: inherit;}
+
+.logo {
+  margin-bottom: 50px;
+  h2 {text-align: center; font-size: 24px;}
+  img {width: 100%;}
+}
+
+.welcome-page {
+  .facebook-login {
+    text-align: center;
+    .disclaimer {margin: 50px; max-width: 730px; text-align: left; display: inline-block;}
+    .disclaimer:after {content: \0A ;}    
+    .fb-login-button {border: 0; outline: none; width: 152px; height: 22px; background: url(../img/fb-login.png) no-repeat; display: inline-block;}
+  }
+}  
+
+.new-party-page {
+  #new-party-form {text-align: center;
+    #new-party-name {@include big-button; width: 450px; background-color: #FFFFCF; padding-left: 5px; margin-right: 30px; }
+    #new-party-submit {@include big-button; width: 265px; background-color: #7FFF7F; padding-top: 1px;}
+    .or:before {content: "\2013  ";} /* note: two spaces, one to end the hex character, one space to insert */
+    .or:after {content: " \2013";}
+    .or {font-size: 35pt; font-weight: bold; margin: 25px;}
+    #view-party-history {@include big-button; width: 265px; background-color: #7FAFFF; display: inline-block; line-height: 50px;}
+  }
+}
+
+.footer {margin-top: 100px; padding-top: 5px; border-top: 1px solid silver;
+  #logout {text-align: center;}
+}

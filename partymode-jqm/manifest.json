@@ -1,0 +1,22 @@
+{
+    "BundleType": "Application",
+    "BundleIdentifier": "partymode",
+    "AppIcon": {
+	"36x18": "partymode.png"
+    },
+    "AppName": {
+	"en": "Partymode"
+    },
+    "SupportedLanguages": [
+	"en"
+    ],
+    "RequiredPermissions": [
+	"https://*.facebook.com/",
+	"http://*.facebook.com/",
+	"https://*.facebook.net/",
+	"http://*.facebook.net/",
+        "http://tiggr.local:8081/",
+        "http://*.talkgadget.google.com/",
+        "http://sopbase.appspot.com/"
+    ]
+}
