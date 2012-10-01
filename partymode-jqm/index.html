@@ -4,7 +4,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Partymode</title>
+    <link rel="stylesheet" href="sp://import/css/shared.css">
     <link rel="stylesheet" href="sp://import/css/adam.css">
+    <link rel="stylesheet" href="sp://import/css/api.css">
     <link rel="stylesheet" href="css/app.css" />
     <!--	<link rel="stylesheet" href="http://code.jquery.com/mobile/1.2.0-alpha.1/jquery.mobile-1.2.0-alpha.1.css" /> -->
     <script src="js/jquery-1.7.2.js"></script>
@@ -42,10 +44,29 @@
         <div class="or">or</div>
         <a href="#history" id="view-party-history">view old parties</a>
         <div class="footer">
-          <button id="logout">log out</button>
+          <button class="sp-button" id="logout">log out</button>
         </div>
       </form>
     </script>
+    <script type="text/html" id="party-page">
+      <div class="header">
+<!--        <img src="img/logo_small.svg"> -->
+        <img src="img/logo_small.png">
+      </div>
+      <button class="sp-button sp-icon" id="add-song"><span class="sp-plus"></span>add song</button>
+      <button class="sp-button" id="invite-users">invite friends</button>
+      <button class="sp-button" id="end-party">end party</button>
+      <div id="users-bar"><!--- TODO: actually add users ---></div>
+      <div id="playlist-placeholder">Playlist comes here!</div>
+    </script>
+
+    <script type="text/html" id="invite-users-overlay">
+      <h3>Invite friends to your party</h3>
+      <input type="search" id="users-search-box">
+      <div id="users-search-results" class="loading"></div>
+      <button class="sp-button" id="users-search-invite">Invite</span>
+    </script>
+
     <script src="js/config.js"></script>
     <script src="js/includes/AbstractFacebookDomain.js"></script>
     <script src="js/includes/FacebookSpotifyDomain.js"></script>

@@ -7,7 +7,7 @@ if (!window.PM) {
 
 
 (function (PM, Backbone, $, _) {
-    var FacebookLoginView, StartNewPartyView;
+    var FacebookLoginView, StartNewPartyView, PartyView, InviteUsersView, AddSongView;
 
     var getTemplate = function (id) {
         var el = $('#' + id);
@@ -26,11 +26,11 @@ if (!window.PM) {
             current_view.undelegateEvents();
         }
         current_view = new_view;
-        $('#main-content').html(current_view.render().$el);
+        current_view.render($('#main-content'));
     };
 
     var checkFacebookLogin = function (loggedincode) {
-        if (PM.app.current_user) {
+        if (PM.current_user) {
             loggedincode();
         } else {
             PM.domain.FacebookSpotifyDomain.isLoggedin(function (loggedin) {
@@ -43,7 +43,7 @@ if (!window.PM) {
                         id: PM.app.loggedin_user_id,
                     });
                     PM.models.User.setToCache(user);
-                    PM.app.current_user = PM.models.User.getMaster();
+                    PM.current_user = PM.models.User.getMaster();
                     checkFacebookLogin(loggedincode);
                 } else {
                     PM.app.navigate("", {trigger: true});
@@ -61,9 +61,10 @@ if (!window.PM) {
 
         template: getTemplate("welcome-page"),
 
-        render: function () {
+        render: function (target) {
             var that = this;
             that.$el.html(that.template());
+            target.html(that.$el);
             return that;
         },
 
@@ -85,9 +86,11 @@ if (!window.PM) {
 
         template: getTemplate("new-party-page"),
 
-        render: function () {
+        render: function (target) {
             var that = this;
             that.$el.html(that.template({default_party_name: PM.models.Party.getDefaultPartyName()}));
+            target.html(that.$el);
+            that.$("#new-party-name").focus();
             return that;
         },
 
@@ -101,23 +104,97 @@ if (!window.PM) {
             if (party_name === "") {
                 party_name = PM.models.Party.getDefaultPartyName();
             }
-            PM.current_party = new PM.models.Party({
+            var party = new PM.models.Party({
                 id: 1, //TODO: we obviously need a party id that comes from the server.. Or random...
-                owner: PM.app.current_user,
+                owner: PM.current_user,
             });
-            PM.current_party.createAndApplyOwnAction(
+            PM.collections.Parties.getInstance().add(party);
+
+            party.createAndApplyOwnAction(
                 "ChangeName",
                 {name: party_name},
                 function () {
-                    PM.current_party.createAndApplyOwnAction(
+                    party.createAndApplyOwnAction(
                         "Invite",
-                        {invited_user_id: PM.current_user.getActualUser().id},
+                        {invited_user_id: PM.current_user.actualUser().id},
                         function () {
-                            PM.app.navigate("party/" + PM.current_party.id, {trigger: true});
+                            console.log("done");
+                            PM.app.navigate("party/" + party.id, {trigger: true});
                         }
                     );
                 }
             );
+        },
+    });
+
+    InviteUsersView = Backbone.View.extend({
+        className: "invite-users-overlay",
+
+        template: getTemplate("invite-users-overlay"),
+
+        events: {
+            "click #users-search-invite": "invite",
+        },
+
+        render: function (target) {
+            var that = this;
+            that.$el.html(that.template());
+            target.html(that.$el);
+            PM.domain.FacebookDomain.getAllFriends(function (friend_data) {
+                
+            });
+            return that;
+        },
+
+        invite: function () {
+
+        },
+
+        lookForEscape: function () {
+            console.log("Lookforescape");
+        },
+
+    });
+
+    PartyView = Backbone.View.extend({
+        className: "party-page",
+
+        template: getTemplate("party-page"),
+
+        events: {
+            "click #add-song": "addSong",
+            "click #invite-users": "inviteUsers",
+            "click #end-party": "endParty",
+        },
+
+        initialize: function (id) {
+            var that = this;
+            that.party = PM.collections.Parties.getInstance().get(id);
+            if (!that.party) {
+                throw "Party with id " + id + " was not found";
+            }
+        },
+
+        render: function (target) {
+            var that = this;
+            that.$el.html(that.template());
+            target.html(that.$el);
+            if (that.party.isNew()) {
+                that.inviteUsers();
+            }
+            return that;
+        },
+
+        addSong: function () {
+
+        },
+
+        inviteUsers: function () {
+            
+        },
+
+        endParty: function () {
+            console.log("TODO implement end party");
         },
     });
 
@@ -143,9 +220,7 @@ if (!window.PM) {
             checkFacebookLogin(function () {
                 var view = new StartNewPartyView();
                 changeView(view);
-                view.$("#new-party-name").focus();
             });
-
         },
 
         partyHistory: function () {
@@ -153,7 +228,10 @@ if (!window.PM) {
         },
 
         showParty: function (id) {
-            console.log("ttt" + id);
+            checkFacebookLogin(function () {
+                var view = new PartyView({id: id});
+                changeView(view);
+            });
         },
     });
 

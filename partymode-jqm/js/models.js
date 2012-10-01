@@ -135,7 +135,7 @@ if (!window.PM) {
             if (!_.isObject(attrs.user)) {
                 return "Need to provide a user";
             }
-            if (!_.isDate(attrs.joined) || _.isNull(attrs.joined)) {
+            if (!(_.isDate(attrs.joined) || _.isNull(attrs.joined))) {
                 return "Joined needs to be a date or null";
             }
         }
@@ -223,6 +223,9 @@ if (!window.PM) {
             if (!attrs.user_id) {
                 return "Supply a user (owner) for this action"; // NOTE: make sure that the user_id for this action was overwritten by trusted code
             }
+            if (!that.party) {
+                return "Party could not be loaded";
+            }
             if (!that.party.isMember(attrs.user_id)) {
                 return "The user is not a member of the party";
             }
@@ -230,7 +233,7 @@ if (!window.PM) {
     }, {
         createAction: function (user_or_user_id, party_or_party_id, type, properties) {
             var That = this;
-            var ActionClass = _.find(That.__children, function (Action) {console.log(Action.type); return Action.type === type; });
+            var ActionClass = _.find(That.__children, function (Action) {return Action.type === type; });
             if (!ActionClass) {
                 throw "No action class found for " + type;
             }
@@ -276,22 +279,22 @@ if (!window.PM) {
                 return "invited_user_id must be present";
             }
             var user = PM.models.User.getById(that.get("invited_user_id"));
-            if (user.get("status") !== "loaded") {
+            if (user.get("_status") !== "loaded") {
                 return "invited user could not be loaded";
             }
-            if (that.party.isMember(attrs.invited_user_id)) {
+            if (that.party.getMemberRecord(attrs.invited_user_id)) {
                 return "user already invited";
             }
-            return that.__super__.validate.call(that, attrs);
+            return that.constructor.__super__.validate.call(that, attrs);
         },
 
         prepareValidate: function (callback) {
             var that = this;
             var user = PM.models.User.getById(that.get("invited_user_id"));
-            switch (user.get("status")) {
+            switch (user.get("_status")) {
             case "error":
             case "loaded":
-                that.__super__.prepareValidate.call(that, callback);
+                that.constructor.__super__.prepareValidate.call(that, callback);
                 break;
             default:
                 var handler;
@@ -326,7 +329,7 @@ if (!window.PM) {
             if (that.party.isMember(attrs.kicked_user_id)) {
                 return "user not invited";
             }
-            return that.__super__.validate.call(that, attrs);
+            return that.constructor.__super__.validate.call(that, attrs);
         },
 
         applyAction: function () {
@@ -346,7 +349,7 @@ if (!window.PM) {
             if (PM.current_patry.isJoined(attrs.user_id)) {
                 return "User is already joined";
             }
-            return that.__super__.validate.call(that, attrs);
+            return that.constructor.__super__.validate.call(that, attrs);
         },
 
         applyAction: function () {
@@ -363,7 +366,7 @@ if (!window.PM) {
             if (!PM.current_patry.isJoined(attrs.user_id)) {
                 return "User is not joined";
             }
-            return that.__super__.validate.call(that, attrs);
+            return that.constructor.__super__.validate.call(that, attrs);
         },
 
         applyAction: function () {
@@ -386,16 +389,16 @@ if (!window.PM) {
                 return "track could not be loaded";
             }
             //TODO: also check whether track is playable etc...
-            return that.__super__.validate.call(that, attrs);
+            return that.constructor.__super__.validate.call(that, attrs);
         },
 
         prepareValidate: function (callback) {
             var that = this;
             var track = PM.models.Track.getById(that.get("track_id"));
-            switch (track.get("status")) {
+            switch (track.get("_status")) {
             case "error":
             case "loaded":
-                that.__super__.prepareValidate.call(that, callback);
+                that.constructor.__super__.prepareValidate.call(that, callback);
                 break;
             default:
                 var handler;
@@ -432,7 +435,7 @@ if (!window.PM) {
             if (!_.isObject(track_in_playlist) || track_in_playlist.isDeleted()) {
                 return "no track in the playlist at that position";
             }
-            return that.__super__.validate.call(that, attrs);
+            return that.constructor.__super__.validate.call(that, attrs);
         },
 
         applyAction: function () {
@@ -456,7 +459,7 @@ if (!window.PM) {
             if (that.party.get("play_status") !== "play") {
                 return "can't pause when not playing";
             }
-            return that.__super__.validate.call(that, attrs);
+            return that.constructor.__super__.validate.call(that, attrs);
         },
 
         applyAction: function () {
@@ -473,7 +476,7 @@ if (!window.PM) {
             if (that.party.get("play_status") === "play") {
                 return "already playing";
             }
-            return that.__super__.validate.call(that, attrs);
+            return that.constructor.__super__.validate.call(that, attrs);
         },
 
         applyAction: function () {
@@ -547,6 +550,15 @@ if (!window.PM) {
         },
 
         /**
+         * sort of subjective idea of whether a party is new...
+         */
+        isNew: function () {
+            var that = this;
+            return (that.get("log").length < 3 //new party has changename and invite of owner action
+                    && (new Date() - that.get("created") < 60)); //created less than one minute ago
+        },
+
+        /**
           * An action executed by the party owner, the master
           **/
         createAndApplyOwnAction: function (type, properies, success_callback, failure_callback) {
@@ -556,7 +568,7 @@ if (!window.PM) {
     }, {
         /* static members */
         getDefaultPartyName: function () {
-            return PM.app.current_user.actualUser().get("name").toLowerCase() + "'s party";
+            return PM.current_user.actualUser().get("name").toLowerCase() + "'s party";
         }
     });
 
