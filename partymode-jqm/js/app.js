@@ -118,7 +118,6 @@ if (!window.PM) {
                         "Invite",
                         {invited_user_id: PM.current_user.actualUser().id},
                         function () {
-                            console.log("done");
                             PM.app.navigate("party/" + party.id, {trigger: true});
                         }
                     );
@@ -141,6 +140,8 @@ if (!window.PM) {
             that.$el.html(that.template());
             target.html(that.$el);
             PM.domain.FacebookDomain.getAllFriends(function (friend_data) {
+                console.log("hohoho");
+                that.$('#users-search-results').removeClass("loading");
                 
             });
             return that;
@@ -169,9 +170,32 @@ if (!window.PM) {
 
         initialize: function (id) {
             var that = this;
+            that.overlayView = null;
             that.party = PM.collections.Parties.getInstance().get(id);
             if (!that.party) {
                 throw "Party with id " + id + " was not found";
+            }
+        },
+
+        close: function () {
+            var that = this;
+            that.closeOverlayView();
+        },
+
+        addOverlayView: function (overlayView) {
+            var that = this;
+            that.closeOverlayView();
+            that.overlayView = overlayView;
+            that.overlayView.render(that.$('#overlay-placeholder'));
+        },
+
+        closeOverlayView: function () {
+            var that = this;
+            if (that.overlayView) {
+                if (that.overlayView.close) {
+                    that.overlayView.close();
+                }
+                that.overlayView.undelegateEvents();
             }
         },
 
@@ -190,7 +214,9 @@ if (!window.PM) {
         },
 
         inviteUsers: function () {
-            
+            var that = this;
+            console.log("invite users");
+            that.addOverlayView(new InviteUsersView());
         },
 
         endParty: function () {

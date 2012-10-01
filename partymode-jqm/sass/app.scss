@@ -1,9 +1,12 @@
 $spotify-dark-background-color: #363636;
+$spotify-search-results-background-color: #474747;
+$partymode-logo-color: #87ceeb;
 @mixin big-button {font-size: 30px; border-radius: 15px; height: 50px; border: 0px; outline: none; color: $spotify-dark-background-color; padding: 0;}
 
 
 a {color: inherit; text-decoration: inherit;}
 a:hover {text-decoration: inherit;}
+h3 {margin: 0px;}
 
 .logo {
   margin-bottom: 50px;
@@ -20,17 +23,48 @@ a:hover {text-decoration: inherit;}
   }
 }  
 
+
 .new-party-page {
   #new-party-form {text-align: center;
     #new-party-name {@include big-button; width: 450px; background-color: #FFFFCF; padding-left: 5px; margin-right: 30px; }
     #new-party-submit {@include big-button; width: 265px; background-color: #7FFF7F; padding-top: 1px;}
     .or:before {content: "\2013  ";} /* note: two spaces, one to end the hex character, one space to insert */
-    .or:after {content: " \2013";}
+    .or:after {content: " \2013 ";}
     .or {font-size: 35pt; font-weight: bold; margin: 25px;}
     #view-party-history {@include big-button; width: 265px; background-color: #7FAFFF; display: inline-block; line-height: 50px;}
   }
 }
 
-.footer {margin-top: 100px; padding-top: 5px; border-top: 1px solid silver;
-  #logout {text-align: center;}
+#overlay-placeholder > div {
+    $overlay-width: 800px;
+    $overlay-height: 600px;
+    $overlay-border-width: 25px;
+    position: absolute; z-index: 100;
+    width: $overlay-width; height: $overlay-height; top: 50%; margin-top: - $overlay-height / 2 - $overlay-border-width; margin-left: - $overlay-width / 2 - $overlay-border-width; left: 50%;
+    background-color: $spotify-dark-background-color; border: $overlay-border-width solid #101010; border-radius: 30px;
+
+    &.invite-users-overlay {
+        h3 {background-color: $partymode-logo-color; height: 25px; padding: 7px; color: #000080; font-weight: bold;}
+        #users-search-box {height: 30px; width: 500px; font-size: 16px; margin: 7px;}
+        #users-search-results {
+            background-color: $spotify-search-results-background-color;
+            height: $overlay-height - 100px;
+            position: relative; top: 0px;
+&            .throbber {display: none;}
+            &.loading {
+                .throbber {display: block;}
+            }
+        }
+        #users-search-invite {}
+    }
 }
+
+.footer {margin-top: 100px; padding-top: 5px; border-top: 1px solid silver;
+  text-align: center;
+}
+
+
+/* overriding things that the spotify css breaks */
+
+input[type=search] {-webkit-appearance: searchfield;}
+::-webkit-search-cancel-button {display: inherit;}
