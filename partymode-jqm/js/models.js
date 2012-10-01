@@ -1,11 +1,12 @@
 /*jslint browser:true, vars: true, nomen: true */
-"use strict";
 
 if (!window.PM) {
     window.PM = {};
 }
 
+
 (function (PM, Backbone, $, _) {
+    "use strict";
     if (!PM.models) {
         PM.models = {};
     }
@@ -554,8 +555,8 @@ if (!window.PM) {
          */
         isNew: function () {
             var that = this;
-            return (that.get("log").length < 3 //new party has changename and invite of owner action
-                    && (new Date() - that.get("created") < 60)); //created less than one minute ago
+            return (that.get("log").length < 3 && //new party has changename and invite of owner action
+                    (new Date() - that.get("created") < 60)); //created less than one minute ago
         },
 
         /**
