@@ -63,11 +63,18 @@
 
     <script type="text/html" id="invite-users-overlay">
       <h3>Invite friends to your party</h3>
-      <input type="search" id="users-search-box">
-      <div id="users-search-results" class="loading"><div class="throbber"><div></div></div><div class="content"></div></div>
+      <input type="search" id="users-search-box" placeholder="Search" incremental>
+      <div id="users-search-results" class="loading"><div class="throbber"><div></div></div><ul class="content users"></ul></div>
       <button class="sp-button" id="users-search-invite">Invite</button>
     </script>
 
+    <script type="text/html" id="invite-user">
+        <li>
+            <img src="" class="icon">
+            <div class="name"></div>
+            <div class="on-off-slider"><div></div></div>
+        </li>
+    </script>
     <script src="js/config.js"></script>
     <script src="js/includes/AbstractFacebookDomain.js"></script>
     <script src="js/includes/FacebookSpotifyDomain.js"></script>

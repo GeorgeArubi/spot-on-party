@@ -132,19 +132,105 @@ if (!window.PM) {
         template: getTemplate("invite-users-overlay"),
 
         events: {
+            "search #users-search-box": "updateFilter",
             "click #users-search-invite": "invite",
+            "click #users-search-results .users .on-off-slider": "onOffSliderClick",
+        },
+
+        initialize: function (options) {
+            var that = this;
+            that.parent = options.parent;
         },
 
         render: function (target) {
             var that = this;
             that.$el.html(that.template());
             target.html(that.$el);
-            PM.domain.FacebookDomain.getAllFriends(function (friend_data) {
-                console.log("hohoho");
+            
+            that.userDoms = {};
+            that.allFriends = new PM.collections.Users();
+            that.allFriends.on("change", that.updateUsers, that);
+            that.usersToInvite = new PM.collections.Users();
+            that.usersToInvite.on("add", that.updateUsers, that);
+            that.usersToInvite.on("remove", that.updateUsers, that);
+            that.usersToInvite.on("add", that.updateUsers, that);
+            that.usersToInvite.on("remove", that.updateUsers, that);
+            that.usersToUninvite = new PM.collections.Users();
+            that.usersToUninvite.on("add", that.updateUsers, that);
+            that.usersToUninvite.on("remove", that.updateUsers, that);
+            that.filterText = "";
+            
+            PM.models.User.getAllFriendsOfLoggedinUser(function (users) {
+                that.allFriends.add(PM.current_user.actualUser());
+                that.allFriends.add(users);
+                that.updateUsers();
                 that.$('#users-search-results').removeClass("loading");
-                
+                that.$('#users-search-box')[0].focus();
             });
             return that;
+        },
+
+        onOffSliderClick: function (event) {
+            var that = this;
+            var user = $(event.currentTarget).parent()[0].user;
+            if (that.parent.party.isMember(user)) {
+                if (that.parent.party.isOwner(user)) {
+                    return; //Owners can't be added or removed. TODO give feedback
+                }
+                that.usersToInvite.remove(user);
+                if (that.usersToUninvite.get(user.id)) {
+                    that.usersToUninvite.remove(user);
+                } else {
+                    that.usersToUninvite.add(user);
+                }
+            } else {
+                // not currently member
+                that.usersToUninvite.remove(user);
+                if (that.usersToInvite.get(user.id)) {
+                    that.usersToInvite.remove(user);
+                } else {
+                    that.usersToInvite.add(user);
+                }
+            }
+        },
+
+        updateUsers: function () {
+            var that = this;
+            that.allFriends.each(function (user) {
+                that.getUserDom(user);
+            });
+            var index = 0;
+            _.each(that.$('.users').children(), function (child) {
+                if (!$(child).hasClass("filtered")) {
+                    $(child).toggleClass("even", index % 4 < 2);
+                    index++;
+                }
+            });
+        },
+
+        getUserDom: function (user) {
+            var that = this;
+            if (!that.userDoms[user.id]) {
+                that.userDoms[user.id] = $(getTemplate("invite-user")());
+                that.userDoms[user.id][0].user = user;
+                that.$('.users').append(that.userDoms[user.id]);
+            }
+            var userDom = that.userDoms[user.id];
+            userDom.toggleClass("on-off-slider-on",
+                                !!((that.parent.party.isMember(user.id) && !that.usersToUninvite.get(user.id)) ||
+                                   that.usersToInvite.get(user.id)));
+            var name = user.get('name');
+            //TODO: create a better search algorithm
+            userDom.toggleClass("filtered", name.toLowerCase().indexOf(that.filterText) !== 0);
+            $("img.icon", userDom).attr("src", user.getProfilePictureUrl());
+            $(".name", userDom).text(name);
+
+        },
+
+        updateFilter: function () {
+            var that = this;
+            that.filterText = that.$('#users-search-box').val().toLowerCase().trim();
+            that.updateUsers();
         },
 
         invite: function () {
@@ -216,7 +302,7 @@ if (!window.PM) {
         inviteUsers: function () {
             var that = this;
             console.log("invite users");
-            that.addOverlayView(new InviteUsersView());
+            that.addOverlayView(new InviteUsersView({parent: that}));
         },
 
         endParty: function () {

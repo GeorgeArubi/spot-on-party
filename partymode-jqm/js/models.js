@@ -107,6 +107,10 @@ if (!window.PM) {
             }
             return that;
         },
+        getProfilePictureUrl: function () {
+            var that = this;
+            return PM.domain.FacebookDomain.getProfilePictureUrl(that.id);
+        },
     }, {
         getMaster: function () {
             var that = this;
@@ -116,6 +120,20 @@ if (!window.PM) {
                 _status: PM.models.BaseModelLazyLoad.LOADED,
                 name: PM.config.master_name,
                 actual_user: that.getById(PM.app.loggedin_user_id),
+            });
+        },
+
+        getAllFriendsOfLoggedinUser: function (callback) {
+            PM.domain.FacebookDomain.getAllFriends(function (friends_data) {
+                callback(_.map(_.sortBy(friends_data, "name"), function (friend_data) {
+                    var user = new PM.models.User({
+                        name: friend_data.name,
+                        _status: PM.models.BaseModelLazyLoad.LOADED,
+                        id: friend_data.id,
+                    });
+                    PM.models.User.setToCache(user);
+                    return user;
+                }));
             });
         }
     });
@@ -581,6 +599,12 @@ if (!window.PM) {
             }
             return That.instance;
         }
+    });
+
+    PM.util = PM.util || {};
+
+    PM.collections.Users = Backbone.Collection.extend({
+        model: PM.models.User,
     });
 
 }(window.PM, window.Backbone, window.$, window._));
