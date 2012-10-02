@@ -1,5 +1,4 @@
-/*jslint browser:true, vars: true, nomen: true */
-/*globals _*/
+/*jshint browser:true, nomen: true, globalstrict: true */
 "use strict";
 
 if (!window.PM) {
@@ -15,6 +14,7 @@ window.PM.domain.AbstractFacebookDomain = window.Toolbox.Base.extend({
     /*static members*/
     FACEBOOK_APP_ID: (window.location.host === "tiggr.local" ? "233580756759588" : "312921805471592"), //spotify fb has own id
     FACEBOOK_GRAPH_URL: (window.location.protocol === "http" ? "http:" : "https:") + "//graph.facebook.com/",
+    ALMOST_EXPIRES_THRESHOLD: 10 * 60 * 1000, // 10 minutes
 
     initStarted: false,
     inited: false,
@@ -24,7 +24,6 @@ window.PM.domain.AbstractFacebookDomain = window.Toolbox.Base.extend({
 
     /**
      * Load the Facebook Javascript SDK asynchronously, login, call all the functions from afterInitCalls (after the init), and the afterLoginCalls after the login
-     * 
      */
     init: function () {
         throw "This is an abstract class, please subclass and override this function";
@@ -74,7 +73,13 @@ window.PM.domain.AbstractFacebookDomain = window.Toolbox.Base.extend({
     getAccessToken: function (callback) {
         var that = this;
         that.callAfterLogin(function () {
-            callback(that.fb_status.authResponse.accessToken);
+            if (that.authenticationAlmostExpires()) {
+                that.extendAccessToken(function () {
+                    callback(that.fb_status.authResponse.accessToken);
+                });
+            } else {
+                callback(that.fb_status.authResponse.accessToken);
+            }
         });
     },
 
@@ -102,7 +107,7 @@ window.PM.domain.AbstractFacebookDomain = window.Toolbox.Base.extend({
                 url: that.FACEBOOK_GRAPH_URL,
                 data: params,
                 dataType: "jsonp",
-                success: function (result, textStatus) {
+                success: function (result, /* textStatus */ undefined) {
                     callback(result);
                 }
             });
@@ -122,10 +127,19 @@ window.PM.domain.AbstractFacebookDomain = window.Toolbox.Base.extend({
                 url: that.FACEBOOK_GRAPH_URL + "me/friends",
                 data: params,
                 dataType: "jsonp",
-                success: function (result, textStatus) {
+                success: function (result, /* textStatus */ undefined) {
                     callback(result.data);
                 }
             });
         });
     },
+
+    authenticationAlmostExpires: function () {
+        var that = this;
+        if (!that.fb_status || !that.fb_status.authResponse || !that.fb_status.authResponse.expiresOn) {
+            throw "Function can only be called when actually logged in";
+        }
+
+        return (new Date().valueOf()) + that.ALMOST_EXPIRES_THRESHOLD > that.fb_status.authResponse.expiresOn;
+    }
 });

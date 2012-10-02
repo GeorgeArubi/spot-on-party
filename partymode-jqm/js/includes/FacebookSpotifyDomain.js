@@ -1,5 +1,5 @@
-/*jslint browser:true, vars: true, nomen: true */
-/*globals _*/
+/*jshint browser:true, globalstrict: true, nomen: true */
+/*global _*/
 "use strict";
 
 if (!window.PM) {
@@ -19,19 +19,22 @@ window.PM.domain.FacebookSpotifyDomain = window.PM.domain.AbstractFacebookDomain
         that.initStarted = true;
         that.fb_status = JSON.parse(localStorage.getItem("fb_status"));
         if (that.fb_status && that.fb_status.status === "connected") {
+            if (that.authenticationAlmostExpires()) {
+                that.extendAccessToken();
+            }
             // try to see if credentials are still valid
-            var params = {fields: "id", access_token: that.fb_status.accesssToken};
+            var params = {fields: "id", access_token: that.fb_status.authResponse.accessToken};
             window.$.ajax({
                 url: that.FACEBOOK_GRAPH_URL + "me",
                 data: params,
                 dataType: "jsonp",
-                success: function (result, request) {
+                success: function (result, /* request */ undefined) {
                     that.inited = true;
                     _.each(that.afterInitCalls, function (func) {
                         func();
                     });
                     that.afterInitCalls = [];
-                    if (result.id === that.fb_status.userID) {
+                    if (result.id && result.id === that.fb_status.authResponse.userID) {
                         _.each(that.afterLoginCalls, function (func) {
                             func();
                         });
@@ -41,6 +44,7 @@ window.PM.domain.FacebookSpotifyDomain = window.PM.domain.AbstractFacebookDomain
                             "status": "not_authorized",
                         };
                         localStorage.setItem("fb_status", JSON.stringify(that.fb_status));
+                        that.extendAccessToken();
                     }
                 },
             });
@@ -68,12 +72,12 @@ window.PM.domain.FacebookSpotifyDomain = window.PM.domain.AbstractFacebookDomain
                     url: that.FACEBOOK_GRAPH_URL + "me",
                     data: params,
                     dataType: "jsonp",
-                    success: function (result, request) {
+                    success: function (result, /* request */ undefined) {
                         that.fb_status = {
                             "status": "connected",
                             "authResponse": {
                                 "accessToken": received_accesstoken,
-                                "expiresIn": ttl,
+                                "expiresOn": (new Date().valueOf()) + ttl * 1000,
                                 "userID": result.id,
                                 "userName": result.name,
                             },
@@ -84,12 +88,14 @@ window.PM.domain.FacebookSpotifyDomain = window.PM.domain.AbstractFacebookDomain
                             func();
                         });
                         that.afterLoginCalls = [];
-                        callback();
+                        if (callback) {
+                            callback();
+                        }
                     }
                 });
             },
 
-            onFailure : function (error) {
+            onFailure : function (/* error */ undefined) {
                 that.fb_status = {
                     "status": "not_authorized",
                 };
@@ -97,6 +103,11 @@ window.PM.domain.FacebookSpotifyDomain = window.PM.domain.AbstractFacebookDomain
                 callback();
             },
         });
+    },
+
+    extendAccessToken: function (callback) {
+        var that = this;
+        that.showLoginPopup(callback);
     },
 
     logout: function () {
