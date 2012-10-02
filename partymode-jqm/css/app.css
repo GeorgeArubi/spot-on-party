@@ -95,6 +95,51 @@ h3 {
     display: inline-block;
     line-height: 50px; }
 
+.party-page #users-bar {
+  width: 500px;
+  height: 70px;
+  overflow: hidden;
+  position: relative; }
+  .party-page #users-bar > ul {
+    position: absolute;
+    -webkit-transition: left 1s; }
+    .party-page #users-bar > ul > li {
+      width: 70px;
+      height: 70px;
+      position: absolute;
+      left: 0px;
+      -webkit-transition: left 500ms; }
+      .party-page #users-bar > ul > li > img.icon {
+        -webkit-transition: margin 1s, width 1s, height 1s;
+        width: 70px;
+        height: 70px;
+        margin: 0; }
+      .party-page #users-bar > ul > li.new > img.icon {
+        width: 0;
+        height: 0;
+        margin: 35px; }
+      .party-page #users-bar > ul > li > .hoverdata {
+        opacity: 0;
+        -webkit-transition: opacity 100ms; }
+      .party-page #users-bar > ul > li:hover > .hoverdata {
+        opacity: 1; }
+      .party-page #users-bar > ul > li > .kick {
+        width: 16px;
+        height: 16px;
+        background-image: url(../img/close.png);
+        position: absolute;
+        top: 0;
+        right: 0; }
+      .party-page #users-bar > ul > li.owner > .kick {
+        display: none; }
+      .party-page #users-bar > ul > li > .name {
+        background-color: rgba(0, 0, 0, 0.7);
+        position: absolute;
+        left: 5px;
+        bottom: 5px;
+        height: 35px;
+        width: 60px; }
+
 #overlay-backdrop {
   display: none;
   position: absolute;

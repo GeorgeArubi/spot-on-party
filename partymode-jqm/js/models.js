@@ -146,7 +146,8 @@ if (!window.PM) {
             return {
                 created: new Date(),
                 deleted: null,
-                joined: null
+                joined: null,
+                active: new Date(),
             };
         },
 
@@ -552,6 +553,16 @@ if (!window.PM) {
         isMember: function (user_id) {
             var that = this;
             return that.isOwner(user_id) || !!that.getMemberRecord(user_id);
+        },
+
+        getMembersOrderedByActive: function () {
+            var that = this;
+            return _.chain(that.get("users").toArray())
+                .filter(function (user_in_party) {return _.isNull(user_in_party.get("deleted")); })
+                .sortBy(function (user_in_party) {return user_in_party.get("active"); })
+                .reverse()
+                .map(function (user_in_party) {return user_in_party.get("user"); })
+                .value();
         },
 
         isJoined: function (user_id) {

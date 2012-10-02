@@ -1,5 +1,4 @@
 /*jslint browser:true, vars: true, nomen: true */
-"use strict";
 
 if (!window.PM) {
     window.PM = {};
@@ -7,7 +6,8 @@ if (!window.PM) {
 
 
 (function (PM, Backbone, $, _) {
-    var FacebookLoginView, StartNewPartyView, PartyView, InviteUsersView, AddSongView;
+    "use strict";
+    var FacebookLoginView, StartNewPartyView, PartyView, InviteUsersView, AddSongView, UserListView;
 
     var getTemplate = function (id) {
         var el = $('#' + id);
@@ -133,7 +133,7 @@ if (!window.PM) {
 
         events: {
             "search #users-search-box": "updateFilter",
-            "click #users-search-box": function (select) {event.target.select(); },
+            "click #users-search-box": function (event) {event.target.select(); },
             "click #users-search-invite": "invite",
             "click #users-search-results .users .on-off-slider": "onOffSliderClick",
             "keyup": function (event) {if (event.keyCode === 27) {this.closeMe(); }},
@@ -301,6 +301,7 @@ if (!window.PM) {
             "click #invite-users": "inviteUsers",
             "click #end-party": "endParty",
             "click #overlay-backdrop": "closeOverlayView",
+            "click #users-bar li .kick": "kickUser",
         },
 
         initialize: function (id) {
@@ -315,6 +316,8 @@ if (!window.PM) {
         close: function () {
             var that = this;
             that.closeOverlayView();
+            that.party.get("users").off("add", that.updateUserBar, that);
+            that.party.get("users").off("change", that.updateUserBar, that);
         },
 
         addOverlayView: function (overlayView) {
@@ -344,7 +347,54 @@ if (!window.PM) {
             if (that.party.isNew()) {
                 that.inviteUsers();
             }
+            that.updateUserBar();
+            that.party.get("users").on("add", that.updateUserBar, that);
+            that.party.get("users").on("change", that.updateUserBar, that);
             return that;
+        },
+
+        updateUserBar: function () {
+            var that = this;
+            var elementsmap = {};
+            _.each(that.$('#users-bar > ul > li'), function (el, index) {
+                elementsmap[el.user.id] = {el: $(el), index: index};
+            });
+            _.each(that.party.getMembersOrderedByActive(), function (user, index) {
+                var el, isnew, mapobj = elementsmap[user.id];
+                if (mapobj) {
+                    el = mapobj.el;
+                    isnew = index < mapobj.index;
+                    delete elementsmap[user.id];
+                } else {
+                    isnew = true;
+                    el = $('<li><img class="icon"><div class="kick hoverdata"></div><div class="name hoverdata"></li>');
+                    el[0].user = user;
+                    that.$('#users-bar > ul').append(el);
+                }
+                el.find("img.icon").attr("src", user.getProfilePictureUrl());
+                el.find(".name").text(user.get("name"));
+                el.toggleClass("owner", that.party.isOwner(user.id));
+                if (isnew) {
+                    el.addClass("new");
+                    _.delay(function () {el.removeClass("new"); }, 1);
+                }
+                el[0].style.left = (el.width() * index) + "px";
+            });
+            for (var id in elementsmap) {
+                if (elementsmap.hasOwnProperty(id)) {
+                    elementsmap[id].el.remove();
+                }
+            }
+            //TODO: scroll back to front if there was no scroll event for a while
+        },
+
+        kickUser: function (event) {
+            var that = this;
+            var user = event.currentTarget.parentNode.user;
+            that.party.createAndApplyOwnAction(
+                "Kick",
+                {kicked_user_id: user.id}
+            );
         },
 
         addSong: function () {
