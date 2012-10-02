@@ -95,6 +95,18 @@ h3 {
     display: inline-block;
     line-height: 50px; }
 
+#overlay-backdrop {
+  display: none;
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  bottom: 0px;
+  right: 0px;
+  z-index: 99;
+  background-color: rgba(0, 0, 0, 0.7); }
+  #overlay-backdrop.active {
+    display: block; }
+
 #overlay-placeholder > div {
   position: absolute;
   z-index: 100;

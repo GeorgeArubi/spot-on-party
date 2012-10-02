@@ -42,6 +42,12 @@ h3 {margin: 0px;}
   }
 }
 
+#overlay-backdrop {
+    display: none; &.active {display: block}
+    position: absolute; top:0px; left: 0px; bottom: 0px; right: 0px; z-index: 99;
+    background-color: rgba(0,0,0,0.7);
+}
+
 #overlay-placeholder > div {
     $overlay-width: 800px;
     $overlay-height: 600px;

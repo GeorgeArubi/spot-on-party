@@ -135,11 +135,24 @@ if (!window.PM) {
             "search #users-search-box": "updateFilter",
             "click #users-search-invite": "invite",
             "click #users-search-results .users .on-off-slider": "onOffSliderClick",
+            "keyup": function (event) {if (event.keyCode === 27) {this.closeMe(); }},
         },
 
         initialize: function (options) {
             var that = this;
             that.parent = options.parent;
+        },
+
+        closeMe: function () {
+            var that = this;
+            that.parent.closeOverlayView();
+        },
+
+        close: function () {
+            var that = this;
+            that.allFriends.off();
+            that.usersToInvite.off();
+            that.usersToKick.off();
         },
 
         render: function (target) {
@@ -155,9 +168,9 @@ if (!window.PM) {
             that.usersToInvite.on("remove", that.updateUsers, that);
             that.usersToInvite.on("add", that.updateUsers, that);
             that.usersToInvite.on("remove", that.updateUsers, that);
-            that.usersToUninvite = new PM.collections.Users();
-            that.usersToUninvite.on("add", that.updateUsers, that);
-            that.usersToUninvite.on("remove", that.updateUsers, that);
+            that.usersToKick = new PM.collections.Users();
+            that.usersToKick.on("add", that.updateUsers, that);
+            that.usersToKick.on("remove", that.updateUsers, that);
             that.filterText = "";
             
             PM.models.User.getAllFriendsOfLoggedinUser(function (users) {
@@ -173,19 +186,19 @@ if (!window.PM) {
         onOffSliderClick: function (event) {
             var that = this;
             var user = $(event.currentTarget).parent()[0].user;
-            if (that.parent.party.isMember(user)) {
-                if (that.parent.party.isOwner(user)) {
+            if (that.parent.party.isMember(user.id)) {
+                if (that.parent.party.isOwner(user.id)) {
                     return; //Owners can't be added or removed. TODO give feedback
                 }
                 that.usersToInvite.remove(user);
-                if (that.usersToUninvite.get(user.id)) {
-                    that.usersToUninvite.remove(user);
+                if (that.usersToKick.get(user.id)) {
+                    that.usersToKick.remove(user);
                 } else {
-                    that.usersToUninvite.add(user);
+                    that.usersToKick.add(user);
                 }
             } else {
                 // not currently member
-                that.usersToUninvite.remove(user);
+                that.usersToKick.remove(user);
                 if (that.usersToInvite.get(user.id)) {
                     that.usersToInvite.remove(user);
                 } else {
@@ -217,7 +230,7 @@ if (!window.PM) {
             }
             var userDom = that.userDoms[user.id];
             userDom.toggleClass("on-off-slider-on",
-                                !!((that.parent.party.isMember(user.id) && !that.usersToUninvite.get(user.id)) ||
+                                !!((that.parent.party.isMember(user.id) && !that.usersToKick.get(user.id)) ||
                                    that.usersToInvite.get(user.id)));
             var name = user.get('name');
             //TODO: create a better search algorithm
@@ -234,6 +247,40 @@ if (!window.PM) {
         },
 
         invite: function () {
+            var that = this;
+            that.$('#users-search-invite').attr("disabled", "disabled");
+            var torun;
+            that.usersToInvite.off(); //avoid redraws
+            that.usersToKick.off();
+            torun = function (callback) {
+                var user = that.usersToInvite.pop();
+                if (user) {
+                    that.parent.party.createAndApplyOwnAction(
+                        "Invite",
+                        {invited_user_id: user.id},
+                        function () {torun(callback); },
+                        function () {torun(callback); }
+                    );
+                } else {
+                    user = that.usersToKick.pop();
+                    if (user) {
+                        that.parent.party.createAndApplyOwnAction(
+                            "Kick",
+                            {kicked_user_id: user.id},
+                            function () {torun(callback); },
+                            function () {torun(callback); }
+                        );
+                    } else {
+                        if (callback) {
+                            callback();
+                        }
+                    }
+                }
+            };
+            torun(function () {
+                window.party = that.parent.party;
+                that.closeMe();
+            });
 
         },
 
@@ -252,6 +299,7 @@ if (!window.PM) {
             "click #add-song": "addSong",
             "click #invite-users": "inviteUsers",
             "click #end-party": "endParty",
+            "click #overlay-backdrop": "closeOverlayView",
         },
 
         initialize: function (id) {
@@ -273,6 +321,7 @@ if (!window.PM) {
             that.closeOverlayView();
             that.overlayView = overlayView;
             that.overlayView.render(that.$('#overlay-placeholder'));
+            that.$('#overlay-backdrop').addClass("active");
         },
 
         closeOverlayView: function () {
@@ -283,6 +332,8 @@ if (!window.PM) {
                 }
                 that.overlayView.undelegateEvents();
             }
+            that.$('#overlay-backdrop').removeClass("active");
+            that.$('#overlay-placeholder').html("");
         },
 
         render: function (target) {
@@ -301,7 +352,6 @@ if (!window.PM) {
 
         inviteUsers: function () {
             var that = this;
-            console.log("invite users");
             that.addOverlayView(new InviteUsersView({parent: that}));
         },
 

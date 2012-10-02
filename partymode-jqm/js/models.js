@@ -345,7 +345,7 @@ if (!window.PM) {
             if (!attrs.kicked_user_id) {
                 return "kicked_user_id must be present";
             }
-            if (that.party.isMember(attrs.kicked_user_id)) {
+            if (!that.party.isMember(attrs.kicked_user_id)) {
                 return "user not invited";
             }
             return that.constructor.__super__.validate.call(that, attrs);
