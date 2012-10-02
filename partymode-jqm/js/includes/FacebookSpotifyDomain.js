@@ -29,12 +29,13 @@ window.PM.domain.FacebookSpotifyDomain = window.PM.domain.AbstractFacebookDomain
                 data: params,
                 dataType: "jsonp",
                 success: function (result, /* request */ undefined) {
-                    that.inited = true;
-                    _.each(that.afterInitCalls, function (func) {
-                        func();
-                    });
-                    that.afterInitCalls = [];
                     if (result.id && result.id === that.fb_status.authResponse.userID) {
+                        that.inited = true;
+                        _.each(that.afterInitCalls, function (func) {
+                            func();
+                        });
+                        that.afterInitCalls = [];
+                        
                         _.each(that.afterLoginCalls, function (func) {
                             func();
                         });
@@ -44,7 +45,13 @@ window.PM.domain.FacebookSpotifyDomain = window.PM.domain.AbstractFacebookDomain
                             "status": "not_authorized",
                         };
                         localStorage.setItem("fb_status", JSON.stringify(that.fb_status));
-                        that.extendAccessToken();
+                        that.extendAccessToken(function () {
+                            that.inited = true;
+                            _.each(that.afterInitCalls, function (func) {
+                                func();
+                            });
+                            that.afterInitCalls = [];
+                        });
                     }
                 },
             });
