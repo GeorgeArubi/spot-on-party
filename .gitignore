@@ -16,3 +16,4 @@ sencha-touch-?.?.?.?
 /sencha-sop/archive
 /sencha-sop/build
 *.swp
+.DS_Store
