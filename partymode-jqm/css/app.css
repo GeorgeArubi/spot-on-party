@@ -103,7 +103,7 @@ h3 {
   bottom: 0px;
   right: 0px;
   z-index: 99;
-  background-color: rgba(0, 0, 0, 0.7); }
+  background-color: rgba(45, 45, 45, 0.9); }
   #overlay-backdrop.active {
     display: block; }
 
@@ -130,7 +130,7 @@ h3 {
     height: 30px;
     width: 500px;
     font-size: 16px;
-    margin: 7px; }
+    margin: 10px; }
   #overlay-placeholder > div.invite-users-overlay #users-search-results {
     height: 470px;
     overflow-x: hidden;
@@ -162,15 +162,15 @@ h3 {
         color: white;
         font-size: 14px;
         position: absolute;
-        left: 45px;
-        top: 10px;
-        width: 250px;
+        left: 55px;
+        top: 12px;
+        width: 245px;
         text-overflow: ellipsis;
         white-space: nowrap;
         overflow: hidden; }
       #overlay-placeholder > div.invite-users-overlay #users-search-results .users > li .on-off-slider {
         position: absolute;
-        top: 10px;
+        top: 17px;
         right: 20px; }
   #overlay-placeholder > div.invite-users-overlay #users-search-invite {
     float: right;

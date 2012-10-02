@@ -133,6 +133,7 @@ if (!window.PM) {
 
         events: {
             "search #users-search-box": "updateFilter",
+            "click #users-search-box": function (select) {event.target.select(); },
             "click #users-search-invite": "invite",
             "click #users-search-results .users .on-off-slider": "onOffSliderClick",
             "keyup": function (event) {if (event.keyCode === 27) {this.closeMe(); }},
