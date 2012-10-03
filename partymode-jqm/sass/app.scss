@@ -80,7 +80,7 @@ h3 {margin: 0px;}
                 &.owner > .kick {display: none; }
                 > .name {
                     background-color: rgba(0, 0, 0, 0.7);
-                    position: absolute; left: 2px; bottom: 2px; height: 30px; width: $users-bar-icon-size - 4px; overflow: hidden; padding: 2px; font-size: 10px;
+                    position: absolute; left: 2px; bottom: 2px; height: 30px; right: 2px; overflow: hidden; padding: 2px; font-size: 10px;
                 }
             }
         }    
