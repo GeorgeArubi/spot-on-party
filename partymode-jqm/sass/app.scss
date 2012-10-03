@@ -43,28 +43,33 @@ h3 {margin: 0px;}
 }
 
 .party-page {
+    position: relative;
     #users-bar {
-        $users-bar-size: 70px;
-        width: 500px;
-        height: $users-bar-size;
-        overflow: hidden;
-        position: relative;
+        $users-bar-icon-size: 50px;
+        $users-bar-size: 16;
+        .arrow {display: none; position: absolute; width: 30px; height: 50px;}
+        &.need-arrows .arrow {display: block; }
+        .arrow-left {background-image: url(../img/arrow-left.png); left: 20px;}
+        .arrow-right {background-image: url(../img/arrow-right.png); left: 20px + $users-bar-icon-size * $users-bar-size + 30px + 4px * 2;}
         > ul {
-            position: absolute; -webkit-transition: left 1s;
+            width: $users-bar-icon-size * $users-bar-size; height: $users-bar-icon-size; overflow: hidden; position: relative; left: 20px + 30px + 4px;
             > li {
-                width: $users-bar-size; height: $users-bar-size; position: absolute; left: 0px; -webkit-transition: left 500ms;
+                width: $users-bar-icon-size; height: $users-bar-icon-size; position: absolute; left: 0px; -webkit-transition: left 500ms;
                 > img.icon {
                     -webkit-transition: margin 1s, width 1s, height 1s;
-                    width: $users-bar-size; height: $users-bar-size; margin: 0;
+                    width: $users-bar-icon-size; height: $users-bar-icon-size; margin: 0;
                 }
-                &.new > img.icon { width: 0; height: 0; margin: $users-bar-size / 2;}
+                &.new {
+                    -webkit-transition: none;
+                    > img.icon { width: 0; height: 0; margin: $users-bar-icon-size / 2; -webkit-transition: none;}
+                }
                 > .hoverdata {opacity: 0; -webkit-transition: opacity 100ms;}
                 &:hover > .hoverdata {opacity: 1;}
                 > .kick {width: 16px; height: 16px; background-image: url(../img/close.png); position: absolute; top: 0; right: 0;}
                 &.owner > .kick {display: none; }
                 > .name {
                     background-color: rgba(0, 0, 0, 0.7);
-                    position: absolute; left: 5px; bottom: 5px; height: 35px; width: $users-bar-size - 10px;
+                    position: absolute; left: 2px; bottom: 2px; height: 30px; width: $users-bar-icon-size - 4px; overflow: hidden; padding: 2px; font-size: 10px;
                 }
             }
         }    
@@ -82,7 +87,7 @@ h3 {margin: 0px;}
     $overlay-height: 600px;
     $overlay-border-width: 25px;
     position: absolute; z-index: 100;
-    width: $overlay-width; height: $overlay-height; top: 50%; margin-top: - $overlay-height / 2 - $overlay-border-width; margin-left: - $overlay-width / 2 - $overlay-border-width; left: 50%;
+    width: $overlay-width; height: $overlay-height; top: 75px; margin-left: - $overlay-width / 2 - $overlay-border-width; left: 50%;
     background-color: $spotify-dark-background-color; border: $overlay-border-width solid #101010; border-radius: 30px;
 
     &.invite-users-overlay {

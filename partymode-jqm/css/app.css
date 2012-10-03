@@ -95,29 +95,45 @@ h3 {
     display: inline-block;
     line-height: 50px; }
 
-.party-page #users-bar {
-  width: 500px;
-  height: 70px;
-  overflow: hidden;
+.party-page {
   position: relative; }
-  .party-page #users-bar > ul {
+  .party-page #users-bar .arrow {
+    display: none;
     position: absolute;
-    -webkit-transition: left 1s; }
+    width: 30px;
+    height: 50px; }
+  .party-page #users-bar.need-arrows .arrow {
+    display: block; }
+  .party-page #users-bar .arrow-left {
+    background-image: url(../img/arrow-left.png);
+    left: 20px; }
+  .party-page #users-bar .arrow-right {
+    background-image: url(../img/arrow-right.png);
+    left: 858px; }
+  .party-page #users-bar > ul {
+    width: 800px;
+    height: 50px;
+    overflow: hidden;
+    position: relative;
+    left: 54px; }
     .party-page #users-bar > ul > li {
-      width: 70px;
-      height: 70px;
+      width: 50px;
+      height: 50px;
       position: absolute;
       left: 0px;
       -webkit-transition: left 500ms; }
       .party-page #users-bar > ul > li > img.icon {
         -webkit-transition: margin 1s, width 1s, height 1s;
-        width: 70px;
-        height: 70px;
+        width: 50px;
+        height: 50px;
         margin: 0; }
-      .party-page #users-bar > ul > li.new > img.icon {
-        width: 0;
-        height: 0;
-        margin: 35px; }
+      .party-page #users-bar > ul > li.new {
+        -webkit-transition: none; }
+        .party-page #users-bar > ul > li.new > img.icon {
+          width: 0;
+          height: 0;
+          margin: 25px;
+          -webkit-transition: none; }
       .party-page #users-bar > ul > li > .hoverdata {
         opacity: 0;
         -webkit-transition: opacity 100ms; }
@@ -135,10 +151,13 @@ h3 {
       .party-page #users-bar > ul > li > .name {
         background-color: rgba(0, 0, 0, 0.7);
         position: absolute;
-        left: 5px;
-        bottom: 5px;
-        height: 35px;
-        width: 60px; }
+        left: 2px;
+        bottom: 2px;
+        height: 30px;
+        width: 46px;
+        overflow: hidden;
+        padding: 2px;
+        font-size: 10px; }
 
 #overlay-backdrop {
   display: none;
@@ -157,8 +176,7 @@ h3 {
   z-index: 100;
   width: 800px;
   height: 600px;
-  top: 50%;
-  margin-top: -325px;
+  top: 75px;
   margin-left: -425px;
   left: 50%;
   background-color: #363636;

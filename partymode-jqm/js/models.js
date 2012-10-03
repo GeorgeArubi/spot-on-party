@@ -29,7 +29,7 @@ if (!window.PM) {
     enableChildTracking(Backbone.Model);
 
     PM.models.BaseModel = Backbone.Model.extend({
-        constructor: function (attributes, options) {
+        constructor: function () {
             var that = this;
             Backbone.Model.apply(that, arguments);
             if (that.validate) {
@@ -555,13 +555,12 @@ if (!window.PM) {
             return that.isOwner(user_id) || !!that.getMemberRecord(user_id);
         },
 
-        getMembersOrderedByActive: function () {
+        getMembersInPartyOrderedByActive: function () {
             var that = this;
             return _.chain(that.get("users").toArray())
                 .filter(function (user_in_party) {return _.isNull(user_in_party.get("deleted")); })
                 .sortBy(function (user_in_party) {return user_in_party.get("active"); })
                 .reverse()
-                .map(function (user_in_party) {return user_in_party.get("user"); })
                 .value();
         },
 

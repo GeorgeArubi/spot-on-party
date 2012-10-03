@@ -7,7 +7,7 @@ if (!window.PM) {
 
 (function (PM, Backbone, $, _) {
     "use strict";
-    var FacebookLoginView, StartNewPartyView, PartyView, InviteUsersView, AddSongView, UserListView;
+    var FacebookLoginView, StartNewPartyView, PartyView, InviteUsersView, AddSongView;
 
     var getTemplate = function (id) {
         var el = $('#' + id);
@@ -135,7 +135,7 @@ if (!window.PM) {
             "search #users-search-box": "updateFilter",
             "click #users-search-box": function (event) {event.target.select(); },
             "click #users-search-invite": "invite",
-            "click #users-search-results .users .on-off-slider": "onOffSliderClick",
+            "click #users-search-results .users li": "userSelectClick",
             "keyup": function (event) {if (event.keyCode === 27) {this.closeMe(); }},
         },
 
@@ -184,9 +184,9 @@ if (!window.PM) {
             return that;
         },
 
-        onOffSliderClick: function (event) {
+        userSelectClick: function (event) {
             var that = this;
-            var user = $(event.currentTarget).parent()[0].user;
+            var user = event.currentTarget.user;
             if (that.parent.party.isMember(user.id)) {
                 if (that.parent.party.isOwner(user.id)) {
                     return; //Owners can't be added or removed. TODO give feedback
@@ -291,6 +291,8 @@ if (!window.PM) {
 
     });
 
+    AddSongView = Backbone.View.extend({});
+
     PartyView = Backbone.View.extend({
         className: "party-page",
 
@@ -302,6 +304,8 @@ if (!window.PM) {
             "click #end-party": "endParty",
             "click #overlay-backdrop": "closeOverlayView",
             "click #users-bar li .kick": "kickUser",
+            "click #users-bar .arrow-left": function () {this.scrollUserBar("-"); },
+            "click #users-bar .arrow-right": function () {this.scrollUserBar("+"); },
         },
 
         initialize: function (id) {
@@ -311,6 +315,7 @@ if (!window.PM) {
             if (!that.party) {
                 throw "Party with id " + id + " was not found";
             }
+            that.currentUserbarScrollPosition = 0;
         },
 
         close: function () {
@@ -353,20 +358,18 @@ if (!window.PM) {
             return that;
         },
 
-        updateUserBar: function () {
+        updateUserBar: _.debounce(function () {
             var that = this;
             var elementsmap = {};
-            _.each(that.$('#users-bar > ul > li'), function (el, index) {
-                elementsmap[el.user.id] = {el: $(el), index: index};
+            _.each(that.$('#users-bar > ul > li'), function (el) {
+                elementsmap[el.user.id] = $(el);
             });
-            _.each(that.party.getMembersOrderedByActive(), function (user, index) {
-                var el, isnew, mapobj = elementsmap[user.id];
-                if (mapobj) {
-                    el = mapobj.el;
-                    isnew = index < mapobj.index;
-                    delete elementsmap[user.id];
-                } else {
-                    isnew = true;
+            var users_in_party = that.party.getMembersInPartyOrderedByActive();
+            _.each(users_in_party, function (user_in_party) {
+                var user = user_in_party.get("user");
+                var el = elementsmap[user.id];
+                delete elementsmap[user.id];
+                if (!el) {
                     el = $('<li><img class="icon"><div class="kick hoverdata"></div><div class="name hoverdata"></li>');
                     el[0].user = user;
                     that.$('#users-bar > ul').append(el);
@@ -374,18 +377,92 @@ if (!window.PM) {
                 el.find("img.icon").attr("src", user.getProfilePictureUrl());
                 el.find(".name").text(user.get("name"));
                 el.toggleClass("owner", that.party.isOwner(user.id));
-                if (isnew) {
+                if (user_in_party.get("active") !== el[0].last_active) {
+                    el[0].last_active = user_in_party.get("active");
                     el.addClass("new");
                     _.delay(function () {el.removeClass("new"); }, 1);
                 }
-                el[0].style.left = (el.width() * index) + "px";
             });
             for (var id in elementsmap) {
                 if (elementsmap.hasOwnProperty(id)) {
-                    elementsmap[id].el.remove();
+                    elementsmap[id].remove();
                 }
             }
-            //TODO: scroll back to front if there was no scroll event for a while
+            that.scrollUserBar();
+            
+            var maxUsersDisplayed = Math.floor(that.$('#users-bar > ul').width() / that.$('#users-bar > ul > li').width());
+            $('#users-bar').toggleClass("need-arrows", users_in_party.length > maxUsersDisplayed);
+        }, 1),
+
+        scrollUserBarBounceBack: _.debounce(function (amount) {
+            var that = this;
+            that.scrollUserBar(amount);
+        }, 200),
+
+        scrollUserBarResetTimer: _.debounce(function () {
+            var that = this;
+            if (that.$('#users-bar:hover').length) {
+                //mouse over, not resetting
+                that.scrollUserBarResetTimer();
+            } else {
+                that.scrollUserBar(0);
+            }
+        }, 5000),
+
+        scrollUserBar: function (amount) {
+            var that = this;
+            if (!that.scrollUserBarBounceBack) {
+                that.scrollUserBarBounceBack = _.debounce(_.bind(that.scrollUserBar, that), 200);
+                that.scrollUserBarResetTimer = _.debounce(_.bind(that.scrollUserBar, that, 0), 5000);
+            }
+            
+            var newUserbarScrollPosition;
+            switch (amount) {
+            case "+":
+                newUserbarScrollPosition = that.currentUserbarScrollPosition + 1;
+                break;
+            case "-":
+                newUserbarScrollPosition = that.currentUserbarScrollPosition - 1;
+                break;
+            case undefined:
+                newUserbarScrollPosition = that.currentUserbarScrollPosition;
+                break;
+            default:
+                newUserbarScrollPosition = amount;
+                break;
+            }
+
+            var elementsmap = {};
+            _.each(that.$('#users-bar > ul > li'), function (el) {
+                elementsmap[el.user.id] = $(el);
+            });
+            var users_in_party = that.party.getMembersInPartyOrderedByActive();
+            _.each(users_in_party, function (user_in_party, index) {
+                var user = user_in_party.get("user");
+                var el = elementsmap[user.id];
+                if (el) {
+                    el[0].style.left = (el.width() * (index - newUserbarScrollPosition)) + "px";
+                }
+            });
+
+            var maxUsersDisplayed = Math.floor(that.$('#users-bar > ul').width() / that.$('#users-bar > ul > li').width());
+
+            if (newUserbarScrollPosition !== 0) {
+                if (newUserbarScrollPosition !== that.currentUserbarScrollPosition) {
+                    //bounce back if out of bounds:
+                    if (newUserbarScrollPosition < 0) {
+                        that.scrollUserBarBounceBack(0);
+                    } else if (newUserbarScrollPosition + maxUsersDisplayed > users_in_party.length) {
+                        that.scrollUserBarBounceBack(Math.max(0, users_in_party.length - maxUsersDisplayed));
+                    }
+                    //reset after a while
+                    that.scrollUserBarResetTimer();
+                } else if (newUserbarScrollPosition + maxUsersDisplayed > users_in_party.length) {
+                    //if it's the result of items disappearing, scroll directly
+                    that.scrollUserBar(Math.max(0, users_in_party.length - maxUsersDisplayed));
+                }
+            }
+            that.currentUserbarScrollPosition = newUserbarScrollPosition;
         },
 
         kickUser: function (event) {
