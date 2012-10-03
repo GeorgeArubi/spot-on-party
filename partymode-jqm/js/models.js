@@ -29,20 +29,59 @@ if (!window.PM) {
     enableChildTracking(Backbone.Model);
 
     PM.models.BaseModel = Backbone.Model.extend({
+        _fields: {id: 1},
+        _validate_on_creation: true,
+
         constructor: function () {
             var that = this;
+            if (!that.constructor.type) {
+                throw "Object without type";
+            }
+            that.heritage = [that.constructor];
+            while ("__super__" in _.last(that.heritage)) {
+                that.heritage.push(_.last(that.heritage).__super__.constructor);
+            }
+
+            that._all_fields = _.extend.apply(that, _.map(that.heritage, function (Klass) {return Klass.prototype._fields || {}; }).reverse());
+
             Backbone.Model.apply(that, arguments);
-            if (that.validate) {
-                var validation_error = that.validate(that.attributes);
-                if (validation_error) {
-                    throw validation_error;
+            if (that._validate_on_creation) {
+                if (that.validate) {
+                    var validation_error = that.validate(that.attributes);
+                    if (validation_error) {
+                        throw validation_error;
+                    }
                 }
             }
         },
+
+        get: function (attribute) {
+            var that = this;
+            if (!(attribute in that._all_fields)) {
+                throw "Object \"" + that.constructor.type + "\" doesn't have field \"" + attribute + "\"";
+            }
+            return Backbone.Model.prototype.get.apply(that, arguments);
+        },
+
+        set: function (attribute) {
+            var that = this;
+            if (!_.isNull(attribute)) {
+                var keys = (_.isObject(attribute) ? _.keys(attribute) : [attribute]);
+                _.each(keys, function (key) {
+                    if (!(key in that._all_fields)) {
+                        throw "Object \"" + that.constructor.type + "\" doesn't have field \"" + key + "\"";
+                    }
+                });
+            }
+            return Backbone.Model.prototype.set.apply(that, arguments);
+        }
     });
 
-    PM.models.BaseModelWithoutValidationOnCreate = Backbone.Model.extend({});
     PM.models.BaseModelLazyLoad = PM.models.BaseModel.extend({
+        _fields: {
+            _status: 1,
+        },
+
         constructor: function () {
             var that = this;
             PM.models.BaseModel.apply(that, arguments);
@@ -95,6 +134,12 @@ if (!window.PM) {
     });
 
     PM.models.User = PM.models.BaseModelLazyLoad.extend({
+        _fields: {
+            name: 1,
+            is_master: 1,
+            actual_user: 1,
+        },
+
         defaults: {
             name: "",
             is_master: false,
@@ -112,6 +157,8 @@ if (!window.PM) {
             return PM.domain.FacebookDomain.getProfilePictureUrl(that.id);
         },
     }, {
+        type: "User",
+
         getMaster: function () {
             var that = this;
             return new PM.models.User({
@@ -138,16 +185,21 @@ if (!window.PM) {
         }
     });
 
-    /**
-     * fields: user, joined, created, deleted
-     **/
     PM.models.UserInParty = PM.models.BaseModel.extend({
+        _fields: {
+            user: 1,
+            joined: 1,
+            created: 1,
+            deleted: 1,
+            active: 1,
+        },
+        
         defaults: function () {
             return {
                 created: new Date(),
-                deleted: null,
-                joined: null,
                 active: new Date(),
+                joined: null,
+                deleted: null,
             };
         },
 
@@ -159,26 +211,36 @@ if (!window.PM) {
                 return "Joined needs to be a date or null";
             }
         }
+    }, {
+        type: "UserInParty",
     });
 
 
     PM.models.Track = PM.models.BaseModelLazyLoad.extend({
-        defaults: {
+        _fields: {
             name: "",
             artist: "",
             album: "",
         },
-    }, {    });
+    }, {
+        type: "Track",
+    });
 
     /**
      * fields: id, track, user, deleted_by_user, created, deleted
      */
     PM.models.TrackInPlaylist = PM.models.BaseModel.extend({
+        _fields: {
+            track: 1,
+            user: 1,
+            deleted_by_user: 1,
+            created: 1,
+            deleted: 1,
+        },
+
         defaults: function () {
             return {
                 created: new Date(),
-                deleted_by_user: null,
-                deleted: null,
             };
         },
 
@@ -201,9 +263,18 @@ if (!window.PM) {
                 return "Either both or neither of deleted and deleted_by_user need to be set";
             }
         }
+    }, {
+        type: "TrackInPlaylist",
     });
 
-    PM.models.Action = PM.models.BaseModelWithoutValidationOnCreate.extend({ //note: validation happens on validateAndApply
+    PM.models.Action = PM.models.BaseModel.extend({ //note: validation happens on validateAndApply
+        _validate_on_creation: false,
+        _fields: {
+            created: 1,
+            user_id: 1,
+            party_id: 1,
+        },
+
         initialize: function (attributes, options) {
             var that = this;
             that.set({
@@ -270,6 +341,10 @@ if (!window.PM) {
     });
 
     PM.models.ChangeNameAction = PM.models.Action.extend({
+        _fields: {
+            name: 1,
+        },
+
         validate: function (attrs) {
             var that = this;
             if (!that.party.isOwner(attrs.user_id)) {
@@ -290,6 +365,10 @@ if (!window.PM) {
     });
 
     PM.models.InviteAction = PM.models.Action.extend({
+        _fields: {
+            invited_user_id: 1,
+        },
+
         validate: function (attrs) {
             var that = this;
             if (!that.party.isOwner(attrs.user_id)) {
@@ -338,6 +417,10 @@ if (!window.PM) {
     });
 
     PM.models.KickAction = PM.models.Action.extend({
+        _fields: {
+            kicked_user_id: 1,
+        },
+
         validate: function (attrs) {
             var that = this;
             if (!that.party.isOwner(attrs.user_id)) {
@@ -399,6 +482,10 @@ if (!window.PM) {
     });
 
     PM.models.TrackAddAction = PM.models.Action.extend({
+        _fields: {
+            track_id: 1,
+        },
+
         validate: function (attrs) {
             var that = this;
             if (!attrs.track_id) {
@@ -446,6 +533,10 @@ if (!window.PM) {
     });
 
     PM.models.TrackRemoveAction = PM.models.Action.extend({
+        _fields: {
+            position: 1,
+        },
+
         validate: function (attrs) {
             var that = this;
             if (!_.isNumber(attrs.position)) {
@@ -507,7 +598,7 @@ if (!window.PM) {
         type: "Play",
     });
 
-    /* fields: play_status, current_playlist_index, current_place_in_song */
+    /* fields: play_status, current_playlist_index, current_place_in_track */
     PM.models.PlayStatusFeedback = PM.models.BaseModel.extend({
         type: "PlayStatusFeedback",
     });
@@ -521,6 +612,20 @@ if (!window.PM) {
      * fields: name, active, owner, playlist, users, log
      */
     PM.models.Party = PM.models.BaseModel.extend({
+        _fields: {
+            playlist: 1,
+            users: 1,
+            log: 1,
+            name: 1,
+            active: 1,
+            owner: 1,
+            play_status: 1,
+            current_playlist_index: 1,
+            current_place_in_track: 1,
+            created: 1,
+            last_updated: 1,
+        },
+
         defaults: function () {
             return {
                 playlist: new PM.collections.Playlist(),
@@ -531,7 +636,7 @@ if (!window.PM) {
                 owner: null,
                 play_status: "stop", //or "play" or "pause",
                 current_playlist_index: -1,
-                current_place_in_song: null, //when paused, contains ms after song start, when playing contains date when this song would have started had it been played in whole
+                current_place_in_track: null, //when paused, contains ms after track start, when playing contains date when this song would have started had it been played in whole
                 created: new Date(),
                 last_updated: new Date(),
             };
@@ -595,7 +700,8 @@ if (!window.PM) {
             PM.models.Action.createAndApplyAction(PM.models.User.getMaster(), that.id, type, properies, success_callback, failure_callback);
         }
     }, {
-        /* static members */
+        type: "Party",
+        
         getDefaultPartyName: function () {
             return PM.current_user.actualUser().get("name").toLowerCase() + "'s party";
         }
