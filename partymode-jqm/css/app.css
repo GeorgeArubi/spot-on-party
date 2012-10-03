@@ -1,3 +1,6 @@
+body {
+  min-width: 600px; }
+
 a {
   color: inherit;
   text-decoration: inherit; }
@@ -9,12 +12,21 @@ h3 {
   margin: 0px; }
 
 .logo {
-  margin-bottom: 50px; }
+  margin-bottom: 50px;
+  position: relative; }
   .logo h2 {
     text-align: center;
     font-size: 24px; }
   .logo img {
     width: 100%; }
+
+.logo-small {
+  background-image: url(../img/logo-small-center.png);
+  margin: 10px 20px 0; }
+  .logo-small:before {
+    content: url(../img/logo-small-left.png); }
+  .logo-small:after {
+    content: url(../img/logo-small-right.png); }
 
 .on-off-slider {
   width: 55px;
@@ -50,6 +62,7 @@ h3 {
 
 .new-party-page #new-party-form {
   text-align: center;
+  margin-top: 50px;
   /* note: two spaces, one to end the hex character, one space to insert */ }
   .new-party-page #new-party-form #new-party-name {
     font-size: 30px;
@@ -95,69 +108,72 @@ h3 {
     display: inline-block;
     line-height: 50px; }
 
-.party-page {
-  position: relative; }
-  .party-page #users-bar .arrow {
-    display: none;
-    position: absolute;
-    width: 30px;
-    height: 50px; }
-  .party-page #users-bar.need-arrows .arrow {
-    display: block; }
-  .party-page #users-bar .arrow-left {
-    background-image: url(../img/arrow-left.png);
-    left: 20px; }
-  .party-page #users-bar .arrow-right {
-    background-image: url(../img/arrow-right.png);
-    left: 858px; }
-  .party-page #users-bar > ul {
-    width: 800px;
+.party-page .buttons {
+  text-align: right;
+  margin: 0 15px 15px; }
+  .party-page .buttons button {
+    margin-left: 15px; }
+.party-page #users-bar .arrow {
+  display: none;
+  position: absolute;
+  width: 30px;
+  height: 50px; }
+.party-page #users-bar.need-arrows .arrow {
+  display: block; }
+.party-page #users-bar .arrow-left {
+  background-image: url(../img/arrow-left.png);
+  left: 20px; }
+.party-page #users-bar .arrow-right {
+  background-image: url(../img/arrow-right.png);
+  left: 858px; }
+.party-page #users-bar > ul {
+  width: 800px;
+  height: 50px;
+  overflow: hidden;
+  position: relative;
+  left: 54px; }
+  .party-page #users-bar > ul > li {
+    width: 50px;
     height: 50px;
-    overflow: hidden;
-    position: relative;
-    left: 54px; }
-    .party-page #users-bar > ul > li {
+    position: absolute;
+    left: 0px;
+    -webkit-transition: left 500ms; }
+    .party-page #users-bar > ul > li > img.icon {
+      -webkit-transition: margin 1s, width 1s, height 1s;
       width: 50px;
       height: 50px;
-      position: absolute;
-      left: 0px;
-      -webkit-transition: left 500ms; }
-      .party-page #users-bar > ul > li > img.icon {
-        -webkit-transition: margin 1s, width 1s, height 1s;
-        width: 50px;
-        height: 50px;
-        margin: 0; }
-      .party-page #users-bar > ul > li.new {
+      margin: 0; }
+    .party-page #users-bar > ul > li.new {
+      -webkit-transition: none; }
+      .party-page #users-bar > ul > li.new > img.icon {
+        width: 0;
+        height: 0;
+        margin: 25px;
         -webkit-transition: none; }
-        .party-page #users-bar > ul > li.new > img.icon {
-          width: 0;
-          height: 0;
-          margin: 25px;
-          -webkit-transition: none; }
-      .party-page #users-bar > ul > li > .hoverdata {
-        opacity: 0;
-        -webkit-transition: opacity 100ms; }
-      .party-page #users-bar > ul > li:hover > .hoverdata {
-        opacity: 1; }
-      .party-page #users-bar > ul > li > .kick {
-        width: 16px;
-        height: 16px;
-        background-image: url(../img/close.png);
-        position: absolute;
-        top: 0;
-        right: 0; }
-      .party-page #users-bar > ul > li.owner > .kick {
-        display: none; }
-      .party-page #users-bar > ul > li > .name {
-        background-color: rgba(0, 0, 0, 0.7);
-        position: absolute;
-        left: 2px;
-        bottom: 2px;
-        height: 30px;
-        width: 46px;
-        overflow: hidden;
-        padding: 2px;
-        font-size: 10px; }
+    .party-page #users-bar > ul > li > .hoverdata {
+      opacity: 0;
+      -webkit-transition: opacity 100ms; }
+    .party-page #users-bar > ul > li:hover > .hoverdata {
+      opacity: 1; }
+    .party-page #users-bar > ul > li > .kick {
+      width: 16px;
+      height: 16px;
+      background-image: url(../img/close.png);
+      position: absolute;
+      top: 0;
+      right: 0; }
+    .party-page #users-bar > ul > li.owner > .kick {
+      display: none; }
+    .party-page #users-bar > ul > li > .name {
+      background-color: rgba(0, 0, 0, 0.7);
+      position: absolute;
+      left: 2px;
+      bottom: 2px;
+      height: 30px;
+      width: 46px;
+      overflow: hidden;
+      padding: 2px;
+      font-size: 10px; }
 
 #overlay-backdrop {
   display: none;

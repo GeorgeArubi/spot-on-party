@@ -35,10 +35,7 @@
     </script>
 
     <script type="text/html" id="new-party-page">
-      <div class="logo">
-<!--        <img src="img/logo.svg"> -->
-        <img src="img/logo.png">
-      </div>
+      <div class="logo-small"></div>
       <form action="javascript:void(0);" id="new-party-form">
         <input type="text" id="new-party-name" placeholder="<%- default_party_name  %>"><input type="submit" value="create new party" id="new-party-submit">
         <div class="or">or</div>
@@ -48,16 +45,16 @@
         <button class="sp-button" id="logout">log out</button>
       </div>
     </script>
+
     <script type="text/html" id="party-page">
       <div id="overlay-backdrop"></div>
       <div id="overlay-placeholder"></div>
-      <div class="header">
-<!--        <img src="img/logo_small.svg"> -->
-        <img src="img/logo_small.png">
+      <div class="logo-small"></div>
+      <div class="buttons">
+        <button class="sp-button sp-icon" id="add-song"><span class="sp-plus"></span>add song</button>
+        <button class="sp-button" id="invite-users">invite friends</button>
+        <button class="sp-button" id="end-party">end party</button>
       </div>
-      <button class="sp-button sp-icon" id="add-song"><span class="sp-plus"></span>add song</button>
-      <button class="sp-button" id="invite-users">invite friends</button>
-      <button class="sp-button" id="end-party">end party</button>
       <div id="users-bar"><div class="arrow arrow-left"></div><div class="arrow arrow-right"></div><ul></ul></div>
       <div id="playlist-placeholder">Playlist comes here!</div>
     </script>
@@ -65,7 +62,10 @@
     <script type="text/html" id="invite-users-overlay">
       <h3>Invite friends to your party</h3>
       <input type="search" id="users-search-box" placeholder="Search" incremental>
-      <div id="users-search-results" class="loading"><div class="throbber"><div></div></div><ul class="content users"></ul></div>
+      <div id="users-search-results" class="loading">
+        <div class="throbber"><div></div></div>
+        <ul class="content users"></ul>
+      </div>
       <button class="sp-button" id="users-search-invite">Invite</button>
     </script>
 
@@ -76,6 +76,16 @@
             <div class="on-off-slider"><div></div></div>
         </li>
     </script>
+
+    <script type="text/html" id="add-tracks-overlay">
+      <h3>Find and add songs to the party/h3>
+      <input type="search" id="tracks-search-box" placeholder="Search" incremental>
+      <div id="tracks-search-results" class="loading">
+        <div class="throbber"><div></div></div>
+        <ul class="content tracks"></ul>
+      </div>
+    </script>
+
     <script src="js/config.js"></script>
     <script src="js/includes/AbstractFacebookDomain.js"></script>
     <script src="js/includes/FacebookSpotifyDomain.js"></script>
