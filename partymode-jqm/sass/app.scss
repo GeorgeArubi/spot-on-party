@@ -100,20 +100,38 @@ h3 {margin: 0px;}
     position: absolute; z-index: 100;
     width: $overlay-width; height: $overlay-height; top: 75px; margin-left: - $overlay-width / 2 - $overlay-border-width; left: 50%;
     background-color: $spotify-dark-background-color; border: $overlay-border-width solid #101010; border-radius: 30px;
-
+    h3 {background-color: $partymode-logo-color; height: 25px; padding: 7px; color: #000080; font-weight: bold; font-size: 18px;}
+    .search-box {height: 30px; width: 500px; font-size: 16px; margin: 10px;}
+    .search-results {
+        overflow-x: hidden; overflow-y: auto; position: relative; top: 0px; margin: 7px;
+        .throbber {display: none;}
+        &.loading .throbber {display: block;}
+    }
     &.invite-users-overlay {
-        h3 {background-color: $partymode-logo-color; height: 25px; padding: 7px; color: #000080; font-weight: bold; font-size: 18px;}
-        #users-search-box {height: 30px; width: 500px; font-size: 16px; margin: 10px;}
         #users-search-results {
-            height: $overlay-height - 130px; overflow-x: hidden; overflow-y: auto; position: relative; top: 0px; margin: 7px;
-            .throbber {display: none;}
-            &.loading .throbber {display: block;}
+            height: $overlay-height - 130px;
             .users > li {
                 width: $overlay-width / 2 - 27px; float: left; height: 45px; padding: 4px; position: relative; margin-right: 5px;
                 &.even {background-color: $spotify-search-results-background-color;}
                 .icon {width: 35px; height: 35px; float: left; margin: 5px;}
                 &.filtered {display: none;}
                 .name { color: white; font-size: 14px; position: absolute; left: 55px; top: 12px; width: 245px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;}
+                .on-off-slider {position: absolute; top: 17px; right: 20px;}
+            }
+        }
+        #users-search-invite {float: right; margin-top: 7px; margin-right: 15px;}
+    }
+    &.add-track-overlay {
+        #track-search-results {
+            height: $overlay-height - 96px;
+            .tracks > li {
+                color: white; font-size: 14px; height: 45px; padding: 4px; position: relative;
+                &:nth-child(odd) {background-color: $spotify-search-results-background-color;}
+                .name {text-overflow: ellipsis; white-space: nowrap; overflow: hidden; font-size: 21px; line-height: 24px;}
+                .artist {display: inline-block; max-width: 300px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;}
+                .album {display: inline-block; max-width: 300px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;
+                    &:before {content: " \2013  ";}
+                }
                 .on-off-slider {position: absolute; top: 17px; right: 20px;}
             }
         }

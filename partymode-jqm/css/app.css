@@ -198,29 +198,30 @@ h3 {
   background-color: #363636;
   border: 25px solid #101010;
   border-radius: 30px; }
-  #overlay-placeholder > div.invite-users-overlay h3 {
+  #overlay-placeholder > div h3 {
     background-color: skyblue;
     height: 25px;
     padding: 7px;
     color: #000080;
     font-weight: bold;
     font-size: 18px; }
-  #overlay-placeholder > div.invite-users-overlay #users-search-box {
+  #overlay-placeholder > div .search-box {
     height: 30px;
     width: 500px;
     font-size: 16px;
     margin: 10px; }
-  #overlay-placeholder > div.invite-users-overlay #users-search-results {
-    height: 470px;
+  #overlay-placeholder > div .search-results {
     overflow-x: hidden;
     overflow-y: auto;
     position: relative;
     top: 0px;
     margin: 7px; }
-    #overlay-placeholder > div.invite-users-overlay #users-search-results .throbber {
+    #overlay-placeholder > div .search-results .throbber {
       display: none; }
-    #overlay-placeholder > div.invite-users-overlay #users-search-results.loading .throbber {
+    #overlay-placeholder > div .search-results.loading .throbber {
       display: block; }
+  #overlay-placeholder > div.invite-users-overlay #users-search-results {
+    height: 470px; }
     #overlay-placeholder > div.invite-users-overlay #users-search-results .users > li {
       width: 373px;
       float: left;
@@ -252,6 +253,44 @@ h3 {
         top: 17px;
         right: 20px; }
   #overlay-placeholder > div.invite-users-overlay #users-search-invite {
+    float: right;
+    margin-top: 7px;
+    margin-right: 15px; }
+  #overlay-placeholder > div.add-track-overlay #track-search-results {
+    height: 504px; }
+    #overlay-placeholder > div.add-track-overlay #track-search-results .tracks > li {
+      color: white;
+      font-size: 14px;
+      height: 45px;
+      padding: 4px;
+      position: relative; }
+      #overlay-placeholder > div.add-track-overlay #track-search-results .tracks > li:nth-child(odd) {
+        background-color: #474747; }
+      #overlay-placeholder > div.add-track-overlay #track-search-results .tracks > li .name {
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        overflow: hidden;
+        font-size: 21px;
+        line-height: 24px; }
+      #overlay-placeholder > div.add-track-overlay #track-search-results .tracks > li .artist {
+        display: inline-block;
+        max-width: 300px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        overflow: hidden; }
+      #overlay-placeholder > div.add-track-overlay #track-search-results .tracks > li .album {
+        display: inline-block;
+        max-width: 300px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        overflow: hidden; }
+        #overlay-placeholder > div.add-track-overlay #track-search-results .tracks > li .album:before {
+          content: " \2013  "; }
+      #overlay-placeholder > div.add-track-overlay #track-search-results .tracks > li .on-off-slider {
+        position: absolute;
+        top: 17px;
+        right: 20px; }
+  #overlay-placeholder > div.add-track-overlay #users-search-invite {
     float: right;
     margin-top: 7px;
     margin-right: 15px; }

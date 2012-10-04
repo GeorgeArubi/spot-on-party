@@ -1,4 +1,4 @@
-/*jshint browser:true, globalstrict: true, nomen: true */
+/*jshint browser:true, globalstrict: true */
 /*global _*/
 "use strict";
 

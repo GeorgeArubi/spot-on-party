@@ -51,7 +51,7 @@
       <div id="overlay-placeholder"></div>
       <div class="logo-small"></div>
       <div class="buttons">
-        <button class="sp-button sp-icon" id="add-song"><span class="sp-plus"></span>add song</button>
+        <button class="sp-button sp-icon" id="add-track"><span class="sp-plus"></span>add song</button>
         <button class="sp-button" id="invite-users">invite friends</button>
         <button class="sp-button" id="end-party">end party</button>
       </div>
@@ -61,8 +61,8 @@
 
     <script type="text/html" id="invite-users-overlay">
       <h3>Invite friends to your party</h3>
-      <input type="search" id="users-search-box" placeholder="Search" incremental>
-      <div id="users-search-results" class="loading">
+      <input type="search" id="users-search-box" class="search-box" placeholder="Search" incremental>
+      <div id="users-search-results" class="loading search-results">
         <div class="throbber"><div></div></div>
         <ul class="content users"></ul>
       </div>
@@ -77,18 +77,28 @@
         </li>
     </script>
 
-    <script type="text/html" id="add-tracks-overlay">
-      <h3>Find and add songs to the party/h3>
-      <input type="search" id="tracks-search-box" placeholder="Search" incremental>
-      <div id="tracks-search-results" class="loading">
+    <script type="text/html" id="add-track-overlay">
+      <h3>Find and add songs to the party</h3>
+      <input type="search" id="track-search-box" class="search-box" placeholder="Search" incremental>
+      <div id="track-search-results" class="search-results">
         <div class="throbber"><div></div></div>
         <ul class="content tracks"></ul>
       </div>
     </script>
 
+    <script type="text/html", id="tracks-search-results">
+        <% _.each(tracks, function (track) { %>
+            <li>
+              <div class="name"><%- track.get("name") %></div>
+              <div class="artist"><%- track.get("artist") %></div>
+              <div class="album"><%- track.get("album") %></div>
+            </li>
+        <% }); %>
+    </script>
     <script src="js/config.js"></script>
     <script src="js/includes/AbstractFacebookDomain.js"></script>
     <script src="js/includes/FacebookSpotifyDomain.js"></script>
+    <script src="js/includes/SpotifySpotifyDomain.js"></script>
     <script src="js/models.js"></script>
     <script src="js/app.js"></script>
   </body>

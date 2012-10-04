@@ -160,14 +160,16 @@ if (!window.PM) {
         type: "User",
 
         getMaster: function () {
-            var that = this;
-            return new PM.models.User({
+            var That = this;
+            var user = new That({
                 id: "master",
                 is_master: true,
                 _status: PM.models.BaseModelLazyLoad.LOADED,
                 name: PM.config.master_name,
-                actual_user: that.getById(PM.app.loggedin_user_id),
+                actual_user: That.getById(PM.app.loggedin_user_id),
             });
+            That.setToCache(user);
+            return user;
         },
 
         getAllFriendsOfLoggedinUser: function (callback) {
@@ -255,9 +257,6 @@ if (!window.PM) {
             }
             if (!_.isObject(attrs.user)) {
                 return "Need to provide a user";
-            }
-            if (!_.isNumber(attrs.position)) {
-                return "Need to provide a position";
             }
             if (_.isObject(attrs.deleted_by_user) !== _.isDate(attrs.deleted)) {
                 return "Either both or neither of deleted and deleted_by_user need to be set";
@@ -492,7 +491,7 @@ if (!window.PM) {
                 return "track_id must be present";
             }
             var track = PM.models.Track.getById(that.get("track_id"));
-            if (track.get("status") !== "loaded") {
+            if (track.get("_status") !== "loaded") {
                 return "track could not be loaded";
             }
             //TODO: also check whether track is playable etc...
@@ -695,9 +694,9 @@ if (!window.PM) {
         /**
           * An action executed by the party owner, the master
           **/
-        createAndApplyOwnAction: function (type, properies, success_callback, failure_callback) {
+        createAndApplyOwnAction: function (type, properties, success_callback, failure_callback) {
             var that = this;
-            PM.models.Action.createAndApplyAction(PM.models.User.getMaster(), that.id, type, properies, success_callback, failure_callback);
+            PM.models.Action.createAndApplyAction(PM.models.User.getMaster(), that.id, type, properties, success_callback, failure_callback);
         }
     }, {
         type: "Party",

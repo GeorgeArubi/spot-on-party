@@ -7,7 +7,7 @@ if (!window.PM) {
 
 (function (PM, Backbone, $, _) {
     "use strict";
-    var FacebookLoginView, StartNewPartyView, PartyView, InviteUsersView, AddSongView;
+    var FacebookLoginView, StartNewPartyView, PartyView, InviteUsersView, AddTrackView;
 
     var getTemplate = function (id) {
         var el = $('#' + id);
@@ -136,7 +136,6 @@ if (!window.PM) {
             "click #users-search-box": function (event) {event.target.select(); },
             "click #users-search-invite": "invite",
             "click #users-search-results .users li": "userSelectClick",
-            "keyup": function (event) {if (event.keyCode === 27) {this.closeMe(); }},
         },
 
         initialize: function (options) {
@@ -285,13 +284,77 @@ if (!window.PM) {
 
         },
 
-        lookForEscape: function () {
-            console.log("Lookforescape");
-        },
-
     });
 
-    AddSongView = Backbone.View.extend({});
+    AddTrackView = Backbone.View.extend({
+        className: "add-track-overlay",
+
+        template: getTemplate("add-track-overlay"),
+
+        events: {
+            "search #track-search-box": "searchTrack",
+            "click #track-search-box": function (event) {event.target.select(); },
+            "click #track-search-results .tracks li": "trackSelected",
+        },
+
+        initialize: function (options) {
+            var that = this;
+            that.parent = options.parent;
+        },
+
+        closeMe: function () {
+            var that = this;
+            that.parent.closeOverlayView();
+        },
+
+        render: function (target) {
+            var that = this;
+            that.$el.html(that.template());
+            target.html(that.$el);
+            that.$('#track-search-box')[0].focus();
+            
+            return that;
+        },
+
+        searchTrack: _.debounce(function (event) {
+            var that = this;
+            var searchtext = $(event.target).val();
+            if (searchtext === "") {
+                that.$('#track-search-results').removeClass("loading");
+                that.$('#track-search-results .tracks').html("");
+            }
+            that.$('#track-search-results').addClass("loading");
+            PM.domain.SpotifySpotifyDomain.search(searchtext, function (tracks_data) {
+                var tracks = _.map(tracks_data, function (track_data) {
+                    var track = new PM.models.Track({
+                        id: track_data.href,
+                        _status: PM.models.BaseModelLazyLoad.LOADED,
+                        name: track_data.name.decodeForText(),
+                        artist: _.map(track_data.artists, function (artist) {return artist.name.decodeForText(); }).join(", "),
+                        album: track_data.album.name.decodeForText(),
+                    });
+                    PM.models.Track.setToCache(track);
+                    return track;
+                });
+                if (searchtext !== $(event.target).val()) {
+                    // search text changed, not showing old results
+                    // NOTE: this may in theory result in not showing anything, but that is only in some strange race condition
+                    return;
+                }
+                that.$('#track-search-results').removeClass("loading");
+                that.$('#track-search-results .tracks').html(getTemplate("tracks-search-results")({tracks: tracks}));
+                _.each(that.$('#track-search-results .tracks li'), function (el, index) {
+                    el.track = tracks[index]; // not very nice way to assign but hey, it works :)
+                });
+            });
+        }, 50),
+        
+        trackSelected: function (event) {
+            var that = this;
+            var track = event.currentTarget.track;
+            that.parent.party.createAndApplyOwnAction("TrackAdd", {track_id: track.id}, function () {that.closeMe(); });
+        },
+    });
 
     PartyView = Backbone.View.extend({
         className: "party-page",
@@ -299,13 +362,14 @@ if (!window.PM) {
         template: getTemplate("party-page"),
 
         events: {
-            "click #add-song": "addSong",
+            "click #add-track": "addTrack",
             "click #invite-users": "inviteUsers",
             "click #end-party": "endParty",
             "click #overlay-backdrop": "closeOverlayView",
             "click #users-bar li .kick": "kickUser",
             "click #users-bar .arrow-left": function () {this.scrollUserBar("-"); },
             "click #users-bar .arrow-right": function () {this.scrollUserBar("+"); },
+            "keyup": function (event) {if (event.keyCode === 27) {this.closeOverlayView(); }},
         },
 
         initialize: function (id) {
@@ -350,7 +414,8 @@ if (!window.PM) {
             that.$el.html(that.template());
             target.html(that.$el);
             if (that.party.isNew()) {
-                that.inviteUsers();
+                //that.inviteUsers();
+                that.addTrack();
             }
             that.updateUserBar();
             that.party.get("users").on("add", that.updateUserBar, that);
@@ -474,8 +539,9 @@ if (!window.PM) {
             );
         },
 
-        addSong: function () {
-
+        addTrack: function () {
+            var that = this;
+            that.addOverlayView(new AddTrackView({parent: that}));
         },
 
         inviteUsers: function () {
