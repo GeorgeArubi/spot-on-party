@@ -414,8 +414,7 @@ if (!window.PM) {
             that.$el.html(that.template());
             target.html(that.$el);
             if (that.party.isNew()) {
-                //that.inviteUsers();
-                that.addTrack();
+                that.inviteUsers();
             }
             that.updateUserBar();
             that.party.get("users").on("add", that.updateUserBar, that);

@@ -125,10 +125,10 @@ h3 {margin: 0px;}
         #track-search-results {
             height: $overlay-height - 96px;
             .tracks > li {
-                color: white; font-size: 14px; height: 45px; padding: 4px; position: relative;
+                color: #D0D0D0; font-size: 12px; height: 45px; padding: 4px; position: relative;
                 &:nth-child(odd) {background-color: $spotify-search-results-background-color;}
-                .name {text-overflow: ellipsis; white-space: nowrap; overflow: hidden; font-size: 21px; line-height: 24px;}
-                .artist {display: inline-block; max-width: 300px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;}
+                .name {color: white; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; font-size: 21px; line-height: 26px;}
+                .artist {display: inline-block; max-width: 300px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; margin-left: 5px;}
                 .album {display: inline-block; max-width: 300px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;
                     &:before {content: " \2013  ";}
                 }

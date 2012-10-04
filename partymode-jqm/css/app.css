@@ -259,25 +259,27 @@ h3 {
   #overlay-placeholder > div.add-track-overlay #track-search-results {
     height: 504px; }
     #overlay-placeholder > div.add-track-overlay #track-search-results .tracks > li {
-      color: white;
-      font-size: 14px;
+      color: #D0D0D0;
+      font-size: 12px;
       height: 45px;
       padding: 4px;
       position: relative; }
       #overlay-placeholder > div.add-track-overlay #track-search-results .tracks > li:nth-child(odd) {
         background-color: #474747; }
       #overlay-placeholder > div.add-track-overlay #track-search-results .tracks > li .name {
+        color: white;
         text-overflow: ellipsis;
         white-space: nowrap;
         overflow: hidden;
         font-size: 21px;
-        line-height: 24px; }
+        line-height: 26px; }
       #overlay-placeholder > div.add-track-overlay #track-search-results .tracks > li .artist {
         display: inline-block;
         max-width: 300px;
         text-overflow: ellipsis;
         white-space: nowrap;
-        overflow: hidden; }
+        overflow: hidden;
+        margin-left: 5px; }
       #overlay-placeholder > div.add-track-overlay #track-search-results .tracks > li .album {
         display: inline-block;
         max-width: 300px;
