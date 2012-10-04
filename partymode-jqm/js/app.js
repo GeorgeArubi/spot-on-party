@@ -387,6 +387,7 @@ if (!window.PM) {
             that.closeOverlayView();
             that.party.get("users").off("add", that.updateUserBar, that);
             that.party.get("users").off("change", that.updateUserBar, that);
+            PM.domain.SpotifyAppIntegrator.stopParty(that.party);
         },
 
         addOverlayView: function (overlayView) {
@@ -419,6 +420,8 @@ if (!window.PM) {
             that.updateUserBar();
             that.party.get("users").on("add", that.updateUserBar, that);
             that.party.get("users").on("change", that.updateUserBar, that);
+            var playlistNode = PM.domain.SpotifyAppIntegrator.startPartyReturnHtmlNode(that.party);
+            that.$('#playlist-placeholder').html(playlistNode);
             return that;
         },
 

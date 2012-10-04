@@ -238,6 +238,7 @@ if (!window.PM) {
             deleted_by_user: 1,
             created: 1,
             deleted: 1,
+            position_in_spotify_playlist: 1,
         },
 
         defaults: function () {
@@ -260,6 +261,9 @@ if (!window.PM) {
             }
             if (_.isObject(attrs.deleted_by_user) !== _.isDate(attrs.deleted)) {
                 return "Either both or neither of deleted and deleted_by_user need to be set";
+            }
+            if (_.isObject(attrs.deleted_by_user) && _.isNumber(attrs.position_in_spotify_playlist)) {
+                return "Cant have a position in the playlist and be deleted";
             }
         }
     }, {
@@ -523,8 +527,8 @@ if (!window.PM) {
                 user: PM.models.User.getById(that.get("user_id")),
                 track: PM.models.Track.getById(that.get("track_id")),
             });
-            if (that.party.get("play_status") === "stopped") {
-                that.party.trigger("play", playlist.length - 1);
+            if (that.party.get("play_status") === "stop") {
+                that.party.trigger("playcommand", "play", playlist.length - 1);
             }
         },
     }, {
@@ -556,7 +560,7 @@ if (!window.PM) {
                 deleted_by_user: PM.models.User.getById(that.get("user_id"))
             });
             if (that.party.get("current_playlist_index") === that.get("position")) {
-                that.party.trigger("play_next");
+                that.party.trigger("playcommand", "play_next");
             }
         },
     }, {
@@ -574,7 +578,7 @@ if (!window.PM) {
 
         applyAction: function () {
             var that = this;
-            that.party.trigger("pause");
+            that.party.trigger("playcommand", "pause");
         },
     }, {
         type: "Pause",
@@ -591,7 +595,7 @@ if (!window.PM) {
 
         applyAction: function () {
             var that = this;
-            that.party.trigger("play");
+            that.party.trigger("playcommand", "play");
         },
     }, {
         type: "Play",
@@ -599,6 +603,25 @@ if (!window.PM) {
 
     /* fields: play_status, current_playlist_index, current_place_in_track */
     PM.models.PlayStatusFeedback = PM.models.BaseModel.extend({
+        _fields: {
+            play_status: 1, // one of: play, pause or stop
+            current_playlist_index: 1, // in TrackIn_playlist playlist, not spotify playlist
+            current_place_in_track: 1, // see comment in Party
+            created: 1,
+        },
+
+        defaults: function () {
+            return {
+                created: new Date(),
+            };
+        },
+
+        validate: function (attrs) {
+            if (attrs.play_status !== "play" && attrs.play_status !== "stop" && attrs.play_status !== "pause") {
+                return "No valid play status: \"" + attrs.play_status + "\"";
+            }
+        }
+    }, {
         type: "PlayStatusFeedback",
     });
 
@@ -697,6 +720,27 @@ if (!window.PM) {
         createAndApplyOwnAction: function (type, properties, success_callback, failure_callback) {
             var that = this;
             PM.models.Action.createAndApplyAction(PM.models.User.getMaster(), that.id, type, properties, success_callback, failure_callback);
+        },
+
+        applyPlayStatusFeedback: function (play_status, current_playlist_index, current_place_in_track) {
+            var that = this;
+            var data = {
+                play_status: play_status,
+                current_playlist_index: current_playlist_index,
+                current_place_in_track: current_place_in_track,
+            };
+            var feedback = new PM.models.PlayStatusFeedback(data);
+            that.set(data);
+
+            that.set("play_status");
+
+            that.get('log').add(feedback);
+        },
+
+        validate: function (attrs) {
+            if (attrs.play_status !== "play" && attrs.play_status !== "stop" && attrs.play_status !== "pause") {
+                return "No valid play status: \"" + attrs.play_status + "\"";
+            }
         }
     }, {
         type: "Party",

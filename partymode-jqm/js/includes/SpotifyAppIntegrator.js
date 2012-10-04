@@ -1,169 +1,173 @@
-/*jslint browser:true, vars: true, plusplus: true,  */
-/*globals Ext, SOP, getSpotifyApi*/
+/*jshint browser:true, globalstrict: true */
+/*global _,$*/
 "use strict";
+
+if (!window.PM) {
+    window.PM = {};
+}
+if (!window.PM.domain) {
+    window.PM.domain = {};
+}
 
 /**
  * This class does the integration between the actual spotify app (the one that plays the music), and the SOP app
  */
+window.PM.domain.SpotifyAppIntegrator = window.Toolbox.Base.extend({
+}, {
+    init: function () {
+        var that = this;
+        var sp = window.getSpotifyApi(1);
+        that.models = sp.require('sp://import/scripts/api/models');
+        that.models.player.observe(that.models.EVENT.CHANGE, _.bind(that.onPlayerEvent, that));
 
-Ext.define("SOP.domain.SpotifyAppIntegrator", {
-    inheritableStatics: {
-        activeParty: null, // the party that is currently being "run"; that is in front in the interface
-        models: null,
-        spotifyPlaylist: null,
+        that.views = sp.require('sp://import/scripts/api/views');
+        that.myTrackView = function (undefined) {
+            that.views.Track.apply(this, arguments);
 
-        init: function () {
-            var that = this;
-            var sp = getSpotifyApi(1);
-            that.models = sp.require('sp://import/scripts/api/models');
-            var timeout = 0;
+            var addedby = $("<span>");
+            this.node.appendChild(addedby[0]);
+            _.delay(_.bind(function () {
+                var index = $(this.node).prevAll().length;
+                var track_in_playlist = that.activeParty.get("playlist").at(index);
+                addedby.text(track_in_playlist.get("user").get("name"));
+            }, this), 1);
+        };
+        that.myTrackView.prototype = that.views.Track.prototype;
+    },
 
-            that.models.player.observe(that.models.EVENT.CHANGE, function (event) {
-                if (timeout) {
-                    window.clearTimeout(timeout);
-                }
-                timeout = window.setTimeout(function () {
-                    timeout = 0;
-                    if (that.isStoppedOrNotPlayingFromApp()) {
-                        that.onPartyPlayStopped();
-                    } else {
-                        that.onPartyPlayStarted(that.models.player.index);
-                    }
-                }, 100); //only send after 100 ms, because multiple events get fired
-            });
+    onPlayerEvent: _.debounce(function () { //multiple events being fired as once, better debounce and set the status settle
+        var that = this;
+        if (that.isStoppedOrNotPlayingFromApp()) {
+            that.onPartyPlayStopped();
+        } else {
+            that.onPartyPlayStarted(that.models.player.index);
+        }
+    }, 50),
 
-            SOP.app.getController("SOP.controller.spotifyapp.PartyController").on("activateparty", that.onActivateParty, that);
-            SOP.app.getController("SOP.controller.spotifyapp.PartyController").on("deactivateparty", that.onDeactivateParty, that);
-        },
+    stopParty: function (party) {
+        var that = this;
+        if (party !== that.activeParty) {
+            return;
+        }
+        console.log("Party is inactive now");
+        if (!that.isStoppedOrNotPlayingFromApp()) {
+            that.models.player.playing = false; //pauses; I would prefer stop for now, but this is fine!
+        }
+        party.off("playcommand", that.onPlayCommand, that);
+        party.get("playlist").off("add", that.addPlaylistItem, that);
+        party.get("playlist").off("remove", that.deletePlaylistItem, that);
+        that.activeParty = null;
+    },
 
-        onDeactivateParty: function (party) {
-            var that = this;
-            if (party !== that.activeParty) {
-                return;
+    startPartyReturnHtmlNode: function (party) {
+        var that = this;
+        if (that.activeParty) {
+            throw "Can't start new party, old party " + that.activeParty.id + " is still running";
+        }
+        console.log("Party is active now");
+        that.activeParty = party;
+
+        party.on("playcommand", that.onPlayCommand, that);
+        party.get("playlist").on("add", that.addPlaylistItem, that);
+        party.get("playlist").on("remove", that.deletePlaylistItem, that);
+
+        that.createAndFillPlaylistFromParty();
+        return (new that.views.List(that.spotifyPlaylist, function (track) {return new that.myTrackView(track); })).node;
+    },
+
+    isStoppedOrNotPlayingFromApp: function () {
+        var that = this;
+        return (that.models.player.context !== that.spotifyPlaylist.uri);
+    },
+
+    createAndFillPlaylistFromParty: function () {
+        var that = this;
+        that.spotifyPlaylist = new that.models.Playlist();
+        _.each(that.activeParty.get("playlist"), function (track_in_playlist) {
+            if (!track_in_playlist.isDeleted()) {
+                that.addPlaylistItem(track_in_playlist);
             }
-            console.log("Party is inactive now");
-            party.un("fed", that.onPartyFed, that);
-            party.un("commands", that.onPartyCommands, that);
-            if (!that.isStoppedOrNotPlayingFromApp()) {
-                that.models.player.playing = false; //pauses; I would prefer stop for now, but this is fine!
-            }
-            that.activeParty = null;
-        },
+        });
+    },
 
-        onActivateParty: function (party) {
-            var that = this;
-            if (that.activeParty) {
-                that.onDeactivateParty(that.activeParty);
-            }
-            console.log("Party is active now");
-            that.spotifyPlaylist = new that.models.Playlist();
+    addPlaylistItem: function (track_in_playlist) {
+        var that = this;
+        track_in_playlist.set("position_in_spotify_playlist", that.spotifyPlaylist.length, {silent: true});
+        that.spotifyPlaylist.add(track_in_playlist.get("track").id);
+        var track = _.last(that.spotifyPlaylist.tracks);
+        track.data.addedByUser = track_in_playlist.get("user");
+    },
 
-            party.on("fed", function () {that.syncPartyPlaylist(party); });
-            party.on("commands", that.onPartyCommands, that);
-            that.syncPartyPlaylist(party);
-            that.activeParty = party;
-        },
+    deletePlaylistItem: function (track_in_playlist) {
+        var that = this;
+        var position = track_in_playlist.get("position_in_spotify_playlist");
+        that.spotifyPlaylist.splice(position, 1);
+        _.each(that.activeParty.get("playlist"), function (other_track_in_playlist) {
+            var otherPosition = other_track_in_playlist.get("position_in_spotify_playlist");
+            if (_.isNumber(otherPosition) && otherPosition > position) {
+                other_track_in_playlist.set("position_in_spotify_playlist", otherPosition - 1, {silent: true});
+            }
+        });
+        track_in_playlist.set("position_in_spotify_playlist", undefined, {silent: true});
+        that.spotifyPlaylist.add(track_in_playlist.get("track").id);
 
-        isStoppedOrNotPlayingFromApp: function () {
-            var that = this;
-            return (that.models.player.context !== that.spotifyPlaylist.uri);
-        },
+    },
 
-        syncPartyPlaylist: function (party) {
-            var that = this;
-            //first throw out any deleted items
-            var i;
-            var tracks = that.spotifyPlaylist.tracks;
-            var newPlaylistEntries = party.getPartyState().playlist_entries.filter(function (playlistEntry) {
-                return !playlistEntry.get('deleted');
-            });
-            var newPlayIndex = null;
-            var isRunning = !that.isStoppedOrNotPlayingFromApp();
-            var newItemsStartAt = that.spotifyPlaylist.length;
-            i = 0;
-            while (i < tracks.length) {
-                if (newPlaylistEntries[i].get('track').get('id') === tracks[i].uri) {
-                    i++;
-                } else {
-                    if (isRunning && i === SOP.domain.SpotifyAppIntegrator.models.player.index) {
-                        newPlayIndex = i;
-                    }
-                    tracks.splice(i, 1);
-                    that.spotifyPlaylist.remove(i);
-                    newItemsStartAt--;
-                }
+    onPlayCommand: function (command, argument) {
+        var that = this;
+        switch (command) {
+        case "play":
+            if (_.isNumber(argument)) {
+                var track_in_playlist = that.activeParty.get("playlist").at(argument);
+                var position_to_play = track_in_playlist.get("position_in_spotify_playlist");
+                that.models.player.play(track_in_playlist.get("track").id, that.spotifyPlaylist, position_to_play);
+            } else {
+                that.models.player.playing = true;
             }
-            for (i = that.spotifyPlaylist.length; i < newPlaylistEntries.length; i++) {
-                that.spotifyPlaylist.add(newPlaylistEntries[i].get('track').get('id'));
-            }
-            if (newPlayIndex !== null && newPlayIndex < newPlaylistEntries.length) {
-                that.models.player.play(that.spotifyPlaylist.tracks[newPlayIndex].uri, that.spotifyPlaylist, newPlayIndex);
-            } else if (!isRunning && newItemsStartAt < newPlaylistEntries.length) {
-                that.models.player.play(that.spotifyPlaylist.tracks[newItemsStartAt].uri, that.spotifyPlaylist, newItemsStartAt);
-            }
-        },
+            break;
+        case "pause":
+            that.models.player.playing = false;
+            break;
+        case "play_next":
+            that.models.player.next();
+            break;
+        default:
+            throw "Not sure how to handle command: " + command;
+        }
+    },
 
-        onPartyCommands: function (commands) {
-            var that = this;
-            var i;
-            var playing = null;
-            var index = null;
-            var party = that.activeParty;
-            var playlistEntries = party.getPartyState().playlist_entries.filter(function (playlistEntry) {
-                return !playlistEntry.get('deleted');
-            });
-            Ext.each(commands, function (command) {
-                switch (command.type) {
-                case "play":
-                    playing = true;
-                    break;
-                case "pause":
-                    playing = false;
-                    break;
-                case "playposition":
-                    for (i = 0; i < playlistEntries.length; i++) {
-                        if (playlistEntries[i].get('position') >= command.position) {
-                            // note: using greater_or_equal, so that if was removed, first next song gets played
-                            break;
-                        }
-                    }
-                    if (i < playlistEntries.length) { // else somehow we need to play a song that isn't there yet (or was deleted right after play command...). Perhaps we should try again in a moment, or perhaps just not care and ignore the race condition
-                        playing = true;
-                        index = i;
-                    }
-                    break;
-                default:
-                    throw "Unknown command type: " + command.type;
-                }
-            });
-            if (index !== null) {
-                that.models.player.play(that.spotifyPlaylist.tracks[index].uri, that.spotifyPlaylist, index);
+    getCurrentPartyPlaylistIndex: function () {
+        var that = this;
+        var spotifyPlaylistIndex = that.models.player.index;
+        var partyPlaylist = that.activeParty.get("playlist");
+        var i;
+        for (i = 0; i < partyPlaylist.length; i++) {
+            if (partyPlaylist.at(i).get("position_in_spotify_playlist") === spotifyPlaylistIndex) {
+                return i;
             }
-            if (playing !== null) {
-                that.models.player.playing = playing;
-            }
-        },
+        }
+        return -1;
+    },
 
-        onPartyPlayStopped: function () {
-            var that = this;
-            var party = that.activeParty;
-            SOP.domain.SopBaseDomain.updatePlayStatus(party.get('id'),
-                                                      false,
-                                                      -1,
-                                                      0,
-                                                      function (actions) {party.feed(actions); });
-        },
-        onPartyPlayStarted: function () {
-            var that = this;
-            var party = that.activeParty;
-            var playlistEntries = party.getPartyState().playlist_entries.filter(function (playlistEntry) {
-                return !playlistEntry.get('deleted');
-            });
-            SOP.domain.SopBaseDomain.updatePlayStatus(party.get('id'),
-                                                      that.models.player.playing,
-                                                      playlistEntries[that.models.player.index].get('position'),
-                                                      that.models.player.position,
-                                                      function (actions) {party.feed(actions); });
-        },
+    onPartyPlayStopped: function () {
+        var that = this;
+        that.activeParty.applyPlayStatusFeedback("stop", -1, 0);
+    },
+
+    onPartyPlayStarted: function () {
+        var that = this;
+        if (that.models.player.playing) {
+            that.activeParty.applyPlayStatusFeedback("play",
+                                                     that.getCurrentPartyPlaylistIndex(),
+                                                     new Date(new Date().valueOf() - that.models.player.position)
+                                                    );
+        } else {
+            that.activeParty.applyPlayStatusFeedback("pause",
+                                                     that.getCurrentPartyPlaylistIndex(),
+                                                     that.models.player.position
+                                                    );
+        }
     },
 });
+
+window.PM.domain.SpotifyAppIntegrator.init();
