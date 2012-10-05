@@ -238,19 +238,18 @@ if (!window.PM) {
             user: 1,
             deleted_by_user: 1,
             created: 1,
-            deleted: 1,
-            position_in_spotify_playlist: 1,
         },
 
         defaults: function () {
             return {
                 created: new Date(),
+                deleted_by_user: null,
             };
         },
 
         isDeleted: function () {
             var that = this;
-            return _.isDate(that.get("deleted"));
+            return !_.isNull(that.get("deleted_by_user"));
         },
 
         validate: function (attrs) {
@@ -259,12 +258,6 @@ if (!window.PM) {
             }
             if (!_.isObject(attrs.user)) {
                 return "Need to provide a user";
-            }
-            if (_.isObject(attrs.deleted_by_user) !== _.isDate(attrs.deleted)) {
-                return "Either both or neither of deleted and deleted_by_user need to be set";
-            }
-            if (_.isObject(attrs.deleted_by_user) && _.isNumber(attrs.position_in_spotify_playlist)) {
-                return "Cant have a position in the playlist and be deleted";
             }
         }
     }, {
@@ -557,7 +550,6 @@ if (!window.PM) {
             var that = this;
             var playlist = that.party.get("playlist");
             playlist.at(that.get("position")).set({
-                deleted: new Date(),
                 deleted_by_user: PM.models.User.getById(that.get("user_id"))
             });
             if (that.party.get("current_playlist_index") === that.get("position")) {

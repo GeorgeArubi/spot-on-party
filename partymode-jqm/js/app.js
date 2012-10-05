@@ -371,6 +371,7 @@ if (!window.PM) {
             "click #users-bar .arrow-left": function () {this.scrollUserBar("-"); },
             "click #users-bar .arrow-right": function () {this.scrollUserBar("+"); },
             "keyup": function (event) {if (event.keyCode === 27) {this.closeOverlayView(); }},
+            "click #playlist-placeholder .delete-button": "deleteTrack",
         },
 
         initialize: function (id) {
@@ -424,6 +425,12 @@ if (!window.PM) {
             var playlistNode = PM.domain.SpotifyAppIntegrator.startPartyReturnHtmlNode(that.party);
             that.$('#playlist-placeholder').html(playlistNode);
             return that;
+        },
+
+        deleteTrack: function (event) {
+            var that = this;
+            var index = $(event.currentTarget.parentNode).prevAll().length;
+            that.party.createAndApplyOwnAction("TrackRemove", {position: index, });
         },
 
         updateUserBar: _.debounce(function () {

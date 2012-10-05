@@ -85,6 +85,17 @@ h3 {margin: 0px;}
             }
         }    
     }
+    #playlist-placeholder {
+        .expectedplaytime {width: 50px; text-align: right; }
+        .delete-button {position: relative; width: 26px;
+            > span {background-image: url(../img/delete.png); width: 16px; height: 16px; top: 2px; left: 5px; position: absolute;}
+            &:hover > span {background-position-x: -16px}
+        }
+        .sp-track.deleted {
+            .delete-button {background-color: silver; > span {display: none; }}
+            .expectedplaytime, .addedby {background-color: silver; color: red; }
+        }
+    }
 }
 
 #overlay-backdrop {
