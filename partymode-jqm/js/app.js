@@ -332,6 +332,7 @@ if (!window.PM) {
                         name: track_data.name.decodeForText(),
                         artist: _.map(track_data.artists, function (artist) {return artist.name.decodeForText(); }).join(", "),
                         album: track_data.album.name.decodeForText(),
+                        duration: track_data.duration,
                     });
                     PM.models.Track.setToCache(track);
                     return track;

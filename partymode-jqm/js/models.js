@@ -223,6 +223,7 @@ if (!window.PM) {
             name: "",
             artist: "",
             album: "",
+            duration: "",
         },
     }, {
         type: "Track",

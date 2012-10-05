@@ -26,6 +26,7 @@ window.PM.domain.SpotifySpotifyDomain = window.Toolbox.Base.extend({ //strange n
             searchArtists: false,
             searchPlaylists: false,
             localResults: that.models.LOCALSEARCHRESULTS.IGNORE,
+            searchType: that.models.SEARCHTYPE.SUGGESTION,
         });
         search.observe(that.models.EVENT.CHANGE, function () {
             callback(_.map(search.tracks, function (sptrack) {

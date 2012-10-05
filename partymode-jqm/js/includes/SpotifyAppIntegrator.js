@@ -26,13 +26,62 @@ window.PM.domain.SpotifyAppIntegrator = window.Toolbox.Base.extend({
 
             var addedby = $("<span>");
             this.node.appendChild(addedby[0]);
+            var willplayat = $("<span>");
+            willplayat.addClass("expectedplaytime");
+            this.node.appendChild(willplayat[0]);
             _.delay(_.bind(function () {
                 var index = $(this.node).prevAll().length;
-                var track_in_playlist = that.activeParty.get("playlist").at(index);
+                var playlist = that.activeParty.get("playlist");
+                var track_in_playlist = playlist.at(index);
                 addedby.text(track_in_playlist.get("user").get("name"));
+
             }, this), 1);
+            that.throttledUpdateExpectedPlayTimes();
         };
         that.myTrackView.prototype = that.views.Track.prototype;
+    },
+
+    throttledUpdateExpectedPlayTimes: _.debounce(function () {
+        var that = this;
+        that.updateExpectedPlayTimes();
+    }, 1),
+
+    updateExpectedPlayTimes: function () {
+        var that = this;
+        var expectedplaytimes = $('#playlist-placeholder .expectedplaytime');
+        
+        switch (that.activeParty.get("play_status")) {
+        case "stop":
+            expectedplaytimes.text("");
+            break;
+        case "pause":
+            $(expectedplaytimes.slice(0, that.models.player.index)).text("");
+            $(expectedplaytimes.slice(that.models.player.index + 1)).text("---");
+            break;
+        case "play":
+            var waitms = 0;
+            that.activeParty.get("playlist").each(function (track_in_playlist) {
+                if (track_in_playlist.isDeleted()) {
+                    return;
+                }
+                var position_in_spotify_playlist = track_in_playlist.get("position_in_spotify_playlist");
+                if (position_in_spotify_playlist < that.models.player.index) {
+                    $(expectedplaytimes[position_in_spotify_playlist]).text("");
+                    return;
+                }
+                var playsat = new Date(that.activeParty.get("current_place_in_track").valueOf() + waitms);
+                waitms += track_in_playlist.get("track").get("duration");
+                if (position_in_spotify_playlist === that.models.player.index) {
+                    $(expectedplaytimes[position_in_spotify_playlist]).text("");
+                    return;
+                }
+                var timetext = playsat.getHours() + ":" + (playsat.getMinutes() < 10 ? "0" : "") + playsat.getMinutes();
+                $(expectedplaytimes[position_in_spotify_playlist]).text(timetext);
+            });
+            break;
+        default:
+            throw "don't like default values!";
+        }
     },
 
     onPlayerEvent: _.debounce(function () { //multiple events being fired as once, better debounce and set the status settle
@@ -42,6 +91,7 @@ window.PM.domain.SpotifyAppIntegrator = window.Toolbox.Base.extend({
         } else {
             that.onPartyPlayStarted(that.models.player.index);
         }
+        that.updateExpectedPlayTimes();
     }, 50),
 
     stopParty: function (party) {
