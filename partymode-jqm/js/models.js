@@ -212,6 +212,11 @@ if (!window.PM) {
             if (!(_.isDate(attrs.joined) || _.isNull(attrs.joined))) {
                 return "Joined needs to be a date or null";
             }
+        },
+        
+        didAction: function () {
+            var that = this;
+            that.set("active", new Date());
         }
     }, {
         type: "UserInParty",
@@ -521,6 +526,8 @@ if (!window.PM) {
                 user: PM.models.User.getById(that.get("user_id")),
                 track: PM.models.Track.getById(that.get("track_id")),
             });
+
+            that.party.getMemberRecord(that.get("user_id")).didAction();
             if (that.party.get("play_status") === "stop") {
                 that.party.trigger("playcommand", "play", playlist.length - 1);
             }
@@ -665,8 +672,12 @@ if (!window.PM) {
 
         getMemberRecord: function (user_id) {
             var that = this;
+            var user_id_to_check = user_id;
+            if (user_id_to_check === "master") {
+                user_id_to_check = PM.models.User.getMaster().actualUser().id;
+            }
             return that.get("users").find(function (user_in_party) {
-                return user_in_party.get("user").id === user_id && _.isNull(user_in_party.get("deleted"));
+                return user_in_party.get("user").id === user_id_to_check && _.isNull(user_in_party.get("deleted"));
             });
         },
 

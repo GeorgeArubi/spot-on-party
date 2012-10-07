@@ -10,11 +10,11 @@ if (!window.PM) {
     var FacebookLoginView, StartNewPartyView, PartyView, InviteUsersView, AddTrackView;
 
     var getTemplate = function (id) {
-        var el = $('#' + id);
-        if (el.length === 0) {
+        var template = PM.templates[id];
+        if (!_.isFunction(template)) {
             throw "Template '" + id + "' not found";
         }
-        return _.template(el.html());
+        return template;
     };
 
     var current_view = null;
@@ -322,16 +322,17 @@ if (!window.PM) {
             if (searchtext === "") {
                 that.$('#track-search-results').removeClass("loading");
                 that.$('#track-search-results .tracks').html("");
+                return;
             }
             that.$('#track-search-results').addClass("loading");
             PM.domain.SpotifySpotifyDomain.search(searchtext, function (tracks_data) {
                 var tracks = _.map(tracks_data, function (track_data) {
                     var track = new PM.models.Track({
-                        id: track_data.href,
+                        id: track_data.id,
                         _status: PM.models.BaseModelLazyLoad.LOADED,
-                        name: track_data.name.decodeForText(),
-                        artist: _.map(track_data.artists, function (artist) {return artist.name.decodeForText(); }).join(", "),
-                        album: track_data.album.name.decodeForText(),
+                        name: track_data.name,
+                        artist: track_data.artists.join(", "),
+                        album: track_data.album,
                         duration: track_data.duration,
                     });
                     PM.models.Track.setToCache(track);

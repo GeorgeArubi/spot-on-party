@@ -1,0 +1,8 @@
+<h3>Invite friends to your party</h3>
+<input type="search" id="users-search-box" class="search-box" placeholder="Search" incremental>
+<div id="users-search-results" class="loading search-results">
+    <div class="throbber"><div></div></div>
+    <ul class="content users"></ul>
+</div>
+<button class="sp-button" id="users-search-invite">Invite</button>
+

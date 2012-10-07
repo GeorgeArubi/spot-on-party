@@ -1,0 +1,7 @@
+<h3>Find and add songs to the party</h3>
+<input type="search" id="track-search-box" class="search-box" placeholder="Search" incremental>
+<div id="track-search-results" class="search-results">
+    <div class="throbber"><div></div></div>
+    <ul class="content tracks"></ul>
+</div>
+

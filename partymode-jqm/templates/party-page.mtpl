@@ -1,0 +1,11 @@
+<div id="overlay-backdrop"></div>
+<div id="overlay-placeholder"></div>
+<div class="logo-small"></div>
+<div class="buttons">
+    <button class="sp-button sp-icon" id="add-track"><span class="sp-plus"></span>add song</button>
+    <button class="sp-button" id="invite-users">invite friends</button>
+    <button class="sp-button" id="end-party">end party</button>
+</div>
+<div id="users-bar"><div class="arrow arrow-left"></div><div class="arrow arrow-right"></div><ul></ul></div>
+<div id="playlist-placeholder"></div>
+

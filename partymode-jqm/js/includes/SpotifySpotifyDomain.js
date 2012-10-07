@@ -29,11 +29,17 @@ window.PM.domain.SpotifySpotifyDomain = window.Toolbox.Base.extend({ //strange n
             searchType: that.models.SEARCHTYPE.SUGGESTION,
         });
         search.observe(that.models.EVENT.CHANGE, function () {
-            callback(_.map(search.tracks, function (sptrack) {
-                var data = sptrack.data;
-                data.href = data.uri; //make results inline with web api
+            var datas = _.map(search.tracks, function (sptrack) {
+                var data = {
+                    id: sptrack.data.uri,
+                    name: sptrack.data.name.decodeForText(),
+                    artists: _.map(sptrack.data.artists, function (artist) {return artist.name.decodeForText(); }),
+                    album: sptrack.data.album.name.decodeForText(),
+                    duration: sptrack.data.duration,
+                };
                 return data;
-            }));
+            });
+            _.delay(function () {callback(datas); }, 0); //calling it in-thread supresses all errors. We do need to copy the results though or they may disappear
         });
         search.appendNext();
     },

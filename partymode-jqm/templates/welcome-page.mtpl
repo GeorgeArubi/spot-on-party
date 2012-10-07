@@ -1,0 +1,13 @@
+<div class="logo">
+<!--        <img src="img/logo.svg"> -->
+    <img src="img/logo.png">
+    <h2>Share control of your party music with your friends</h2>
+</div>
+<div class="facebook-login">
+    <div class="disclaimer">
+        I understand that when I log into my Facebook account below. Partymode will be able to associate information about my spotify use, such as library and listening history, with my Facebook account. Partymode's collection and use of this information will be governed by the Partymode Privacy Policy.
+    </div>
+    <br>
+    <button class="fb-login-button"></button>
+</div>
+
