@@ -36,22 +36,31 @@ if (typeof exports !== "undefined") {
             that.socket = io.connect(that.HOST);
         },
 
+        callbackCatchError: function (callback) {
+            return function (result) {
+                if (result.error) {
+                    throw "An error occured with your call: " + result.error;
+                }
+                if (callback) {
+                    callback(result);
+                }
+            };
+        },
+
         loginAsMaster: function (token, callback) {
             var that = this;
-            that.socket.emit("login", {token: token, master: true}, function (result) {
+            that.socket.emit("login", {token: token, master: true}, that.callbackCatchError(function (result) {
                 if (!result) {
                     throw "Login failed! " + result;
                 } else {
-                    if (callback) {
-                        callback();
-                    }
+                    callback();
                 }
-            });
+            }));
         },
 
         getNewPartyId: function (callback) {
             var that = this;
-            that.socket.emit("get new party_id", null, callback);
+            that.socket.emit("get new party_id", null, that.callbackCatchError(callback));
         },
     });
     PM.domain.PartyNodeDomain.init();
