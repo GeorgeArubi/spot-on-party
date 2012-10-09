@@ -121,12 +121,31 @@ if (typeof exports !== "undefined") {
 
         _cache: {},
 
-        getById: function (id) {
+        getById: function (id, loaded_callback, error_callback) {
             var That = this;
             if (!That.getFromCache(id)) {
                 That.setToCache(new That({id: id}));
             }
-            return That.getFromCache(id);
+            var object = That.getFromCache(id);
+            var checkloaded;
+            checkloaded = function () {
+                if (object.get("_status") === That.LOADED) {
+                    object.off("change", checkloaded);
+                    if (_.isFunction(loaded_callback)) {
+                        loaded_callback(object);
+
+                    }
+                } else if (object.get("_status") === That.ERROR) {
+                    object.off("change", checkloaded);
+                    if (_.isFunction(error_callback)) {
+                        error_callback(object);
+                    }
+                }
+            };
+            if (_.isFunction(loaded_callback) || _.isFunction(error_callback)) {
+                object.on("change:_status", checkloaded);
+            }
+            return object;
         },
 
         getFromCache: function (id) {
