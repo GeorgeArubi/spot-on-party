@@ -4,7 +4,7 @@
 (function () {
     "use strict";
     var fs = require('fs');
-    var _ = require('../js/underscore');
+    var _ = require('../js/includes/underscore');
 
     var output = "PM = window.PM || {};\nPM.templates = PM.templates || {};\n";
 

@@ -1,11 +1,26 @@
-/*jslint browser:true, vars: true, nomen: true */
+/*jshint */
+/*global exports, require*/
 
-if (!window.PM) {
-    window.PM = {};
+var root = this;
+var _ = root._;
+var Backbone = root.Backbone;
+var PM = root.PM;
+
+if (typeof exports !== "undefined") {
+    /* node */
+    if (!_) {_ = require("./underscore"); }
+    if (!Backbone) {Backbone = require("./backbone"); }
+    PM = exports;
+} else {
+    if (!_) {throw "Underscore not loaded"; }
+    if (!Backbone) {throw "Backbone not loaded"; }
+    if (!PM) {
+        PM = {};
+    }
 }
 
 
-(function (PM, Backbone, $, _) {
+(function (PM) {
     "use strict";
     if (!PM.models) {
         PM.models = {};
@@ -89,7 +104,7 @@ if (!window.PM) {
                 that.set("_status", that.constructor.NOT_LOADED);
             }
             if (that.get("_status") === that.constructor.NOT_LOADED) {
-                window.setTimeout(_.bind(that.lazyLoad, that), 0); // first allow the initialize to run
+                _.delay(_.bind(that.lazyLoad, that), 0); // first allow the initialize to run
             }
         },
 
@@ -287,7 +302,7 @@ if (!window.PM) {
         },
 
         prepareValidate: function (callback) {
-            window.setTimeout(callback, 0);
+            _.delay(callback, 0);
         },
 
         validateAndApplyAction: function (callback_success, callback_fail) {
@@ -770,6 +785,6 @@ if (!window.PM) {
         model: PM.models.User,
     });
 
-}(window.PM, window.Backbone, window.$, window._));
+}(PM));
 
 

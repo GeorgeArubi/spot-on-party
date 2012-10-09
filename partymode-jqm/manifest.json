@@ -15,8 +15,7 @@
 	"http://*.facebook.com/",
 	"https://*.facebook.net/",
 	"http://*.facebook.net/",
-        "http://tiggr.local:8081/",
-        "http://*.talkgadget.google.com/",
-        "http://sopbase.appspot.com/"
+    "http://tiggr.local:8081/",
+    "https://tiggr.local:8081/"
     ]
 }

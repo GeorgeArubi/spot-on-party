@@ -44,7 +44,11 @@ if (!window.PM) {
                     });
                     PM.models.User.setToCache(user);
                     PM.current_user = PM.models.User.getMaster();
-                    checkFacebookLogin(loggedincode);
+                    PM.domain.FacebookDomain.getAccessToken(function (accessToken) {
+                        PM.domain.PartyNodeDomain.loginAsMaster(accessToken, function () {
+                            checkFacebookLogin(loggedincode);
+                        });
+                    });
                 } else {
                     PM.app.navigate("", {trigger: true});
                 }
@@ -99,31 +103,33 @@ if (!window.PM) {
             PM.app.navigate("", {trigger: true});
         },
 
-        createNewParty: function () {
+        createNewParty: _.debounce(function () {
             var party_name = $('#new-party-form #new-party-name').val().trim();
             if (party_name === "") {
                 party_name = PM.models.Party.getDefaultPartyName();
             }
-            var party = new PM.models.Party({
-                id: 1, //TODO: we obviously need a party id that comes from the server.. Or random...
-                owner: PM.current_user,
-            });
-            PM.collections.Parties.getInstance().add(party);
+            PM.domain.PartyNodeDomain.getNewPartyId(function (party_id) {
+                var party = new PM.models.Party({
+                    id: party_id,
+                    owner: PM.current_user,
+                });
+                PM.collections.Parties.getInstance().add(party);
 
-            party.createAndApplyOwnAction(
-                "ChangeName",
-                {name: party_name},
-                function () {
-                    party.createAndApplyOwnAction(
-                        "Invite",
-                        {invited_user_id: PM.current_user.actualUser().id},
+                party.createAndApplyOwnAction(
+                        "ChangeName",
+                        {name: party_name},
                         function () {
-                            PM.app.navigate("party/" + party.id, {trigger: true});
-                        }
-                    );
-                }
-            );
-        },
+                        party.createAndApplyOwnAction(
+                            "Invite",
+                            {invited_user_id: PM.current_user.actualUser().id},
+                            function () {
+                                PM.app.navigate("party/" + party.id, {trigger: true});
+                            }
+                        );
+                    }
+                );
+            });
+        }, 10000, /*immediate*/ true), // kill double clicks within 10 seconds
     });
 
     InviteUsersView = Backbone.View.extend({
