@@ -39,7 +39,7 @@ if (typeof exports !== "undefined") {
             that.socket = io.connect(that.HOST);
             that.socket.on("connect", function () {
                 console.log("connect");
-                that.trigger("connect");
+                that.trigger("connect"); //TODO: supposedly there is a problem with reconnection, sometimes it blocks
             });
         },
 

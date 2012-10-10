@@ -1,5 +1,5 @@
 /*jshint browser:true, globalstrict: true */
-/*global _,$*/
+/*global _,$,clutils*/
 "use strict";
 
 if (!window.PM) {
@@ -47,9 +47,9 @@ window.PM.domain.SpotifyAppIntegrator = window.Toolbox.Base.extend({
                 if (track_in_playlist.isDeleted()) {
                     $(addedby.parent()).addClass("deleted");
                     $(addedby.parent()).removeClass("sp-track-selected");
-                    addedby.text("deleted by: " + track_in_playlist.get("deleted_by_user").get("name"));
+                    addedby.text("deleted by: " + track_in_playlist.getDeletedByUser().get("name"));
                 } else {
-                    addedby.text(track_in_playlist.get("user").get("name"));
+                    addedby.text(track_in_playlist.getUser().get("name"));
                 }
 
             }, this), 1);
@@ -84,15 +84,15 @@ window.PM.domain.SpotifyAppIntegrator = window.Toolbox.Base.extend({
                 }
                 if (index === that.models.player.index) {
                     if (that.activeParty.get("play_status") === "play") {
-                        targetms = that.activeParty.get("current_place_in_track").valueOf() + track_in_playlist.get("track").get("duration");
+                        targetms = that.activeParty.get("current_place_in_track") + track_in_playlist.getTrack().get("duration");
                     } else { //pause
-                        targetms = (new Date()).valueOf() + track_in_playlist.get("track").get("duration") - that.activeParty.get("current_place_in_track");
+                        targetms = clutils.newts() + track_in_playlist.getTrack().get("duration") - that.activeParty.get("current_place_in_track");
                     }
                     $(expectedplaytimes[index]).prop("expectedtime", null);
                     return;
                 }
-                $(expectedplaytimes[index]).prop("expectedtime", new Date(targetms));
-                targetms += track_in_playlist.get("track").get("duration");
+                $(expectedplaytimes[index]).prop("expectedtime", targetms);
+                targetms += track_in_playlist.getTrack().get("duration");
             });
             that.updateExpectedPlayTimesView(true);
             break;
@@ -106,10 +106,10 @@ window.PM.domain.SpotifyAppIntegrator = window.Toolbox.Base.extend({
         var expectedplaytimes = $('#playlist-placeholder .expectedplaytime');
         if (even_if_paused || that.activeParty.get("play_status") === "play") {
             _.each(expectedplaytimes, function (el) {
-                if (!_.isDate(el.expectedtime)) {
+                if (!clutils.isTimestamp(el.expectedtime)) {
                     el.innerText = "";
                 } else {
-                    var waitms = el.expectedtime.valueOf() - (new Date()).valueOf();
+                    var waitms = el.expectedtime - clutils.nowts();
                     var wait_secondpart = Math.floor(waitms / 1000) % 60;
                     var wait_minutepart = Math.floor(waitms / 60000) % 60;
                     var wait_hourpart = Math.floor(waitms / 3600000) % 60;
@@ -132,6 +132,7 @@ window.PM.domain.SpotifyAppIntegrator = window.Toolbox.Base.extend({
             that.onPartyPlayStarted(that.models.player.index);
         }
         that.updateExpectedPlayTimes();
+        _.delay(function () {that.updateExpectedPlayTimes(); }, 2000); //after a real "stop" it may take some time before we're actually playing again
     }, 50),
 
     stopParty: function (party) {
@@ -161,7 +162,7 @@ window.PM.domain.SpotifyAppIntegrator = window.Toolbox.Base.extend({
 
         party.on("playcommand", that.onPlayCommand, that);
         party.get("playlist").on("add", that.addPlaylistItem, that);
-        party.get("playlist").on("change:deleted_by_user", that.onChangePlaylistItem, that);
+        party.get("playlist").on("change:deleted_by_user_id", that.onChangePlaylistItem, that);
 
         that.updateTimesInterval = window.setInterval(_.bind(that.updateExpectedPlayTimesView, that), 500);
         that.createAndFillPlaylistFromParty();
@@ -184,7 +185,7 @@ window.PM.domain.SpotifyAppIntegrator = window.Toolbox.Base.extend({
 
     addPlaylistItem: function (track_in_playlist) {
         var that = this;
-        that.spotifyPlaylist.add(track_in_playlist.get("track").id);
+        that.spotifyPlaylist.add(track_in_playlist.get("track_id"));
     },
 
     onChangePlaylistItem: function () {
@@ -264,7 +265,7 @@ window.PM.domain.SpotifyAppIntegrator = window.Toolbox.Base.extend({
         if (that.models.player.playing) {
             that.activeParty.applyPlayStatusFeedback("play",
                                                      that.models.player.index,
-                                                     new Date(new Date().valueOf() - that.models.player.position)
+                                                     clutils.nowts() - that.models.player.position
                                                     );
         } else {
             that.activeParty.applyPlayStatusFeedback("pause",

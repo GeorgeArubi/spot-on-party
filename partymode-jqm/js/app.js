@@ -30,29 +30,23 @@ if (!window.PM) {
     };
 
     var checkFacebookLogin = function (loggedincode) {
-        if (PM.current_user) {
+        if (PM.app.loggedin_user) {
             loggedincode();
         } else {
             PM.domain.FacebookSpotifyDomain.isLoggedin(function (loggedin) {
                 if (loggedin) {
-                    PM.app.loggedin_user_id = PM.domain.FacebookDomain.getLoggedinUserId();
-                    //it would be nicer to actually use lazy loading for this user as well, but we need it directly synchronously
-                    var user = new PM.models.User({
-                        name: PM.domain.FacebookDomain.getLoggedinUserName(),
-                        _status: PM.models.BaseModelLazyLoad.LOADED,
-                        id: PM.app.loggedin_user_id,
-                    });
-                    PM.models.User.setToCache(user);
-                    PM.current_user = PM.models.User.getMaster(user.id);
-                    var logintobackend = function (callback) {
-                        PM.domain.FacebookDomain.getAccessToken(function (accessToken) {
-                            PM.domain.PartyNodeDomain.loginAsMaster(accessToken, function () {
-                                (callback || function () {})();
+                    PM.domain.FacebookDomain.getLoggedinUserData(function (facebookdata) {
+                        PM.app.loggedin_user = PM.models.User.getByFacebookData(facebookdata);
+                        var logintobackend = function (callback) {
+                            PM.domain.FacebookDomain.getAccessToken(function (accessToken) {
+                                PM.domain.PartyNodeDomain.loginAsMaster(accessToken, function () {
+                                    (callback || function () {})();
+                                });
                             });
-                        });
-                    };
-                    PM.domain.PartyNodeDomain.on("connect", logintobackend);
-                    logintobackend(function () {checkFacebookLogin(loggedincode); });
+                        };
+                        PM.domain.PartyNodeDomain.on("connect", logintobackend);
+                        logintobackend(function () {checkFacebookLogin(loggedincode); });
+                    });
                 } else {
                     PM.app.navigate("", {trigger: true});
                 }
@@ -96,7 +90,7 @@ if (!window.PM) {
 
         render: function (target) {
             var that = this;
-            that.$el.html(that.template({default_party_name: PM.models.Party.getDefaultPartyName()}));
+            that.$el.html(that.template({default_party_name: PM.models.Party.getDefaultPartyName(PM.app.loggedin_user)}));
             target.html(that.$el);
             that.$("#new-party-name").focus();
             return that;
@@ -110,24 +104,24 @@ if (!window.PM) {
         createNewParty: _.debounce(function () {
             var party_name = $('#new-party-form #new-party-name').val().trim();
             if (party_name === "") {
-                party_name = PM.models.Party.getDefaultPartyName();
+                party_name = PM.models.Party.getDefaultPartyName(PM.app.loggedin_user);
             }
             PM.domain.PartyNodeDomain.createNewParty(function (party_id) {
                 var party = new PM.models.Party({
-                    id: party_id,
-                    owner: PM.current_user,
+                    _id: party_id,
+                    owner_id: PM.app.loggedin_user.id,
                 });
 
                 PM.collections.Parties.getInstance().add(party);
                 party.shareNewActions();
 
-                party.createAndApplyOwnAction(
+                party.createAndApplyMasterAction(
                         "ChangeName",
                         {name: party_name},
                         function () {
-                        party.createAndApplyOwnAction(
+                        party.createAndApplyMasterAction(
                             "Invite",
-                            {invited_user_id: PM.current_user.actualUser().id},
+                            {invited_user_id: PM.app.loggedin_user.id},
                             function () {
                                 PM.app.navigate("party/" + party.id, {trigger: true});
                             }
@@ -186,7 +180,7 @@ if (!window.PM) {
             that.filterText = "";
             
             PM.models.User.getAllFriendsOfLoggedinUser(function (users) {
-                that.allFriends.add(PM.current_user.actualUser());
+                that.allFriends.add(PM.app.loggedin_user);
                 that.allFriends.add(users);
                 that.updateUsers();
                 that.$('#users-search-results').removeClass("loading");
@@ -267,16 +261,17 @@ if (!window.PM) {
             torun = function (callback) {
                 var user = that.usersToInvite.pop();
                 if (user) {
-                    that.parent.party.createAndApplyOwnAction(
+                    that.parent.party.createAndApplyMasterAction(
                         "Invite",
                         {invited_user_id: user.id},
                         function () {torun(callback); },
                         function () {torun(callback); }
                     );
+                    //TODO: send actual invite (facebook message, email, etc) if we should
                 } else {
                     user = that.usersToKick.pop();
                     if (user) {
-                        that.parent.party.createAndApplyOwnAction(
+                        that.parent.party.createAndApplyMasterAction(
                             "Kick",
                             {kicked_user_id: user.id},
                             function () {torun(callback); },
@@ -340,7 +335,7 @@ if (!window.PM) {
             PM.domain.SpotifySpotifyDomain.search(searchtext, function (tracks_data) {
                 var tracks = _.map(tracks_data, function (track_data) {
                     var track = new PM.models.Track({
-                        id: track_data.id,
+                        _id: track_data.id,
                         _status: PM.models.BaseModelLazyLoad.LOADED,
                         name: track_data.name,
                         artist: track_data.artists.join(", "),
@@ -366,7 +361,7 @@ if (!window.PM) {
         trackSelected: function (event) {
             var that = this;
             var track = event.currentTarget.track;
-            that.parent.party.createAndApplyOwnAction("TrackAdd", {track_id: track.id}, function () {that.closeMe(); });
+            that.parent.party.createAndApplyMasterAction("TrackAdd", {track_id: track.id}, function () {that.closeMe(); });
         },
     });
 
@@ -443,7 +438,7 @@ if (!window.PM) {
         deleteTrack: function (event) {
             var that = this;
             var index = $(event.currentTarget.parentNode).prevAll().length;
-            that.party.createAndApplyOwnAction("TrackRemove", {position: index, });
+            that.party.createAndApplyMasterAction("TrackRemove", {position: index, });
         },
 
         updateUserBar: _.debounce(function () {
@@ -454,7 +449,7 @@ if (!window.PM) {
             });
             var users_in_party = that.party.getMembersInPartyOrderedByActive();
             _.each(users_in_party, function (user_in_party) {
-                var user = user_in_party.get("user");
+                var user = PM.models.User.getById(user_in_party.get("user_id"));
                 var el = elementsmap[user.id];
                 delete elementsmap[user.id];
                 if (!el) {
@@ -526,8 +521,8 @@ if (!window.PM) {
             });
             var users_in_party = that.party.getMembersInPartyOrderedByActive();
             _.each(users_in_party, function (user_in_party, index) {
-                var user = user_in_party.get("user");
-                var el = elementsmap[user.id];
+                var user_id = user_in_party.get("user_id");
+                var el = elementsmap[user_id];
                 if (el) {
                     el[0].style.left = (el.width() * (index - newUserbarScrollPosition)) + "px";
                 }
@@ -556,7 +551,7 @@ if (!window.PM) {
         kickUser: function (event) {
             var that = this;
             var user = event.currentTarget.parentNode.user;
-            that.party.createAndApplyOwnAction(
+            that.party.createAndApplyMasterAction(
                 "Kick",
                 {kicked_user_id: user.id}
             );

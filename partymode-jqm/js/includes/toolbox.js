@@ -1,15 +1,28 @@
+/*jshint */
+/*global exports:false, require:false*/
 //from https://github.com/jimmydo/js-toolbox/blob/master/toolbox.js
+
+var root = this;
+var _ = root._;
+var Toolbox = root.Toolbox;
+
+if (typeof exports !== "undefined") {
+    if (!_) {_ = require("./underscore"); }
+    Toolbox = exports;
+} else {
+    if (!_) {throw "Underscore not loaded"; }
+    Toolbox = {};
+}
 
 (function () {
     "use strict";
-
-    var Toolbox = window.Toolbox = {};
 
     // `ctor` and `inherits` are from Backbone (with some modifications):
     // http://documentcloud.github.com/backbone/
 
     // Shared empty constructor function to aid in prototype-chain creation.
-    var ctor = function () {};
+    var ctor = function () {
+    };
 
     // Helper function to correctly set up the prototype chain, for subclasses.
     // Similar to `goog.inherits`, but uses a hash of prototype properties and
@@ -67,7 +80,12 @@
     //         someMethod: function () { ... }
     //     });
     //     var instance = new MyClass();
-    Toolbox.Base = function () {}
+    Toolbox.Base = function () {
+        var that = this;
+        if (that.initialize) {
+            that.initialize.apply(that, arguments);
+        }
+    };
     Toolbox.Base.extend = extendThis;
 })();
 

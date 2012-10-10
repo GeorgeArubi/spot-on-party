@@ -91,12 +91,11 @@ window.PM.domain.AbstractFacebookDomain = window.Toolbox.Base.extend({
         return that.fb_status.authResponse.userID;
     },
 
-    /**
-     * Please note: function is synchronous, so will not wait for user_id to arrive. Don't call too early
-     */
-    getLoggedinUserName: function () {
+    getLoggedinUserData: function (callback) {
         var that = this;
-        return that.fb_status.authResponse.userName;
+        that.callAfterLogin(function () {
+            callback({id: that.fb_status.authResponse.userID, name: that.fb_status.authResponse.userName});
+        });
     },
 
     lookupUsers: function (user_ids, callback) {

@@ -30,9 +30,26 @@ if (typeof exports !== "undefined") {
         var id = _.map(octalid.match(/[0-7]{2}/g), function (octalindex) {
             var index = parseInt(octalindex, 8);
             return ID_CHARS.charAt(index);
-        }).join();
+        }).join("");
         return id;
     };
+
+    /* using this in stead of date, because of stupid JSON not having Date object */
+    clutils.nowts = function () {
+        return new Date().valueOf();
+    };
+
+    //check whether it's a timestamp within some reasonable range. May not work with ancient dates...
+    clutils.isTimestamp = function (value) {
+        return _.isNumber(value) && value === Math.floor(value) && value > 1000000000000 && value < 2000000000000;
+    };
+
+    /*jshint eqeqeq: false */
+    clutils.isNumeric = function (value) {
+        //I'm sure that this is in no way definitive, but it works well enough for me....
+        return value == parseFloat(value);
+    };
+    /*jshint eqeqeq: true */
 
     clutils.checkConstraints = function (object, constraints, path) {
         var mypath = path ? path : "toplevel";
@@ -45,12 +62,12 @@ if (typeof exports !== "undefined") {
             return function (value, myobject) {
                 cl_assert(
                     _["is" + name](myobject) === value,
-                    "object should " + (value ? "" : "not ") + "be " + name.toLowerCase()
+                    "object " + JSON.stringify(myobject) + " should " + (value ? "" : "not ") + "be " + name.toLowerCase()
                 );
             };
         };
         var checks = {
-            "_is": function (value, myobject) {cl_assert(value === myobject, "object is not equal to " + value); },
+            "_is": function (value, myobject) {cl_assert(value === myobject, "object is not equal to " + JSON.stringify(value)); },
             "_isFunction": cl_assertToUnderscore("Function"),
             "_isDate": cl_assertToUnderscore("Date"),
             "_isNull": cl_assertToUnderscore("Null"),
@@ -59,6 +76,9 @@ if (typeof exports !== "undefined") {
             "_isArray": cl_assertToUnderscore("Array"),
             "_isBoolean": cl_assertToUnderscore("Boolean"),
             "_isString": cl_assertToUnderscore("String"),
+            "_matches": function (value, myobject) {cl_assert(value.exec(myobject), "object doesn't match " + value + ": " + JSON.stringify(myobject)); },
+            "_isNumeric": function (value, myobject) {cl_assert(clutils.isNumeric(myobject) === value, "object is not numeric" + JSON.stringify(myobject)); },
+            "_isTimestamp": function (value, myobject) {cl_assert(clutils.isTimestamp(myobject) === value, "object is not timestamp" + JSON.stringify(myobject)); },
         };
         cl_assert(_.isObject(constraints), "syntax error: constraints is not an object " + constraints);
 

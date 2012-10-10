@@ -4,17 +4,20 @@
 var root = this;
 var _ = root._;
 var Backbone = root.Backbone;
+var clutils = root.clutils;
 var PM = root.PM;
 
 if (typeof exports !== "undefined") {
     /* node */
     if (!_) {_ = require("./underscore"); }
     if (!Backbone) {Backbone = require("./backbone"); }
+    if (!clutils) {clutils = require("./clutils"); }
     PM = exports;
     PM.config = require("./config");
 } else {
     if (!_) {throw "Underscore not loaded"; }
     if (!Backbone) {throw "Backbone not loaded"; }
+    if (!clutils) {throw "clutils not loaded"; }
     if (!PM) {
         PM = {};
     }
@@ -45,7 +48,8 @@ if (typeof exports !== "undefined") {
     enableChildTracking(Backbone.Model);
 
     PM.models.BaseModel = Backbone.Model.extend({
-        _fields: {id: 1},
+        idAttribute: "_id",
+        _fields: {_id: 1},
         _validate_on_creation: true,
 
         constructor: function () {
@@ -69,6 +73,13 @@ if (typeof exports !== "undefined") {
                     }
                 }
             }
+        },
+
+        serializeAllButId: function () {
+            var that = this;
+            var fields = _.keys(that._all_fields);
+            delete fields._id;
+            return _.pick(that.attributes, fields);
         },
 
         get: function (attribute) {
@@ -125,7 +136,7 @@ if (typeof exports !== "undefined") {
         getById: function (id, loaded_callback, error_callback) {
             var That = this;
             if (!That.getFromCache(id)) {
-                That.setToCache(new That({id: id}));
+                That.setToCache(new That({_id: id}));
             }
             var object = That.getFromCache(id);
             var checkloaded;
@@ -154,6 +165,7 @@ if (typeof exports !== "undefined") {
             return That._cache[id];
         },
 
+        //TODO figure out if That._cache is shared by all BaseModelLazyLoads
         setToCache: function (object) {
             var That = this;
             if (!object instanceof That) {
@@ -172,7 +184,6 @@ if (typeof exports !== "undefined") {
         _fields: {
             name: 1,
             is_master: 1,
-            actual_user: 1,
         },
 
         defaults: {
@@ -180,52 +191,43 @@ if (typeof exports !== "undefined") {
             is_master: false,
         },
 
-        actualUser: function () {
-            var that = this;
-            if (that.get("actual_user")) {
-                return that.get("actual_user");
-            }
-            return that;
-        },
         getProfilePictureUrl: function () {
             var that = this;
             return PM.domain.FacebookDomain.getProfilePictureUrl(that.id);
         },
+
     }, {
         type: "User",
         MASTER_ID: "master",
 
-        getMaster: function (actual_user_id) {
+        getByFacebookData: function (facebookdata) {
             var That = this;
-            var user = new That({
-                id: That.MASTER_ID,
-                is_master: true,
-                _status: PM.models.BaseModelLazyLoad.LOADED,
-                name: PM.config.master_name,
-                actual_user: That.getById(actual_user_id),
-            });
+            clutils.checkConstraints(facebookdata, {id: {_isNumeric: true}, name: {_isString: true}});
+            var newdata = _.extend({_status: That.LOADED, _id: parseInt(facebookdata.id, 10)}, _.omit(facebookdata, "id"));
+            var user = new That(newdata);
             That.setToCache(user);
             return user;
         },
 
         getAllFriendsOfLoggedinUser: function (callback) {
+            var That = this;
             PM.domain.FacebookDomain.getAllFriends(function (friends_data) {
                 callback(_.map(_.sortBy(friends_data, "name"), function (friend_data) {
-                    var user = new PM.models.User({
-                        name: friend_data.name,
-                        _status: PM.models.BaseModelLazyLoad.LOADED,
-                        id: friend_data.id,
-                    });
-                    PM.models.User.setToCache(user);
-                    return user;
+                    return That.getByFacebookData(friend_data);
                 }));
             });
         }
     });
 
+    PM.models.User.setToCache(new PM.models.User({
+        _id: PM.models.User.MASTER_ID,
+        name: PM.config.master_name,
+        _status: PM.models.User.LOADED,
+    }));
+
     PM.models.UserInParty = PM.models.BaseModel.extend({
         _fields: {
-            user: 1,
+            user_id: 1,
             joined: 1,
             created: 1,
             deleted: 1,
@@ -234,8 +236,6 @@ if (typeof exports !== "undefined") {
         
         defaults: function () {
             return {
-                created: new Date(),
-                active: new Date(),
                 joined: null,
                 deleted: null,
             };
@@ -243,25 +243,25 @@ if (typeof exports !== "undefined") {
 
         serialize: function () {
             var that = this;
-            return {
-                user_id: that.get("user").id,
-                created: that.get("created"),
-                active: that.get("active"),
-                joined: that.get("joined"),
-                deleted: that.get("deleted"),
-            };
+            return that.serializeAllButId();
         },
 
         wasKicked: function () {
             var that = this;
-            return _.isDate(that.get("deleted"));
+            return clutils.isTimestamp(that.get("deleted"));
         },
 
         validate: function (attrs) {
-            if (!_.isObject(attrs.user)) {
-                return "Need to provide a user";
+            if (!_.isNumber(attrs.user_id)) {
+                return "Need to provide a user_id";
             }
-            if (!(_.isDate(attrs.joined) || _.isNull(attrs.joined))) {
+            if (!(clutils.isTimestamp(attrs.created))) {
+                return "Created needs to be a date " + JSON.stringify(attrs.created);
+            }
+            if (!(clutils.isTimestamp(attrs.active))) {
+                return "Active needs to be a date";
+            }
+            if (!(clutils.isTimestamp(attrs.joined) || _.isNull(attrs.joined))) {
                 return "Joined needs to be a date or null";
             }
         },
@@ -275,13 +275,7 @@ if (typeof exports !== "undefined") {
 
         unserialize: function (data) {
             var That = this;
-            return new That({
-                user: PM.models.User.getById(data.user_id),
-                created: data.created,
-                active: data.active,
-                joined: data.joined,
-                deleted: data.deleted,
-            });
+            return new That(_.omit(data, '_id'));
         },
     });
 
@@ -297,45 +291,57 @@ if (typeof exports !== "undefined") {
         type: "Track",
     });
 
-    /**
-     * fields: id, track, user, deleted_by_user, created, deleted
-     */
     PM.models.TrackInPlaylist = PM.models.BaseModel.extend({
         _fields: {
-            track: 1,
-            user: 1,
-            deleted_by_user: 1,
+            track_id: 1,
+            user_id: 1,
+            deleted_by_user_id: 1,
             created: 1,
         },
 
         defaults: function () {
             return {
-                created: new Date(),
-                deleted_by_user: null,
+                deleted_by_user_id: 0,
             };
         },
 
         serialize: function () {
             var that = this;
-            return {
-                track_id: that.get("track").id,
-                user_id: that.get("user").id,
-                deleted_by_user_id: that.get("deleted_by_user") ? that.get("deleted_by_user_id").id : 0,
-                created: that.get("created"),
-            };
+            return that.serializeAllButId();
         },
 
         isDeleted: function () {
             var that = this;
-            return !_.isNull(that.get("deleted_by_user"));
+            return !!that.get("deleted_by_user_id");
+        },
+
+        getTrack: function () {
+            var that = this;
+            return PM.models.Track.getById(that.get("track_id"));
+        },
+
+        getUser: function () {
+            var that = this;
+            return PM.models.User.getById(that.get("user_id"));
+        },
+
+        getDeletedByUser: function () {
+            var that = this;
+            if (!that.get("deleted_by_user_id")) {
+                return null;
+            }
+            return PM.models.User.getById(that.get("deleted_by_user_id"));
         },
 
         validate: function (attrs) {
-            if (!_.isObject(attrs.track)) {
-                return "Need to provide a track";
+            if (!_.isString(attrs.track_id)) {
+                return "Need to provide a track_id";
             }
-            if (!_.isObject(attrs.user)) {
-                return "Need to provide a user";
+            if (!_.isNumber(attrs.user_id) && attrs.user_id !== PM.models.User.MASTER_ID) {
+                return "Need to provide a user_id";
+            }
+            if (!(clutils.isTimestamp(attrs.created))) {
+                return "Created needs to be a date";
             }
         }
     }, {
@@ -343,12 +349,7 @@ if (typeof exports !== "undefined") {
 
         unserialize: function (data) {
             var That = this;
-            return new That({
-                track: PM.models.Track.getById(data.track_id),
-                user: PM.models.User.getById(data.user_id),
-                deleted_by_user: data.deleted_by_user_id ? PM.models.User.getById(data.deleted_by_user_id) : null,
-                created: data.created,
-            });
+            return new That(_.omit(data, '_id'));
         },
     });
 
@@ -361,10 +362,15 @@ if (typeof exports !== "undefined") {
             number: 1,
         },
 
+        defaults: function () {
+            return {
+                created: clutils.nowts(),
+            };
+        },
+
         initialize: function (attributes, options) {
             var that = this;
             that.set({
-                created: new Date(),  // no default, just overwrite it
                 user_id: options.user_id, // no default, just overwrite it
             }, {silent: true});
             that.party = PM.collections.Parties.getInstance().get(that.get("party_id"));
@@ -376,7 +382,7 @@ if (typeof exports !== "undefined") {
 
         validateAndApplyAction: function (callback_success, callback_fail) {
             callback_success = callback_success || function (action) {console.log("new action: " + action.get("number") + " -- " + action.constructor.type); };
-            callback_fail = callback_fail || function (reason) {console.warn("creating new action failed: " + reason); };
+            callback_fail = callback_fail || function (reason) {throw "creating new action failed: " + reason; };
             var that = this;
             that.prepareValidate(function () {
                 if (that.validate) {
@@ -412,26 +418,16 @@ if (typeof exports !== "undefined") {
             if (!that.party) {
                 return "Party could not be loaded";
             }
-            if (!that.party.isMember(attrs.user_id)) {
+            if (!that.party.isOwner(attrs.user_id) && !that.party.isMember(attrs.user_id)) {
                 return "The user is not a member of the party";
             }
         },
 
         serialize: function () {
             var that = this;
-            var data = {
-                _TYPE: that.constructor.type,
-            };
-            _.each(_.keys(that._all_fields), function (fieldname) {
-                if (fieldname === "id") {
-                    return;
-                }
-                data[fieldname] = that.get(fieldname);
-            });
-            return data;
+            return _.extend({_TYPE: that.constructor.type}, that.serializeAllButId());
         }
     }, {
-        /* Note: there is a special unserializeFromMaster function, that skips the security check that users can only create actions for themselves */
         unserializeFromTrusted: function (data) {
             var That = this;
             var ActionClass = _.find(That.__children, function (Action) {return Action.type === data._TYPE; });
@@ -502,7 +498,7 @@ if (typeof exports !== "undefined") {
             if (user.get("_status") !== "loaded") {
                 return "invited user could not be loaded";
             }
-            if (that.party.getMemberRecord(attrs.invited_user_id)) {
+            if (that.party.isMember(attrs.invited_user_id)) {
                 return "user already invited";
             }
             return that.constructor.__super__.validate.call(that, attrs);
@@ -519,19 +515,20 @@ if (typeof exports !== "undefined") {
             default:
                 var handler;
                 handler = function () {
-                    user.off("change:status", handler, this);
+                    user.off("change:_status", handler, this);
                     that.prepareValidate(callback);
                 };
-                user.on("change:status", handler, this);
+                user.on("change:_status", handler, this);
             }
         },
 
         applyActionToParty: function () {
             var that = this;
-            that.party.get("users").add({
-                user: PM.models.User.getById(that.get("invited_user_id")),
-            });
-            // TODO: make sure the person actually gets invited (facebook message, and added to some list of open invitations
+            that.party.get("users").add(new PM.models.UserInParty({
+                user_id: that.get("invited_user_id"),
+                created: that.get("created"),
+                active: that.get("created"),
+            }));
         },
     }, {
         type: "Invite",
@@ -547,6 +544,9 @@ if (typeof exports !== "undefined") {
             if (!that.party.isOwner(attrs.user_id)) {
                 return "Only owner can do this";
             }
+            if (that.party.isOwner(attrs.kicked_user_id)) {
+                return "The owner of the party can't be kicked";
+            }
             if (!attrs.kicked_user_id) {
                 return "kicked_user_id must be present";
             }
@@ -560,8 +560,7 @@ if (typeof exports !== "undefined") {
             var that = this;
             var kicked_user_id = that.get("kicked_user_id");
             var record = that.party.getMemberRecord(kicked_user_id); //NOTE: validation guarantees that there is a record here
-            record.set({deleted: new Date(), joined: null});
-            // TODO: make sure the person actually gets kicked (removed from some list of open invitations
+            record.set({deleted: that.get("created"), joined: null}); //obviously not setting "active"
         },
     }, {
         type: "Kick",
@@ -579,7 +578,7 @@ if (typeof exports !== "undefined") {
         applyActionToParty: function () {
             var that = this;
             var record = that.party.getMemberRecord(that.get("user_id")); //NOTE: validation guarantees that there is a record here
-            record.set("joined", new Date());
+            record.set({"joined": that.get("created"), active: that.get("created")});
         },
     });
 
@@ -596,7 +595,7 @@ if (typeof exports !== "undefined") {
         applyActionToParty: function () {
             var that = this;
             var record = that.party.getMemberRecord(that.get("user_id")); //NOTE: validation guarantees that there is a record here
-            record.set("joined", null);
+            record.set("joined", null); //obviously not setting "active"
         },
     }, {
         type: "Join",
@@ -631,20 +630,21 @@ if (typeof exports !== "undefined") {
             default:
                 var handler;
                 handler = function () {
-                    track.off("change:status", handler, this);
+                    track.off("change:_status", handler, this);
                     that.prepareValidate(callback);
                 };
-                track.on("change:status", handler, this);
+                track.on("change:_status", handler, this);
             }
         },
 
         applyActionToParty: function () {
             var that = this;
             var playlist = that.party.get("playlist");
-            playlist.add({
-                user: PM.models.User.getById(that.get("user_id")),
-                track: PM.models.Track.getById(that.get("track_id")),
-            });
+            playlist.add(new PM.models.TrackInPlaylist({
+                user_id: that.get("user_id"),
+                track_id: that.get("track_id"),
+                created: this.get("created"),
+            }));
 
             that.party.getMemberRecord(that.get("user_id")).didAction(that.get("created"));
             if (that.party.get("play_status") === "stop") {
@@ -663,7 +663,7 @@ if (typeof exports !== "undefined") {
         validate: function (attrs) {
             var that = this;
             if (!_.isNumber(attrs.position)) {
-                return "track_id must be present";
+                return "position must be present";
             }
             var track_in_playlist = that.party.get("playlist").at(attrs.position);
             if (!_.isObject(track_in_playlist) || track_in_playlist.isDeleted()) {
@@ -676,7 +676,7 @@ if (typeof exports !== "undefined") {
             var that = this;
             var playlist = that.party.get("playlist");
             playlist.at(that.get("position")).set({
-                deleted_by_user: PM.models.User.getById(that.get("user_id"))
+                deleted_by_user_id: that.get("user_id")
             });
             if (that.party.get("current_playlist_index") === that.get("position")) {
                 that.party.trigger("playcommand", "play_next");
@@ -731,7 +731,7 @@ if (typeof exports !== "undefined") {
 
         defaults: function () {
             return {
-                created: new Date(),
+                created: clutils.nowts(),
             };
         },
 
@@ -742,7 +742,7 @@ if (typeof exports !== "undefined") {
             if (attrs.play_status === "pause" && !_.isNumber(attrs.current_place_in_track)) {
                 return "Expected a number for current_place_in_track";
             }
-            if (attrs.play_status === "play" && !_.isDate(attrs.current_place_in_track)) {
+            if (attrs.play_status === "play" && !clutils.isTimestamp(attrs.current_place_in_track)) {
                 return "Expected a date for current_place_in_track";
             }
         },
@@ -766,9 +766,6 @@ if (typeof exports !== "undefined") {
     PM.collections.PartyLog = Backbone.Collection.extend({model: PM.models.Actions});
 
 
-    /**
-     * fields: name, active, owner, playlist, users, log
-     */
     PM.models.Party = PM.models.BaseModel.extend({
         _fields: {
             playlist: 1,
@@ -776,7 +773,7 @@ if (typeof exports !== "undefined") {
             log: 1,
             name: 1,
             active: 1,
-            owner: 1,
+            owner_id: 1,
             play_status: 1,
             current_playlist_index: 1,
             current_place_in_track: 1,
@@ -791,22 +788,22 @@ if (typeof exports !== "undefined") {
                 log: new PM.collections.PartyLog(),
                 name: "",
                 active: false,
-                owner: null,
+                owner_id: 0,
                 play_status: "stop", //or "play" or "pause",
                 current_playlist_index: -1,
                 current_place_in_track: null, //when paused, contains ms after track start, when playing contains date when this song would have started had it been played in whole
-                created: new Date(),
-                last_updated: new Date(),
+                created: clutils.nowts(),
+                last_updated: clutils.nowts(),
             };
         },
 
         serialize: function () {
             var that = this;
             return {
-                id: that.id,
+                _id: that.id,
                 name: that.get("name"),
                 active: that.get("active"),
-                owner: that.get("owner"),
+                owner_id: that.get("owner_id"),
                 play_status: that.get("play_status"),
                 current_playlist_index: that.get("current_playlist_index"),
                 current_place_in_track: that.get("current_place_in_track"),
@@ -825,36 +822,37 @@ if (typeof exports !== "undefined") {
                 _id: that.id,
                 name: that.get("name"),
                 active: that.get("active"),
-                owner: that.get("owner"),
+                owner_id: that.get("owner_id"),
                 created: that.get("created"),
                 last_updated: that.get("last_updated"),
-                track_ids: that.get("playlist").filter(function (track_in_playlist) {return !track_in_playlist.isDeleted(); }).map(function (track_in_playlist) {return track_in_playlist.get("track").id; }),
-                user_ids: that.get("users").filter(function (user_in_party) {return !user_in_party.wasKicked(); }).map(function (user_in_party) {return user_in_party.serialize(); }),
+                track_ids: that.get("playlist").filter(function (track_in_playlist) {return !track_in_playlist.isDeleted(); }).pluck("track_id"),
+                user_ids: that.get("users").filter(function (user_in_party) {return !user_in_party.wasKicked(); }).pluck("user_id"),
             };
         },
 
         initialize: function () {
             var that = this;
-            that.get("log").on("add", function () {that.set("last_updated", new Date()); });
-        },
-
-        getMemberRecord: function (user_id) {
-            var that = this;
-            var user_id_to_check = user_id;
-            if (user_id_to_check === PM.models.User.MASTER_ID) {
-                return that.getMemberRecord(that.get("owner").actualUser().id);
-            }
-            return that.get("users").find(function (user_in_party) {
-                return user_in_party.get("user").id === user_id_to_check && _.isNull(user_in_party.get("deleted"));
+            that.get("log").on("add", function (action) {
+                if (clutils.isTimestamp(action.get("created"))) {
+                    that.set("last_updated", action.get("created"));
+                }
             });
         },
 
-        isMember: function (user_id) {
+        getMemberRecord: function (user_or_user_id) {
             var that = this;
-            if (user_id === PM.models.User.MASTER_ID) {
-                return true;
+            var user_id_to_check = (_.isObject(user_or_user_id) ? user_or_user_id.id : user_or_user_id);
+            if (user_id_to_check === PM.models.User.MASTER_ID) {
+                return that.getMemberRecord(that.get("owner_id"));
             }
-            return that.isOwner(user_id) || !!that.getMemberRecord(user_id);
+            return that.get("users").find(function (user_in_party) {
+                return user_in_party.get("user_id") === user_id_to_check && _.isNull(user_in_party.get("deleted"));
+            });
+        },
+
+        isMember: function (user_or_user_id) {
+            var that = this;
+            return !!that.getMemberRecord(user_or_user_id);
         },
 
         getMembersInPartyOrderedByActive: function () {
@@ -866,16 +864,16 @@ if (typeof exports !== "undefined") {
                 .value();
         },
 
-        isJoined: function (user_id) {
+        isJoined: function (user_or_user_id) {
             var that = this;
-            return that.get("users").any(function (user_in_party) {
-                return user_in_party.get("user").id === user_id && !_.isNull(user_in_party.get("joined"));
-            });
+            var user_in_party = that.getMemberRecord(user_or_user_id);
+            return (!!user_in_party) && !!user_in_party.get("joined");
         },
 
-        isOwner: function (user_id) {
+        isOwner: function (user_or_user_id) {
             var that = this;
-            return PM.models.User.MASTER_ID === user_id || that.get("owner").id === user_id;
+            var user_id_to_check = (_.isObject(user_or_user_id) ? user_or_user_id.id : user_or_user_id);
+            return PM.models.User.MASTER_ID === user_id_to_check || that.get("owner_id") === user_id_to_check;
         },
 
         /**
@@ -884,15 +882,15 @@ if (typeof exports !== "undefined") {
         isNew: function () {
             var that = this;
             return (that.get("log").length < 3 && //new party has changename and invite of owner action
-                    (new Date() - that.get("created") < 60)); //created less than one minute ago
+                    (clutils.nowts() - that.get("created") < 60)); //created less than one minute ago
         },
 
         /**
           * An action executed by the party owner, the master
           **/
-        createAndApplyOwnAction: function (type, properties, success_callback, failure_callback) {
+        createAndApplyMasterAction: function (type, properties, success_callback, failure_callback) {
             var that = this;
-            PM.models.Action.createAndApplyAction(PM.models.User.getMaster(that.get("owner").id), that.id, type, properties, success_callback, failure_callback);
+            PM.models.Action.createAndApplyAction(PM.models.User.MASTER_ID, that.id, type, properties, success_callback, failure_callback);
         },
 
         applyPlayStatusFeedback: function (play_status, current_playlist_index, current_place_in_track) {
@@ -902,7 +900,7 @@ if (typeof exports !== "undefined") {
                 current_playlist_index: current_playlist_index,
                 current_place_in_track: current_place_in_track,
             };
-            PM.models.Action.createAndApplyAction(PM.models.User.getMaster(that.get("owner").id), that.id, "PlayStatusFeedback", data);
+            PM.models.Action.createAndApplyAction(PM.models.User.MASTER_ID, that.id, "PlayStatusFeedback", data);
         },
 
         validate: function (attrs) {
@@ -922,8 +920,8 @@ if (typeof exports !== "undefined") {
     }, {
         type: "Party",
         
-        getDefaultPartyName: function () {
-            return PM.current_user.actualUser().get("name").toLowerCase() + "'s party";
+        getDefaultPartyName: function (owner) {
+            return owner.get("name").toLowerCase() + "'s party";
         },
 
         unserialize: function (data) {
