@@ -11,6 +11,7 @@ if (typeof exports !== "undefined") {
     if (!_) {_ = require("./underscore"); }
     if (!Backbone) {Backbone = require("./backbone"); }
     PM = exports;
+    PM.config = require("./config");
 } else {
     if (!_) {throw "Underscore not loaded"; }
     if (!Backbone) {throw "Backbone not loaded"; }
@@ -192,15 +193,16 @@ if (typeof exports !== "undefined") {
         },
     }, {
         type: "User",
+        MASTER_ID: "master",
 
-        getMaster: function () {
+        getMaster: function (actual_user_id) {
             var That = this;
             var user = new That({
-                id: "master",
+                id: That.MASTER_ID,
                 is_master: true,
                 _status: PM.models.BaseModelLazyLoad.LOADED,
                 name: PM.config.master_name,
-                actual_user: That.getById(PM.app.loggedin_user_id),
+                actual_user: That.getById(actual_user_id),
             });
             That.setToCache(user);
             return user;
@@ -264,9 +266,9 @@ if (typeof exports !== "undefined") {
             }
         },
         
-        didAction: function () {
+        didAction: function (when) {
             var that = this;
-            that.set("active", new Date());
+            that.set("active", when);
         }
     }, {
         type: "UserInParty",
@@ -385,12 +387,21 @@ if (typeof exports !== "undefined") {
                         return;
                     }
                 }
-                that.set("number", that.party.get("log").length);
-                that.on("change", function () {throw "trying to change an action, which is not allowed"; });
-                that.applyAction();
-                that.party.get("log").add(that);
+                that.applyValidatedAction();
                 callback_success(that);
             });
+        },
+
+        applyValidatedAction: function () {
+            var that = this;
+            if (that.get("number") && that.get("number") !== that.party.get("log").length + 1) {
+                throw "action has number " + that.get("number") + " but party expects number " + (that.party.get("log").length + 1);
+            } else {
+                that.set("number", that.party.get("log").length + 1);
+                that.on("change", function () {throw "trying to change an action, which is not allowed"; });
+                that.applyActionToParty();
+                that.party.get("log").add(that);
+            }
         },
 
         validate: function (attrs) {
@@ -404,9 +415,6 @@ if (typeof exports !== "undefined") {
             if (!that.party.isMember(attrs.user_id)) {
                 return "The user is not a member of the party";
             }
-            if (that.get("number") && that.get("number") !== that.party.get("log").length + 1) {
-                return "action has number " + that.get("number") + " but party expects number " + (that.party.get("log").length + 1);
-            }
         },
 
         serialize: function () {
@@ -414,15 +422,17 @@ if (typeof exports !== "undefined") {
             var data = {
                 _TYPE: that.constructor.type,
             };
-            _.each(that._all_fields, function (fieldname) {
+            _.each(_.keys(that._all_fields), function (fieldname) {
                 if (fieldname === "id") {
                     return;
                 }
                 data[fieldname] = that.get(fieldname);
             });
+            return data;
         }
     }, {
-        unSerialize: function (data) {
+        /* Note: there is a special unserializeFromMaster function, that skips the security check that users can only create actions for themselves */
+        unserializeFromTrusted: function (data) {
             var That = this;
             var ActionClass = _.find(That.__children, function (Action) {return Action.type === data._TYPE; });
             if (!ActionClass) {
@@ -430,7 +440,7 @@ if (typeof exports !== "undefined") {
             }
             var mydata = _.clone(data);
             delete mydata._TYPE;
-            return new ActionClass(mydata);
+            return new ActionClass(mydata, {user_id: mydata.user_id});
         },
 
         createAction: function (user_or_user_id, party_or_party_id, type, properties) {
@@ -467,7 +477,7 @@ if (typeof exports !== "undefined") {
             return that.constructor.__super__.validate.call(that, attrs);
         },
 
-        applyAction: function () {
+        applyActionToParty: function () {
             var that = this;
             that.party.set("name", that.get("name"));
         },
@@ -516,7 +526,7 @@ if (typeof exports !== "undefined") {
             }
         },
 
-        applyAction: function () {
+        applyActionToParty: function () {
             var that = this;
             that.party.get("users").add({
                 user: PM.models.User.getById(that.get("invited_user_id")),
@@ -546,7 +556,7 @@ if (typeof exports !== "undefined") {
             return that.constructor.__super__.validate.call(that, attrs);
         },
 
-        applyAction: function () {
+        applyActionToParty: function () {
             var that = this;
             var kicked_user_id = that.get("kicked_user_id");
             var record = that.party.getMemberRecord(kicked_user_id); //NOTE: validation guarantees that there is a record here
@@ -566,7 +576,7 @@ if (typeof exports !== "undefined") {
             return that.constructor.__super__.validate.call(that, attrs);
         },
 
-        applyAction: function () {
+        applyActionToParty: function () {
             var that = this;
             var record = that.party.getMemberRecord(that.get("user_id")); //NOTE: validation guarantees that there is a record here
             record.set("joined", new Date());
@@ -583,7 +593,7 @@ if (typeof exports !== "undefined") {
             return that.constructor.__super__.validate.call(that, attrs);
         },
 
-        applyAction: function () {
+        applyActionToParty: function () {
             var that = this;
             var record = that.party.getMemberRecord(that.get("user_id")); //NOTE: validation guarantees that there is a record here
             record.set("joined", null);
@@ -628,7 +638,7 @@ if (typeof exports !== "undefined") {
             }
         },
 
-        applyAction: function () {
+        applyActionToParty: function () {
             var that = this;
             var playlist = that.party.get("playlist");
             playlist.add({
@@ -636,7 +646,7 @@ if (typeof exports !== "undefined") {
                 track: PM.models.Track.getById(that.get("track_id")),
             });
 
-            that.party.getMemberRecord(that.get("user_id")).didAction();
+            that.party.getMemberRecord(that.get("user_id")).didAction(that.get("created"));
             if (that.party.get("play_status") === "stop") {
                 that.party.trigger("playcommand", "play", playlist.length - 1);
             }
@@ -662,7 +672,7 @@ if (typeof exports !== "undefined") {
             return that.constructor.__super__.validate.call(that, attrs);
         },
 
-        applyAction: function () {
+        applyActionToParty: function () {
             var that = this;
             var playlist = that.party.get("playlist");
             playlist.at(that.get("position")).set({
@@ -685,7 +695,7 @@ if (typeof exports !== "undefined") {
             return that.constructor.__super__.validate.call(that, attrs);
         },
 
-        applyAction: function () {
+        applyActionToParty: function () {
             var that = this;
             that.party.trigger("playcommand", "pause");
         },
@@ -702,7 +712,7 @@ if (typeof exports !== "undefined") {
             return that.constructor.__super__.validate.call(that, attrs);
         },
 
-        applyAction: function () {
+        applyActionToParty: function () {
             var that = this;
             that.party.trigger("playcommand", "play");
         },
@@ -737,7 +747,7 @@ if (typeof exports !== "undefined") {
             }
         },
 
-        applyAction: function () {
+        applyActionToParty: function () {
             var that = this;
             that.party.set({
                 play_status: that.get("play_status"),
@@ -825,15 +835,14 @@ if (typeof exports !== "undefined") {
 
         initialize: function () {
             var that = this;
-            PM.collections.Parties.getInstance().add(that);
             that.get("log").on("add", function () {that.set("last_updated", new Date()); });
         },
 
         getMemberRecord: function (user_id) {
             var that = this;
             var user_id_to_check = user_id;
-            if (user_id_to_check === "master") {
-                user_id_to_check = PM.models.User.getMaster().actualUser().id;
+            if (user_id_to_check === PM.models.User.MASTER_ID) {
+                return that.getMemberRecord(that.get("owner").actualUser().id);
             }
             return that.get("users").find(function (user_in_party) {
                 return user_in_party.get("user").id === user_id_to_check && _.isNull(user_in_party.get("deleted"));
@@ -842,6 +851,9 @@ if (typeof exports !== "undefined") {
 
         isMember: function (user_id) {
             var that = this;
+            if (user_id === PM.models.User.MASTER_ID) {
+                return true;
+            }
             return that.isOwner(user_id) || !!that.getMemberRecord(user_id);
         },
 
@@ -863,9 +875,7 @@ if (typeof exports !== "undefined") {
 
         isOwner: function (user_id) {
             var that = this;
-            return that.get("owner").id === user_id ||
-                (that.get("owner").get("actual_user") &&
-                 that.get("owner").get("actual_user").id === user_id);
+            return PM.models.User.MASTER_ID === user_id || that.get("owner").id === user_id;
         },
 
         /**
@@ -882,7 +892,7 @@ if (typeof exports !== "undefined") {
           **/
         createAndApplyOwnAction: function (type, properties, success_callback, failure_callback) {
             var that = this;
-            PM.models.Action.createAndApplyAction(PM.models.User.getMaster(), that.id, type, properties, success_callback, failure_callback);
+            PM.models.Action.createAndApplyAction(PM.models.User.getMaster(that.get("owner").id), that.id, type, properties, success_callback, failure_callback);
         },
 
         applyPlayStatusFeedback: function (play_status, current_playlist_index, current_place_in_track) {
@@ -892,14 +902,23 @@ if (typeof exports !== "undefined") {
                 current_playlist_index: current_playlist_index,
                 current_place_in_track: current_place_in_track,
             };
-            PM.models.Action.createAndApplyAction(PM.models.User.getMaster(), that.id, "PlayStatusFeedback", data);
+            PM.models.Action.createAndApplyAction(PM.models.User.getMaster(that.get("owner").id), that.id, "PlayStatusFeedback", data);
         },
 
         validate: function (attrs) {
             if (attrs.play_status !== "play" && attrs.play_status !== "stop" && attrs.play_status !== "pause") {
                 return "No valid play status: \"" + attrs.play_status + "\"";
             }
-        }
+        },
+
+        shareNewActions: function () {
+            var that = this;
+            that.get("log").on("add", function (action) {
+                PM.domain.PartyNodeDomain.shareAction(action.serialize());
+            });
+        },
+
+
     }, {
         type: "Party",
         

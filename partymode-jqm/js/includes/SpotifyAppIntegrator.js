@@ -122,6 +122,10 @@ window.PM.domain.SpotifyAppIntegrator = window.Toolbox.Base.extend({
 
     onPlayerEvent: _.debounce(function () { //multiple events being fired as once, better debounce and let the status settle
         var that = this;
+        if (!that.activeParty) {
+            console.log("can't update any player status if I don't know what party I am");
+            return;
+        }
         if (that.isStoppedOrNotPlayingFromApp()) {
             that.onPartyPlayStopped();
         } else {
@@ -140,7 +144,7 @@ window.PM.domain.SpotifyAppIntegrator = window.Toolbox.Base.extend({
             that.models.player.playing = false; //pauses; I would prefer stop for now, but this is fine!
         }
 
-        that.clearInterval(that.updateTimesInterval);
+        window.clearInterval(that.updateTimesInterval);
         party.off("playcommand", that.onPlayCommand, that);
         party.get("playlist").off("add", that.addPlaylistItem, that);
         party.get("playlist").off("change", that.onChangePlaylistItem, that);

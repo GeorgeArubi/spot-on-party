@@ -44,11 +44,13 @@
 
         var socket_action = function (type, constraints, handler) {
             var new_handler = function (data, callback) {
+                log("debug", "received " + JSON.stringify(type) + " " + JSON.stringify(data));
                 var my_callback = callback || function () {};
                 var handlerdomain = domain.create();
                 handlerdomain.on("error", function (er) {
-                    log("error", that.number + ": " + er);
-                    my_callback({error: er});
+                    log("error", er + "\n" + er.stack);
+                    log("error", er);
+                    my_callback({error: er.toString()});
                 });
                 handlerdomain.run(function () {
                     clutils.checkConstraints(data, constraints);
@@ -90,48 +92,67 @@
 
         /* returns party_id */
         socket_action("create new party", {_isNull: true}, function (undefined, callback) {
-            that.requireMaster();
-            var party_data = {owner_id: that.user.id};
-            db_collections.parties.insert(party_data, dbErrorDomain.intercept(function () {
-                var party = new PM.models.Party({
-                    id: party_data._id.toString(),
-                    owner: that.user
+            that.requireMaster(function () {
+                var party_data = {owner_id: that.user.id};
+                db_collections.parties.insert(party_data, dbErrorDomain.intercept(function () {
+                    var party = new PM.models.Party({
+                        id: party_data._id.toString(),
+                        owner: that.user
+                    });
+                    PM.collections.Parties.getInstance().add(party);
+                    if (callback) {
+                        callback(party.id);
+                    }
+                }));
+            });
+        });
+
+        socket_action("share action", {party_id: {_isString: true}, _TYPE: {_isString: true}, _strict: false}, function (action_data, callback) {
+            that.requireOwner(action_data.party_id, function () {
+                // TODO: consider very hard: is there a (theoretical) chance that the actions won't execute the async code below in order
+                loadParty(action_data.party_id, function (party) {
+                    var action = PM.models.Action.unserializeFromTrusted(action_data);
+                    action.party = party;
+                    try {
+                        action.applyValidatedAction();
+                        db_collections.actions.insert(action.serialize(), dbErrorDomain.intercept(function () {
+                            callback(true);
+                        }));
+                    } catch (error) {
+                        throw "Error: party " + party.id + ", applying action " + action.get("number") + " failed: " + error.toString();
+                    }
                 });
-
-                if (callback) {
-                    callback(party.id);
-                }
-            }));
+            });
         });
 
-        socket_action("new action", {party_id: {_isNumber: true}, _strict: false}, function (action, callback) {
-            that.requireOwner(action.party_id);
-            var party = loadParty(action.party_id);
-            callback(party);
-        });
-
-        that.requireLoggedin = function () {
+        that.requireLoggedin = function (callback) {
             if (!that.isLoggedin()) {
                 throw "You need to be logged in for this function to work";
             }
+            callback();
         };
 
-        that.requireMaster = function () {
-            that.requireLoggedin();
-            if (!that.isMaster()) {
-                throw "This function may only be called by the master";
-            }
+        that.requireMaster = function (callback) {
+            that.requireLoggedin(function () {
+                if (!that.isMaster()) {
+                    throw "This function may only be called by the master";
+                }
+                callback();
+            });
         };
 
-        that.requireOwner = function (party_id) {
-            that.requireMaster();
-            var party = loadParty(party_id);
-            if (!party) {
-                throw "mentioned party could not be found";
-            }
-            if (party.owner_id !== that.user.id) {
-                throw "not owner of party";
-            }
+        that.requireOwner = function (party_id, callback) {
+            that.requireMaster(function () {
+                loadParty(party_id, function (party) {
+                    if (!party) {
+                        throw "mentioned party could not be found";
+                    }
+                    if (party.get("owner").id !== that.user.id) {
+                        throw "not owner of party ";
+                    }
+                    callback();
+                });
+            });
         };
 
 
@@ -145,16 +166,28 @@
     };
 
     var loadParty = function (party_id, callback) {
-        var party = PM.collections.Parties.get(party_id);
+        var party = PM.collections.Parties.getInstance().get(party_id);
         if (party) {
             callback(party);
             return;
         }
-        var cursor = db_collections.parties.find({_id: mongodb.ObjectID(party_id)});
-        cursor.nextObject(dbErrorDomain.inject(function (object) {
+        var pcursor = db_collections.parties.find({_id: mongodb.ObjectID(party_id)});
+        pcursor.nextObject(dbErrorDomain.intercept(function (object) {
             if (object) {
-                party = object;
-                callback(party);
+                var owner = new PM.models.User({id: object.owner_id, _status: PM.models.BaseModelLazyLoad.LOADED});
+                party = new PM.models.Party({id: object._id.toString(), owner: owner});
+                PM.collections.Parties.getInstance().add(party);
+                var acursor = db_collections.actions.find({party_id: party.id}, {sort: ["number", 1]});
+                acursor.each(dbErrorDomain.intercept(function (action_data) {
+                    if (!action_data) {
+                        callback(party);
+                    }
+                    var action = PM.models.Action.unserializeFromTrusted(action_data);
+                    action.party = party;
+                    action.validateAndApplyAction(function () {}, function (error) {
+                        throw "Error while loading party " + party.id + ", applying action " + action.get("number") + " failed: " + error;
+                    });
+                }));
             } else {
                 callback(null);
             }

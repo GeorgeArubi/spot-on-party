@@ -43,12 +43,16 @@ if (!window.PM) {
                         id: PM.app.loggedin_user_id,
                     });
                     PM.models.User.setToCache(user);
-                    PM.current_user = PM.models.User.getMaster();
-                    PM.domain.FacebookDomain.getAccessToken(function (accessToken) {
-                        PM.domain.PartyNodeDomain.loginAsMaster(accessToken, function () {
-                            checkFacebookLogin(loggedincode);
+                    PM.current_user = PM.models.User.getMaster(user.id);
+                    var logintobackend = function (callback) {
+                        PM.domain.FacebookDomain.getAccessToken(function (accessToken) {
+                            PM.domain.PartyNodeDomain.loginAsMaster(accessToken, function () {
+                                (callback || function () {})();
+                            });
                         });
-                    });
+                    };
+                    PM.domain.PartyNodeDomain.on("connect", logintobackend);
+                    logintobackend(function () {checkFacebookLogin(loggedincode); });
                 } else {
                     PM.app.navigate("", {trigger: true});
                 }
@@ -113,7 +117,9 @@ if (!window.PM) {
                     id: party_id,
                     owner: PM.current_user,
                 });
+
                 PM.collections.Parties.getInstance().add(party);
+                party.shareNewActions();
 
                 party.createAndApplyOwnAction(
                         "ChangeName",
