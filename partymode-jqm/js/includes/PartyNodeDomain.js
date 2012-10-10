@@ -39,7 +39,7 @@ if (typeof exports !== "undefined") {
         callbackCatchError: function (callback) {
             return function (result) {
                 if (result.error) {
-                    throw "An error occured with your call: " + result.error;
+                    throw "An error occured with your call: " + JSON.stringify(result.error);
                 }
                 if (callback) {
                     callback(result);
@@ -58,9 +58,9 @@ if (typeof exports !== "undefined") {
             }));
         },
 
-        getNewPartyId: function (callback) {
+        createNewParty: function (callback) {
             var that = this;
-            that.socket.emit("get new party_id", null, that.callbackCatchError(callback));
+            that.socket.emit("create new party", null, that.callbackCatchError(callback));
         },
     });
     PM.domain.PartyNodeDomain.init();

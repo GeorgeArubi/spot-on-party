@@ -108,7 +108,7 @@ if (!window.PM) {
             if (party_name === "") {
                 party_name = PM.models.Party.getDefaultPartyName();
             }
-            PM.domain.PartyNodeDomain.getNewPartyId(function (party_id) {
+            PM.domain.PartyNodeDomain.createNewParty(function (party_id) {
                 var party = new PM.models.Party({
                     id: party_id,
                     owner: PM.current_user,

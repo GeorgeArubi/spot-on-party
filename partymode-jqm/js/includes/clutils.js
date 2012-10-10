@@ -18,6 +18,21 @@ if (typeof exports !== "undefined") {
 
 (function () {
     "use strict";
+    var ID_CHARS = "-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz"; //make sure they are in ascending ascii order for sorting purposes
+
+    /*Gets a unique ID, ascending with time*/
+    clutils.getUniqueId = function () {
+        var octalnow = (new Date()).valueOf().toString(8);
+        var octalrandom = Math.floor(Math.random() * Math.pow(8, 6)).toString(8);
+        while (octalnow.length < 14) { octalnow = "0" + octalnow; }
+        while (octalrandom.length < 6) { octalrandom = "0" + octalrandom; }
+        var octalid = octalnow + octalrandom;
+        var id = _.map(octalid.match(/[0-7]{2}/g), function (octalindex) {
+            var index = parseInt(octalindex, 8);
+            return ID_CHARS.charAt(index);
+        }).join();
+        return id;
+    };
 
     clutils.checkConstraints = function (object, constraints, path) {
         var mypath = path ? path : "toplevel";

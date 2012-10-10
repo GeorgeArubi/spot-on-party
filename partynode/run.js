@@ -13,6 +13,17 @@
     var server = require('http').createServer(app);
     var io = require('socket.io').listen(server);
     var domain = require('domain');
+    var mongodb = require('mongodb');
+    var config = require("./config");
+    var db; /* my database connection */
+    var db_collections = {};
+
+    var dbErrorDomain = domain.create();
+
+    dbErrorDomain.on("error", function (er) {
+        winston.error("Error with database connection: " + er);
+    });
+
 
     server.listen(8081);
 
@@ -71,23 +82,31 @@
                     if (callback) {
                         callback(true);
                     }
-                    log("info", "User \"" + object.name + "\" (" + that.user_id + ") loggedin in" + (that.isMaster() ? " as master":""));
+                    log("info", "User \"" + object.name + "\" (" + that.user.id + ") loggedin in" + (that.isMaster() ? " as master":""));
                 });
 
             });
         });
 
-        socket_action("get new party_id", {_isNull: true}, function (undefined, callback) {
+        /* returns party_id */
+        socket_action("create new party", {_isNull: true}, function (undefined, callback) {
             that.requireMaster();
-            var party_id = Math.floor(Math.random() * 0xFFFFFFFF);
-            if (callback) {
-                callback(party_id);
-            }
-            new PM.models.Party({id: party_id, owner: that.user});
+            var party_data = {owner_id: that.user.id};
+            db_collections.parties.insert(party_data, dbErrorDomain.intercept(function () {
+                var party = new PM.models.Party({
+                    id: party_data._id.toString(),
+                    owner: that.user
+                });
+
+                if (callback) {
+                    callback(party.id);
+                }
+            }));
         });
 
         socket_action("new action", {party_id: {_isNumber: true}, _strict: false}, function (action, callback) {
-            var party = PM.collections.Parties.get(action.party_id);
+            that.requireOwner(action.party_id);
+            var party = loadParty(action.party_id);
             callback(party);
         });
 
@@ -104,6 +123,18 @@
             }
         };
 
+        that.requireOwner = function (party_id) {
+            that.requireMaster();
+            var party = loadParty(party_id);
+            if (!party) {
+                throw "mentioned party could not be found";
+            }
+            if (party.owner_id !== that.user.id) {
+                throw "not owner of party";
+            }
+        };
+
+
         that.isMaster = function () {
             return !!that.master;
         };
@@ -113,8 +144,41 @@
         };
     };
 
-    io.sockets.on('connection', function (socket) {
-        createClientConnection(socket);
-    });
+    var loadParty = function (party_id, callback) {
+        var party = PM.collections.Parties.get(party_id);
+        if (party) {
+            callback(party);
+            return;
+        }
+        var cursor = db_collections.parties.find({_id: mongodb.ObjectID(party_id)});
+        cursor.nextObject(dbErrorDomain.inject(function (object) {
+            if (object) {
+                party = object;
+                callback(party);
+            } else {
+                callback(null);
+            }
+        }));
+    };
+
+    var mongoServer = new mongodb.Server(config.db.host, config.db.port, config.db.serverOptions);
+    db = new mongodb.Db(config.db.database, mongoServer, config.db.dbOptions);
+    db.open(dbErrorDomain.intercept(function () {
+        db.authenticate(config.db.username, config.db.password, dbErrorDomain.intercept(function (success) {
+            if (!success) {
+                throw "DB authentication denied";
+            }
+
+            db_collections.parties = new mongodb.Collection(db, "parties");
+            db_collections.actions = new mongodb.Collection(db, "actions");
+
+            io.sockets.on('connection', function (socket) {
+                createClientConnection(socket);
+            });
+
+        }));
+    }));
+
+
 })();
 

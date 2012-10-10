@@ -239,6 +239,22 @@ if (typeof exports !== "undefined") {
             };
         },
 
+        serialize: function () {
+            var that = this;
+            return {
+                user_id: that.get("user").id,
+                created: that.get("created"),
+                active: that.get("active"),
+                joined: that.get("joined"),
+                deleted: that.get("deleted"),
+            };
+        },
+
+        wasKicked: function () {
+            var that = this;
+            return _.isDate(that.get("deleted"));
+        },
+
         validate: function (attrs) {
             if (!_.isObject(attrs.user)) {
                 return "Need to provide a user";
@@ -254,6 +270,17 @@ if (typeof exports !== "undefined") {
         }
     }, {
         type: "UserInParty",
+
+        unserialize: function (data) {
+            var That = this;
+            return new That({
+                user: PM.models.User.getById(data.user_id),
+                created: data.created,
+                active: data.active,
+                joined: data.joined,
+                deleted: data.deleted,
+            });
+        },
     });
 
 
@@ -286,6 +313,16 @@ if (typeof exports !== "undefined") {
             };
         },
 
+        serialize: function () {
+            var that = this;
+            return {
+                track_id: that.get("track").id,
+                user_id: that.get("user").id,
+                deleted_by_user_id: that.get("deleted_by_user") ? that.get("deleted_by_user_id").id : 0,
+                created: that.get("created"),
+            };
+        },
+
         isDeleted: function () {
             var that = this;
             return !_.isNull(that.get("deleted_by_user"));
@@ -301,6 +338,16 @@ if (typeof exports !== "undefined") {
         }
     }, {
         type: "TrackInPlaylist",
+
+        unserialize: function (data) {
+            var That = this;
+            return new That({
+                track: PM.models.Track.getById(data.track_id),
+                user: PM.models.User.getById(data.user_id),
+                deleted_by_user: data.deleted_by_user_id ? PM.models.User.getById(data.deleted_by_user_id) : null,
+                created: data.created,
+            });
+        },
     });
 
     PM.models.Action = PM.models.BaseModel.extend({ //note: validation happens on validateAndApply
@@ -357,6 +404,19 @@ if (typeof exports !== "undefined") {
                 return "The user is not a member of the party";
             }
         },
+
+        serialize: function () {
+            var that = this;
+            var data = {
+                _TYPE: that.constructor.type,
+            };
+            _.each(that._all_fields, function (fieldname) {
+                if (fieldname === "id") {
+                    return;
+                }
+                data[fieldname] = that.get(fieldname);
+            });
+        }
     }, {
         createAction: function (user_or_user_id, party_or_party_id, type, properties) {
             var That = this;
@@ -364,8 +424,8 @@ if (typeof exports !== "undefined") {
             if (!ActionClass) {
                 throw "No action class found for " + type;
             }
-            var user_id = _.isNumber(user_or_user_id) ? user_or_user_id : user_or_user_id.id;
-            var party_id = _.isNumber(party_or_party_id) ? party_or_party_id : party_or_party_id.id;
+            var user_id = _.isObject(user_or_user_id) ? user_or_user_id.id : user_or_user_id;
+            var party_id = _.isObject(party_or_party_id) ? party_or_party_id.id : party_or_party_id;
             return new ActionClass(_.extend({party_id: party_id}, properties || {}), {user_id: user_id});
         },
 
@@ -659,6 +719,8 @@ if (typeof exports !== "undefined") {
         type: "PlayStatusFeedback",
     });
 
+    PM.models.DummyAction = PM.models.Action.extend();
+
     PM.collections.Playlist = Backbone.Collection.extend({model: PM.models.TrackInPlaylist});
     PM.collections.UsersInParty = Backbone.Collection.extend({model: PM.models.UserInParty});
     PM.collections.PartyLog = Backbone.Collection.extend({model: PM.models.Actions});
@@ -695,6 +757,39 @@ if (typeof exports !== "undefined") {
                 current_place_in_track: null, //when paused, contains ms after track start, when playing contains date when this song would have started had it been played in whole
                 created: new Date(),
                 last_updated: new Date(),
+            };
+        },
+
+        serialize: function () {
+            var that = this;
+            return {
+                id: that.id,
+                name: that.get("name"),
+                active: that.get("active"),
+                owner: that.get("owner"),
+                play_status: that.get("play_status"),
+                current_playlist_index: that.get("current_playlist_index"),
+                current_place_in_track: that.get("current_place_in_track"),
+                created: that.get("created"),
+                last_updated: that.get("last_updated"),
+                playlist: that.get("playlist").map(function (track_in_playlist) {return track_in_playlist.serialize(); }),
+                users: that.get("users").map(function (user_in_party) {return user_in_party.serialize(); }),
+                log: that.get("log").length,
+            };
+        },
+
+        /* returns the object that we want to index in mongo */
+        indexableObject: function () {
+            var that = this;
+            return {
+                _id: that.id,
+                name: that.get("name"),
+                active: that.get("active"),
+                owner: that.get("owner"),
+                created: that.get("created"),
+                last_updated: that.get("last_updated"),
+                track_ids: that.get("playlist").filter(function (track_in_playlist) {return !track_in_playlist.isDeleted(); }).map(function (track_in_playlist) {return track_in_playlist.get("track").id; }),
+                user_ids: that.get("users").filter(function (user_in_party) {return !user_in_party.wasKicked(); }).map(function (user_in_party) {return user_in_party.serialize(); }),
             };
         },
 
@@ -785,7 +880,26 @@ if (typeof exports !== "undefined") {
         
         getDefaultPartyName: function () {
             return PM.current_user.actualUser().get("name").toLowerCase() + "'s party";
-        }
+        },
+
+        unserialize: function (data) {
+            var That = this;
+            var party = new That({
+                id: data._id,
+                name: data.name,
+                active: data.active,
+                owner: data.owner,
+                play_status: data.play_status,
+                current_playlist_index: data.current_playlist_index,
+                current_place_in_track: data.current_place_in_track,
+                created: data.created,
+                last_updated: data.last_updated,
+            });
+            party.get("playlist").add(_.map(data.playlist, function (track_in_playlist_data) {return PM.models.TrackInPlaylist.unserialize(track_in_playlist_data); }));
+            party.get("users").add(_.map(data.users, function (user_in_party_data) {return PM.models.UserInParty.unserialize(user_in_party_data); }));
+            party.get("log").add(_.map(_.range(data.log), function (undefined) {return new PM.models.DummyAction(); }));
+            return party;
+        },
     });
 
     PM.collections.Parties = Backbone.Collection.extend({model: PM.models.Party}, {
