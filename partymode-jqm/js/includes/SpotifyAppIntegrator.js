@@ -167,7 +167,7 @@ window.PM.domain.SpotifyAppIntegrator = window.Toolbox.Base.extend({
 
     isStoppedOrNotPlayingFromApp: function () {
         var that = this;
-        return (that.models.player.context !== that.spotifyPlaylist.uri);
+        return (!that.spotifyPlaylist || that.models.player.context !== that.spotifyPlaylist.uri);
     },
 
     createAndFillPlaylistFromParty: function () {
