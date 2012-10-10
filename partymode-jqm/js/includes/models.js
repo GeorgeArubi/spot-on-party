@@ -356,6 +356,7 @@ if (typeof exports !== "undefined") {
             created: 1,
             user_id: 1,
             party_id: 1,
+            number: 1,
         },
 
         initialize: function (attributes, options) {
@@ -372,7 +373,7 @@ if (typeof exports !== "undefined") {
         },
 
         validateAndApplyAction: function (callback_success, callback_fail) {
-            callback_success = callback_success || function (action) {console.log("new action: " + action.id + " -- " + action.constructor.type); };
+            callback_success = callback_success || function (action) {console.log("new action: " + action.get("number") + " -- " + action.constructor.type); };
             callback_fail = callback_fail || function (reason) {console.warn("creating new action failed: " + reason); };
             var that = this;
             that.prepareValidate(function () {
@@ -384,9 +385,9 @@ if (typeof exports !== "undefined") {
                         return;
                     }
                 }
+                that.set("number", that.party.get("log").length);
                 that.on("change", function () {throw "trying to change an action, which is not allowed"; });
                 that.applyAction();
-                that.id = that.party.get("log").length;
                 that.party.get("log").add(that);
                 callback_success(that);
             });
@@ -403,6 +404,9 @@ if (typeof exports !== "undefined") {
             if (!that.party.isMember(attrs.user_id)) {
                 return "The user is not a member of the party";
             }
+            if (that.get("number") && that.get("number") !== that.party.get("log").length + 1) {
+                return "action has number " + that.get("number") + " but party expects number " + (that.party.get("log").length + 1);
+            }
         },
 
         serialize: function () {
@@ -418,6 +422,17 @@ if (typeof exports !== "undefined") {
             });
         }
     }, {
+        unSerialize: function (data) {
+            var That = this;
+            var ActionClass = _.find(That.__children, function (Action) {return Action.type === data._TYPE; });
+            if (!ActionClass) {
+                throw "No action class found for " + data._TYPE;
+            }
+            var mydata = _.clone(data);
+            delete mydata._TYPE;
+            return new ActionClass(mydata);
+        },
+
         createAction: function (user_or_user_id, party_or_party_id, type, properties) {
             var That = this;
             var ActionClass = _.find(That.__children, function (Action) {return Action.type === type; });
@@ -695,8 +710,8 @@ if (typeof exports !== "undefined") {
         type: "Play",
     });
 
-    /* fields: play_status, current_playlist_index, current_place_in_track */
-    PM.models.PlayStatusFeedback = PM.models.BaseModel.extend({
+    /* perhaps not really an action, but just nicer if it pretends to be one :) */
+    PM.models.PlayStatusFeedbackAction = PM.models.Action.extend({
         _fields: {
             play_status: 1, // one of: play, pause or stop
             current_playlist_index: 1, // in TrackIn_playlist playlist, not spotify playlist
@@ -714,7 +729,22 @@ if (typeof exports !== "undefined") {
             if (attrs.play_status !== "play" && attrs.play_status !== "stop" && attrs.play_status !== "pause") {
                 return "No valid play status: \"" + attrs.play_status + "\"";
             }
-        }
+            if (attrs.play_status === "pause" && !_.isNumber(attrs.current_place_in_track)) {
+                return "Expected a number for current_place_in_track";
+            }
+            if (attrs.play_status === "play" && !_.isDate(attrs.current_place_in_track)) {
+                return "Expected a date for current_place_in_track";
+            }
+        },
+
+        applyAction: function () {
+            var that = this;
+            that.party.set({
+                play_status: that.get("play_status"),
+                current_playlist_index: that.get("current_playlist_index"),
+                current_place_in_track: that.get("current_place_in_track"),
+            });
+        },
     }, {
         type: "PlayStatusFeedback",
     });
@@ -862,12 +892,7 @@ if (typeof exports !== "undefined") {
                 current_playlist_index: current_playlist_index,
                 current_place_in_track: current_place_in_track,
             };
-            var feedback = new PM.models.PlayStatusFeedback(data);
-            that.set(data);
-
-            that.set("play_status");
-
-            that.get('log').add(feedback);
+            PM.models.Action.createAndApplyAction(PM.models.User.getMaster(), that.id, "PlayStatusFeedback", data);
         },
 
         validate: function (attrs) {
