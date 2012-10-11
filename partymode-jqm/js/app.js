@@ -336,16 +336,7 @@ var clutils = window.clutils;
             that.$('#track-search-results').addClass("loading");
             PM.domain.SpotifySpotifyDomain.search(searchtext, function (tracks_data) {
                 var tracks = _.map(tracks_data, function (track_data) {
-                    var track = new PM.models.Track({
-                        _id: track_data.id,
-                        _status: PM.models.BaseModelLazyLoad.LOADED,
-                        name: track_data.name,
-                        artist: track_data.artists.join(", "),
-                        album: track_data.album,
-                        duration: track_data.duration,
-                    });
-                    PM.models.Track.setToCache(track);
-                    return track;
+                    return PM.models.Track.getBySpotifyData(track_data);
                 });
                 if (searchtext !== $(event.target).val()) {
                     // search text changed, not showing old results
@@ -384,14 +375,11 @@ var clutils = window.clutils;
             "click #playlist-placeholder .delete-button": "deleteTrack",
         },
 
-        initialize: function (id) {
+        initialize: function (attributes) {
             var that = this;
             that.overlayView = null;
-            that.party = PM.collections.Parties.getInstance().get(id);
-            if (!that.party) {
-                throw "Party with id " + id + " was not found";
-            }
             that.currentUserbarScrollPosition = 0;
+            that.party_id = attributes.id;
         },
 
         close: function () {
@@ -400,6 +388,7 @@ var clutils = window.clutils;
             that.party.get("users").off("add", that.updateUserBar, that);
             that.party.get("users").off("change", that.updateUserBar, that);
             PM.domain.SpotifyAppIntegrator.stopParty(that.party);
+            PM.collections.Parties.getInstance().remove(that.party); //if we leave the party, in theory it could continue somewhere else so we want to load it again then
         },
 
         addOverlayView: function (overlayView) {
@@ -424,16 +413,34 @@ var clutils = window.clutils;
 
         render: function (target) {
             var that = this;
-            that.$el.html(that.template());
-            target.html(that.$el);
-            if (that.party.shouldShowInviteFriendsOnOpen()) {
-                that.inviteUsers();
+            var doRender = function () {
+                that.$el.html(that.template());
+                target.html(that.$el);
+                if (that.party.shouldShowInviteFriendsOnOpen()) {
+                    that.inviteUsers();
+                }
+                that.updateUserBar();
+                that.party.get("users").on("add", that.updateUserBar, that);
+                that.party.get("users").on("change", that.updateUserBar, that);
+                var playlistNode = PM.domain.SpotifyAppIntegrator.startPartyReturnHtmlNode(that.party);
+                if (that.party.get("play_status") === "play") {
+                    that.party.trigger("playcommand", "play", that.party.get("current_playlist_index"));
+                } else {
+                    that.party.trigger("playcommand", "pause");
+                }
+                that.$('#playlist-placeholder').html(playlistNode);
+            };
+            that.party = PM.collections.Parties.getInstance().get(that.party_id);
+            if (that.party) {
+                doRender();
+            } else {
+                PM.domain.PartyNodeDomain.getOwnParty(that.party_id, function (party_data) {
+                    that.party = PM.models.Party.unserialize(party_data);
+                    PM.collections.Parties.getInstance().add(that.party);
+                    that.party.shareNewActions();
+                    doRender();
+                });
             }
-            that.updateUserBar();
-            that.party.get("users").on("add", that.updateUserBar, that);
-            that.party.get("users").on("change", that.updateUserBar, that);
-            var playlistNode = PM.domain.SpotifyAppIntegrator.startPartyReturnHtmlNode(that.party);
-            that.$('#playlist-placeholder').html(playlistNode);
             return that;
         },
 
@@ -455,12 +462,18 @@ var clutils = window.clutils;
                 var el = elementsmap[user.id];
                 delete elementsmap[user.id];
                 if (!el) {
-                    el = $('<li><img class="icon"><div class="kick hoverdata"></div><div class="name hoverdata"></li>');
+                    el = $('<li><img class="icon"><div class="kick hoverdata"></div><div class="name loading hoverdata"></li>');
                     el[0].user = user;
                     that.$('#users-bar > ul').append(el);
                 }
                 el.find("img.icon").attr("src", user.getProfilePictureUrl());
-                el.find(".name").text(user.get("name"));
+                var nameel = el.find(".name");
+                user.onLoaded(function () {
+                    nameel.removeClass("loading");
+                    nameel.text(user.get("name"));
+                });
+                el[0].addEventListener("DOMNodeInsertedIntoDocument", function () {console.log("element inserted"); });
+                $(el).on("DOMNodeRemovedFromDocument", function () {console.log("element removed"); });
                 el.toggleClass("owner", that.party.isOwner(user.id));
                 if (user_in_party.get("ts_last_action") !== el[0].last_ts_last_action) {
                     el[0].last_ts_last_action = user_in_party.get("ts_last_action");
@@ -614,6 +627,7 @@ var clutils = window.clutils;
     PM.app = new AppRouter();
 
     $(function () {
+        PM.domain.SpotifyDomain = PM.domain.SpotifySpotifyDomain;
         PM.domain.FacebookDomain = PM.domain.FacebookSpotifyDomain;
         PM.domain.FacebookDomain.init();
         Backbone.history.start();

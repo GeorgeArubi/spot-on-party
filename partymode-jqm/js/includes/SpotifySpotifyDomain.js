@@ -31,7 +31,7 @@ window.PM.domain.SpotifySpotifyDomain = window.Toolbox.Base.extend({ //strange n
         search.observe(that.models.EVENT.CHANGE, function () {
             var datas = _.map(search.tracks, function (sptrack) {
                 var data = {
-                    id: sptrack.data.uri,
+                    _id: sptrack.data.uri,
                     name: sptrack.data.name.decodeForText(),
                     artists: _.map(sptrack.data.artists, function (artist) {return artist.name.decodeForText(); }),
                     album: sptrack.data.album.name.decodeForText(),
@@ -46,9 +46,15 @@ window.PM.domain.SpotifySpotifyDomain = window.Toolbox.Base.extend({ //strange n
 
     lookup: function (uri, callback) {
         var that = this;
-        that.models.Track.fromURI(uri, function (result) {
-            console.log("Spotify lookup: ", uri, result.data);
-            callback(result.data);
+        that.models.Track.fromURI(uri, function (sptrack) {
+            var data = {
+                _id: sptrack.data.uri,
+                name: sptrack.data.name.decodeForText(),
+                artists: _.map(sptrack.data.artists, function (artist) {return artist.name.decodeForText(); }),
+                album: sptrack.data.album.name.decodeForText(),
+                duration: sptrack.data.duration,
+            };
+            callback(data);
         });
     },
 });

@@ -70,6 +70,14 @@ if (typeof exports !== "undefined") {
             };
         },
 
+        /*
+         * returns party_data
+         */
+        getOwnParty: function (party_id, callback) {
+            var that = this;
+            that.socket.emit("get own party", party_id, that.callbackCatchError(callback));
+        },
+
         shareAction: function (action_data, callback) {
             var that = this;
             that.socket.emit("share action", action_data, that.callbackCatchError(callback));

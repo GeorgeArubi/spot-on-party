@@ -47,23 +47,36 @@ window.PM.domain.SpotifyAppIntegrator = window.Toolbox.Base.extend({
                 if (track_in_playlist.isDeleted()) {
                     $(addedby.parent()).addClass("deleted");
                     $(addedby.parent()).removeClass("sp-track-selected");
-                    addedby.text("deleted by: " + track_in_playlist.getDeletedByUser().get("name"));
+                    track_in_playlist.getDeletedByUser().onLoaded(function (user) {
+                        addedby.text("deleted by: " + user.get("name"));
+                    });
                 } else {
-                    addedby.text(track_in_playlist.getUser().get("name"));
+                    track_in_playlist.getUser().onLoaded(function (user) {
+                        addedby.text(user.get("name"));
+                    });
                 }
+                track_in_playlist.getTrack().onLoaded(_.bind(that.updateExpectedPlayTimes, that));
 
             }, this), 1);
-            that.throttledUpdateExpectedPlayTimes();
         };
         that.myTrackView.prototype = that.views.Track.prototype;
     },
 
-    throttledUpdateExpectedPlayTimes: _.debounce(function () {
+    updateExpectedPlayTimes: _.debounce(function () {
         var that = this;
-        that.updateExpectedPlayTimes();
+        if (that.updateExpectedPlayTimesTimer) {
+            clearTimeout(that.updateExpectedPlayTimesTimer);
+        }
+        that.updateExpectedPlayTimesTimeout = 100;
+        var toExecute = function () {
+            that.updateExpectedPlayTimesTimer = setTimeout(toExecute, that.updateExpectedPlayTimesTimeout);
+            that.updateExpectedPlayTimesTimeout *= 4;
+            that.updateExpectedPlayTimesWorker();
+        };
+        toExecute();
     }, 1),
 
-    updateExpectedPlayTimes: function () {
+    updateExpectedPlayTimesWorker: function () {
         var that = this;
         var expectedplaytimes = $('#playlist-placeholder .expectedplaytime');
         
@@ -132,7 +145,6 @@ window.PM.domain.SpotifyAppIntegrator = window.Toolbox.Base.extend({
             that.onPartyPlayStarted(that.models.player.index);
         }
         that.updateExpectedPlayTimes();
-        _.delay(function () {that.updateExpectedPlayTimes(); }, 2000); //after a real "stop" it may take some time before we're actually playing again
     }, 50),
 
     stopParty: function (party) {
@@ -178,7 +190,7 @@ window.PM.domain.SpotifyAppIntegrator = window.Toolbox.Base.extend({
     createAndFillPlaylistFromParty: function () {
         var that = this;
         that.spotifyPlaylist = new that.models.Playlist();
-        _.each(that.activeParty.get("playlist"), function (track_in_playlist) {
+        that.activeParty.get("playlist").each(function (track_in_playlist) {
             that.addPlaylistItem(track_in_playlist);
         });
     },

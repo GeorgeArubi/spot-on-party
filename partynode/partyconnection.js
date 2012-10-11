@@ -30,6 +30,7 @@ var partyconnection = exports;
         listen: function () {
             var that = this;
             that.setupListen("share action");
+            that.setupListen("get own party");
             that.setupListen("update token");
         },
 
@@ -55,7 +56,7 @@ var partyconnection = exports;
         },
         "share action constraints": {
             party_id: {
-                _isString: true
+                _isUniqueId: true
             },
             _TYPE: {
                 _isString: true
@@ -81,6 +82,19 @@ var partyconnection = exports;
         },
         "update token constraints": {
             _matches: /^[A-Za-z0-9]{10,200}$/
+        },
+
+        "get own party": function (party_id, callback) {
+            var that = this;
+            that.loadParty(party_id, function (party) {
+                if (party.get("owner_id") !== that.user_id) {
+                    throw "Party with id " + party_id + "not found";
+                }
+                callback(party.serialize());
+            });
+        },
+        "get own party constraints": {
+            _isUniqueId: true
         },
 
         setupListen: function (name) {

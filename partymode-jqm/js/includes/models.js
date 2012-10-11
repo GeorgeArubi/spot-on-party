@@ -120,6 +120,26 @@ if (typeof exports !== "undefined") {
             }
         },
 
+        /*
+         * calls exactly once: when the item is loaded. Afterwards (or if it will never reach the loaded state), the reference to the callback is destroyed
+         */
+        onLoaded: function (callback) {
+            var that = this;
+            var toExecute = function () {
+                switch (that.get("_status")) {
+                case that.constructor.LOADED:
+                    callback(that);
+                    that.off("change:_status", toExecute);
+                    break;
+                case that.constructor.ERROR:
+                    that.off("change:_status", toExecute);
+                    break;
+                }
+            };
+            that.on("change:_status", toExecute);
+            toExecute();
+        },
+
         lazyLoad: function () {
             var that = this;
             console.error("Should lazy-load: " + that.id);
@@ -133,39 +153,22 @@ if (typeof exports !== "undefined") {
 
         _cache: {},
 
-        getById: function (id, loaded_callback, error_callback) {
+        getById: function (id) {
             var That = this;
             if (!That.getFromCache(id)) {
                 That.setToCache(new That({_id: id}));
             }
-            var object = That.getFromCache(id);
-            var checkloaded;
-            checkloaded = function () {
-                if (object.get("_status") === That.LOADED) {
-                    object.off("change", checkloaded);
-                    if (_.isFunction(loaded_callback)) {
-                        loaded_callback(object);
-
-                    }
-                } else if (object.get("_status") === That.ERROR) {
-                    object.off("change", checkloaded);
-                    if (_.isFunction(error_callback)) {
-                        error_callback(object);
-                    }
-                }
-            };
-            if (_.isFunction(loaded_callback) || _.isFunction(error_callback)) {
-                object.on("change:_status", checkloaded);
-            }
-            return object;
+            return That.getFromCache(id);
         },
 
         getFromCache: function (id) {
             var That = this;
-            return That._cache[id];
+            if (!That._cache[That.type]) {
+                return undefined;
+            }
+            return That._cache[That.type][id];
         },
 
-        //TODO figure out if That._cache is shared by all BaseModelLazyLoads
         setToCache: function (object) {
             var That = this;
             if (!object instanceof That) {
@@ -175,7 +178,16 @@ if (typeof exports !== "undefined") {
             if (!object.id) {
                 throw "Object doesn't have a valid id: " + object.id;
             }
-            That._cache[object.id] = object;
+            if (!That._cache[That.type]) {
+                That._cache[That.type] = {};
+            }
+            var cached_object = That.getFromCache(object.id);
+            if (cached_object) {
+                //update the cached object instead of inserting a new one
+                cached_object.set(object.attributes);
+            } else {
+                That._cache[That.type][object.id] = object;
+            }
         },
 
     });
@@ -196,9 +208,30 @@ if (typeof exports !== "undefined") {
             return PM.domain.FacebookDomain.getProfilePictureUrl(that.id);
         },
 
+        lazyLoad: function () {
+            var that = this;
+            that.set("_status", that.constructor.LOADING);
+            that.constructor.queueToLazyLoad.push(that.id);
+            that.constructor.lazyLoadQueuedIds();
+            _.delay(function () {
+                if (that.get("_status") !== that.constructor.LOADED) {
+                    that.set("_status", that.constructor.ERROR);
+                }
+            }, 30000);
+        },
+
     }, {
         type: "User",
         MASTER_ID: "master",
+        queueToLazyLoad: [],
+
+        lazyLoadQueuedIds: _.debounce(function () {
+            var That = this;
+            console.log("started");
+            PM.domain.FacebookDomain.lookupUsers(That.queueToLazyLoad, function (users_data) {
+                _.each(users_data, function (user_data) {That.getByFacebookData(user_data); });
+            });
+        }, 50),
 
         getByFacebookData: function (facebookdata) {
             var That = this;
@@ -287,8 +320,29 @@ if (typeof exports !== "undefined") {
             album: "",
             duration: "",
         },
+
+        lazyLoad: function () {
+            var that = this;
+            that.set("_status", that.constructor.LOADING);
+            PM.domain.SpotifyDomain.lookup(that.id, function (track_data) {
+                that.constructor.getBySpotifyData(track_data);
+            });
+            _.delay(function () {
+                if (that.get("_status") !== that.constructor.LOADED) {
+                    that.set("_status", that.constructor.ERROR);
+                }
+            }, 30000);
+        },
+
     }, {
         type: "Track",
+
+        getBySpotifyData: function (track_data) {
+            var That = this;
+            var track = new That(_.extend({_status: That.LOADED, artist: track_data.artists.join(", ")}, _.omit(track_data, "artists")));
+            That.setToCache(track);
+            return track;
+        },
     });
 
     PM.models.TrackInPlaylist = PM.models.BaseModel.extend({
@@ -794,7 +848,11 @@ if (typeof exports !== "undefined") {
         type: "PlayStatusFeedback",
     });
 
-    PM.models.DummyAction = PM.models.Action.extend();
+    PM.models.DummyAction = PM.models.Action.extend({
+        initialize: function () {},
+    }, {
+        type: "Dummy",
+    });
 
     PM.collections.Playlist = Backbone.Collection.extend({model: PM.models.TrackInPlaylist});
     PM.collections.UsersInParty = Backbone.Collection.extend({model: PM.models.UserInParty});
@@ -955,10 +1013,10 @@ if (typeof exports !== "undefined") {
         unserialize: function (data) {
             var That = this;
             var party = new That({
-                id: data._id,
+                _id: data._id,
                 name: data.name,
                 active: data.active,
-                owner: data.owner,
+                owner_id: data.owner_id,
                 play_status: data.play_status,
                 current_playlist_index: data.current_playlist_index,
                 current_place_in_track: data.current_place_in_track,
