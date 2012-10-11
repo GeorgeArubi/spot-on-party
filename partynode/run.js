@@ -16,7 +16,7 @@
     var db_error_domain = domain.create();
 
     db_error_domain.on("error", function (er) {
-        winston.error("Error with database connection: " + er);
+        winston.error("Error with database connection: " + er + "\n" + er.stack);
     });
 
 
@@ -34,13 +34,13 @@
                 throw "DB authentication denied";
             }
             var db_collections = {
-                parties: new mongodb.Collection(db, "parties"),
                 actions: new mongodb.Collection(db, "actions"),
             };
 
-
+            io.set("authorization", partyconnection.Connection.authorize);
             io.sockets.on('connection', function (socket) {
-                (new partyconnection.Connection(socket, db_collections, db_error_domain)).listenForLogin();
+                var connection = new socket.handshake.partynode.ConnectionClass(socket, db_collections, db_error_domain, socket.handshake.partynode);
+                connection.listen();
             });
 
         }));

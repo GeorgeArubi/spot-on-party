@@ -15,14 +15,57 @@ var partyconnection = exports;
     var winston = require("winston");
 
     partyconnection.Connection = Toolbox.Base.extend({
-        initialize: function (socket, db_collections, db_error_domain) {
+        initialize: function (socket, db_collections, db_error_domain, partynode_data) {
             var that = this;
             that.error = false;
             that.queue = [];
             that.socket = socket;
             that.db_collections = db_collections;
             that.db_error_domain = db_error_domain;
-            that.log("info", "New connection from " + socket.handshake.address.address + ":" + socket.handshake.address.port);
+            that.user_id = partynode_data.user_id;
+            that.username = partynode_data.username;
+            that.log("info", "New master connection from " + socket.handshake.address.address + ":" + socket.handshake.address.port + " user " + that.username + "(" + that.user_id + ")");
+        },
+
+        listen: function () {
+            var that = this;
+            that.setupListen("share action");
+        },
+
+        "share action": function (action_data, callback) {
+            var that = this;
+            that.loadParty(action_data.party_id, function (party) {
+                if (party.get("log").length === 0) {
+                    clutils.checkConstraints(action_data._TYPE, {_is: PM.models.InitializeAction.type});
+                } else if (!party.isOwner(that.user_id)) {
+                    throw "Not party's owner";
+                }
+                var action = PM.models.Action.unserializeFromTrusted(action_data, party);
+                try {
+                    action.applyValidatedAction();
+                    that.db_collections.actions.insert(action.serialize(), that.db_error_domain.intercept(function () {
+                        callback(true);
+                    }));
+                } catch (error) {
+                    throw "Error: party " + party.id + ", applying action " + action.get("number") + " failed: " + error.toString() + "\n" + error.stack;
+                }
+            });
+        },
+        "share action constraints": {
+            party_id: {
+                _isString: true
+            },
+            _TYPE: {
+                _isString: true
+            },
+            _strict: false
+        },
+
+        setupListen: function (name) {
+            var that = this;
+            var handler = _.bind(that[name], that);
+            var constraints = that[name + " constraints"];
+            that.socket_action(name, constraints, handler);
         },
 
         /**
@@ -30,9 +73,8 @@ var partyconnection = exports;
          * Attaches the error domain
          * Makes sure the next message only is handled when the previous one has been received
          */
-        socket_action: function (type, constraints, handler, bind_method) {
+        socket_action: function (type, constraints, handler) {
             var that = this;
-            bind_method = bind_method || "on";
             var new_handler = function (data, callback) {
                 var my_callback = function () {
                     if (callback) {
@@ -61,7 +103,7 @@ var partyconnection = exports;
                     handler(data, my_callback);
                 });
             };
-            that.socket[bind_method](type, function () {
+            that.socket.on(type, function () {
                 var args = arguments;
                 that.queue.push(function () {new_handler.apply(that, args); });
                 if (that.queue.length === 1) {
@@ -76,55 +118,9 @@ var partyconnection = exports;
             winston.log(severity, that.socket.id + ": " + message, metadata);
         },
 
-        listenForLogin: function () {
-            var that = this;
-            var constraint = {
-                token: {
-                    _isString: true,
-                    _matches: /^[A-Za-z0-9]{10,200}$/
-                },
-                master: {
-                    _isBoolean: true
-                }
-            };
-            that.socket_action("login", constraint, function (data, callback) {
-                var token = data.token;
-                var url = "https://graph.facebook.com/me?fields=id%2Cname&access_token=" + encodeURIComponent(token);
-                request.get(url, function (error, undefined /*response*/, json) {
-                    if (error) {
-                        throw error;
-                    }
-                    var object = JSON.parse(json);
-                    if (!object.id) {
-                        throw "No valid response: " + json;
-                    }
-                    that.user_id = parseInt(object.id, 10);
-                    if (data.master) {
-                        that.listenMaster();
-                        that.log("info", "User \"" + object.name + "\" (" + that.user_id + ") loggedin in as master");
-                    } else {
-                        that.listenClient();
-                        that.log("info", "User \"" + object.name + "\" (" + that.user_id + ") loggedin in");
-                    }
-                    callback(true);
-                });
-            }, "once");
-
-        },
-
         listenMaster: function () {
             var that = this;
             
-            /* returns party_id */
-            that.socket_action("create new party", {_isNull: true}, function (undefined, callback) {
-                var party_data = {owner_id: that.user_id, _id: clutils.getUniqueId()};
-                that.db_collections.parties.insert(party_data, that.db_error_domain.intercept(function () {
-                    var party = new PM.models.Party(party_data);
-                    PM.collections.Parties.getInstance().add(party);
-                    callback(party.id);
-                }));
-            });
-
             var constraints = {
                 party_id: {
                     _isString: true
@@ -136,13 +132,13 @@ var partyconnection = exports;
             };
             that.socket_action("share action", constraints, function (action_data, callback) {
                 that.loadParty(action_data.party_id, function (party) {
-                    if (!party || !party.isOwner(that.user_id)) {
-                        throw "Party cannot be found";
+                    if (party.get("log").length === 0) {
+                        clutils.checkConstraints(action_data._TYPE, {_is: PM.models.InitializeAction.type});
+                    } else if (!party.isOwner(that.user_id)) {
+                        throw "Not party's owner";
                     }
-                    var action = PM.models.Action.unserializeFromTrusted(action_data);
-                    action.party = party;
+                    var action = PM.models.Action.unserializeFromTrusted(action_data, party);
                     try {
-                        console.log(action.get("created"));
                         action.applyValidatedAction();
                         that.db_collections.actions.insert(action.serialize(), that.db_error_domain.intercept(function () {
                             callback(true);
@@ -161,31 +157,65 @@ var partyconnection = exports;
                 callback(party);
                 return;
             }
-            var pcursor = that.db_collections.parties.find({_id: party_id});
-            pcursor.nextObject(that.db_error_domain.intercept(function (object) {
-                if (object) {
-                    party = new PM.models.Party(object);
-                    PM.collections.Parties.getInstance().add(party);
-                    var acursor = that.db_collections.actions.find({party_id: party.id}, {sort: ["number", 1]});
-                    acursor.each(that.db_error_domain.intercept(function (action_data) {
-                        if (!action_data) {
-                            //all action data has been loaded
-                            callback(party);
-                        }
-                        var action = PM.models.Action.unserializeFromTrusted(action_data);
-                        action.party = party;
-                        action.validateAndApplyAction(function () {}, function (error) {
-                            throw "Error while loading party " + party.id + ", applying action " + action.get("number") + " failed: " + error;
-                        });
-                    }));
+            party = new PM.models.Party({_id: party_id});
+            PM.collections.Parties.getInstance().add(party);
+            var acursor = that.db_collections.actions.find({party_id: party.id}, {sort: {"number": 1}});
+            acursor.each(that.db_error_domain.intercept(function (action_data) {
+                if (action_data) {
+                    var action = PM.models.Action.unserializeFromTrusted(action_data, party);
+                    action.applyValidatedAction();
                 } else {
-                    callback(null);
+                    //all action data has been loaded, we're done
+                    callback(party);
                 }
             }));
-
         },
 
     }, {
 
+        authorize: function (handshakeData, callback) {
+            var constraint = {
+                token: {
+                    _isString: true,
+                    _matches: /^[A-Za-z0-9]{10,200}$/
+                },
+                master: {
+                    _matches: /^[01]$/,
+                },
+                t: {
+                    _isTimestamp: true,
+                },
+            };
+            var handshake_domain = domain.create();
+            handshake_domain.on("error", function (er) {
+                winston.log("info", "login failed from " + handshakeData.address.address + " with data " + JSON.stringify(handshakeData.query));
+                callback(er, false);
+            });
+            handshake_domain.run(function () {
+                clutils.checkConstraints(handshakeData.query, constraint);
+                var token = handshakeData.query.token;
+                var url = "https://graph.facebook.com/me?fields=id%2Cname&access_token=" + encodeURIComponent(token);
+                request.get(url, function (error, undefined /*response*/, json) {
+                    if (error) {
+                        throw error;
+                    }
+                    var object = JSON.parse(json);
+                    if (!object.id) {
+                        throw "No valid response: " + json;
+                    }
+                    handshakeData.partynode = {
+                        user_id: parseInt(object.id, 10),
+                        username: object.name,
+                    };
+                    if (handshakeData.query.master) {
+                        handshakeData.partynode.ConnectionClass = partyconnection.Connection;
+                    } else {
+                        throw "no not-master connect yet";
+                    }
+                    callback(null, true);
+                });
+            });
+
+        },
     });
 })();

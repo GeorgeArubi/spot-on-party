@@ -1,4 +1,4 @@
-/*jshint*/
+/*jshint browser: true*/
 /*global require, exports*/
 
 var root = this;
@@ -34,12 +34,12 @@ if (typeof exports !== "undefined") {
     }, {
         HOST: "http://tiggr.local:8081/", //TODO research HTTPS
 
-        init: function () {
+        connect: function (token, master) {
             var that = this;
-            that.socket = io.connect(that.HOST);
+            var url = that.HOST + '?token=' + encodeURIComponent(token) + '&master=' + (master ? 1 : 0);
+            that.socket = io.connect(url);
             that.socket.on("connect", function () {
-                console.log("connect");
-                that.trigger("connect"); //TODO: supposedly there is a problem with reconnection, sometimes it blocks
+                console.log("connected to backend");
             });
         },
 
@@ -66,16 +66,10 @@ if (typeof exports !== "undefined") {
             }));
         },
 
-        createNewParty: function (callback) {
-            var that = this;
-            that.socket.emit("create new party", null, that.callbackCatchError(callback));
-        },
-
         shareAction: function (action_data, callback) {
             var that = this;
             that.socket.emit("share action", action_data, that.callbackCatchError(callback));
         },
     });
     _.extend(PM.domain.PartyNodeDomain, Backbone.Events);
-    PM.domain.PartyNodeDomain.init();
 })();

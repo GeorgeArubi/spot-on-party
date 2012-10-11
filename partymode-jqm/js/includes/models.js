@@ -231,7 +231,7 @@ if (typeof exports !== "undefined") {
             joined: 1,
             created: 1,
             deleted: 1,
-            active: 1,
+            ts_last_action: 1,
         },
         
         defaults: function () {
@@ -258,7 +258,7 @@ if (typeof exports !== "undefined") {
             if (!(clutils.isTimestamp(attrs.created))) {
                 return "Created needs to be a date " + JSON.stringify(attrs.created);
             }
-            if (!(clutils.isTimestamp(attrs.active))) {
+            if (!(clutils.isTimestamp(attrs.ts_last_action))) {
                 return "Active needs to be a date";
             }
             if (!(clutils.isTimestamp(attrs.joined) || _.isNull(attrs.joined))) {
@@ -268,7 +268,7 @@ if (typeof exports !== "undefined") {
         
         didAction: function (when) {
             var that = this;
-            that.set("active", when);
+            that.set("ts_last_action", when);
         }
     }, {
         type: "UserInParty",
@@ -373,7 +373,10 @@ if (typeof exports !== "undefined") {
             that.set({
                 user_id: options.user_id, // no default, just overwrite it
             }, {silent: true});
-            that.party = PM.collections.Parties.getInstance().get(that.get("party_id"));
+            that.party = options.party;
+            if (that.get("party_id") !== that.party.id) {
+                throw "action is not for the provided party";
+            }
         },
 
         prepareValidate: function (callback) {
@@ -428,7 +431,7 @@ if (typeof exports !== "undefined") {
             return _.extend({_TYPE: that.constructor.type}, that.serializeAllButId());
         }
     }, {
-        unserializeFromTrusted: function (data) {
+        unserializeFromTrusted: function (data, party) {
             var That = this;
             var ActionClass = _.find(That.__children, function (Action) {return Action.type === data._TYPE; });
             if (!ActionClass) {
@@ -436,26 +439,52 @@ if (typeof exports !== "undefined") {
             }
             var mydata = _.clone(data);
             delete mydata._TYPE;
-            return new ActionClass(mydata, {user_id: mydata.user_id});
+            return new ActionClass(mydata, {user_id: mydata.user_id, party: party});
         },
 
-        createAction: function (user_or_user_id, party_or_party_id, type, properties) {
+        createAction: function (user_or_user_id, party, type, properties) {
             var That = this;
             var ActionClass = _.find(That.__children, function (Action) {return Action.type === type; });
             if (!ActionClass) {
                 throw "No action class found for " + type;
             }
             var user_id = _.isObject(user_or_user_id) ? user_or_user_id.id : user_or_user_id;
-            var party_id = _.isObject(party_or_party_id) ? party_or_party_id.id : party_or_party_id;
-            return new ActionClass(_.extend({party_id: party_id}, properties || {}), {user_id: user_id});
+            return new ActionClass(_.extend({party_id: party.id}, properties || {}), {user_id: user_id, party: party});
         },
 
-        createAndApplyAction: function (user_or_user_id, party_or_party_id, type, properties, success_callback, failure_callback) {
+        createAndApplyAction: function (user_or_user_id, party, type, properties, success_callback, failure_callback) {
             var That = this;
-            var action = That.createAction(user_or_user_id, party_or_party_id, type, properties);
+            var action = That.createAction(user_or_user_id, party, type, properties);
             action.validateAndApplyAction(success_callback, failure_callback);
         }
     });
+
+    PM.models.InitializeAction = PM.models.Action.extend({
+        _fields: {
+            owner_id: 1,
+        },
+
+        validate: function (attrs) {
+            var that = this;
+            if (that.party.get("log").length > 0) {
+                return "Can only initialize new party";
+            }
+            return that.constructor.__super__.validate.call(that, attrs);
+        },
+
+        applyActionToParty: function () {
+            var that = this;
+            that.party.set({
+                owner_id: that.get("owner_id"),
+                created: that.get("created"),
+                last_updated: that.get("created"),
+                active: true,
+            });
+        },
+    }, {
+        type: "Initialize",
+    });
+
 
     PM.models.ChangeNameAction = PM.models.Action.extend({
         _fields: {
@@ -527,8 +556,9 @@ if (typeof exports !== "undefined") {
             that.party.get("users").add(new PM.models.UserInParty({
                 user_id: that.get("invited_user_id"),
                 created: that.get("created"),
-                active: that.get("created"),
+                ts_last_action: that.get("created"),
             }));
+            that.party.set("last_updated", that.get("created"));
         },
     }, {
         type: "Invite",
@@ -560,7 +590,8 @@ if (typeof exports !== "undefined") {
             var that = this;
             var kicked_user_id = that.get("kicked_user_id");
             var record = that.party.getMemberRecord(kicked_user_id); //NOTE: validation guarantees that there is a record here
-            record.set({deleted: that.get("created"), joined: null}); //obviously not setting "active"
+            record.set({deleted: that.get("created"), joined: null}); //obviously not setting "ts_last_action"
+            that.party.set("last_updated", that.get("created"));
         },
     }, {
         type: "Kick",
@@ -578,8 +609,10 @@ if (typeof exports !== "undefined") {
         applyActionToParty: function () {
             var that = this;
             var record = that.party.getMemberRecord(that.get("user_id")); //NOTE: validation guarantees that there is a record here
-            record.set({"joined": that.get("created"), active: that.get("created")});
+            record.set({"joined": that.get("created"), ts_last_action: that.get("created")});
         },
+    }, {
+        type: "Join",
     });
 
     PM.models.LeaveAction = PM.models.Action.extend({
@@ -595,10 +628,10 @@ if (typeof exports !== "undefined") {
         applyActionToParty: function () {
             var that = this;
             var record = that.party.getMemberRecord(that.get("user_id")); //NOTE: validation guarantees that there is a record here
-            record.set("joined", null); //obviously not setting "active"
+            record.set("joined", null); //obviously not setting "ts_last_action"
         },
     }, {
-        type: "Join",
+        type: "Leave",
     });
 
     PM.models.TrackAddAction = PM.models.Action.extend({
@@ -647,6 +680,7 @@ if (typeof exports !== "undefined") {
             }));
 
             that.party.getMemberRecord(that.get("user_id")).didAction(that.get("created"));
+            that.party.set("last_updated", that.get("created"));
             if (that.party.get("play_status") === "stop") {
                 that.party.trigger("playcommand", "play", playlist.length - 1);
             }
@@ -678,6 +712,7 @@ if (typeof exports !== "undefined") {
             playlist.at(that.get("position")).set({
                 deleted_by_user_id: that.get("user_id")
             });
+            that.party.set("last_updated", that.get("created"));
             if (that.party.get("current_playlist_index") === that.get("position")) {
                 that.party.trigger("playcommand", "play_next");
             }
@@ -792,8 +827,8 @@ if (typeof exports !== "undefined") {
                 play_status: "stop", //or "play" or "pause",
                 current_playlist_index: -1,
                 current_place_in_track: null, //when paused, contains ms after track start, when playing contains date when this song would have started had it been played in whole
-                created: clutils.nowts(),
-                last_updated: clutils.nowts(),
+                created: null,
+                last_updated: null,
             };
         },
 
@@ -830,15 +865,6 @@ if (typeof exports !== "undefined") {
             };
         },
 
-        initialize: function () {
-            var that = this;
-            that.get("log").on("add", function (action) {
-                if (clutils.isTimestamp(action.get("created"))) {
-                    that.set("last_updated", action.get("created"));
-                }
-            });
-        },
-
         getMemberRecord: function (user_or_user_id) {
             var that = this;
             var user_id_to_check = (_.isObject(user_or_user_id) ? user_or_user_id.id : user_or_user_id);
@@ -859,7 +885,7 @@ if (typeof exports !== "undefined") {
             var that = this;
             return _.chain(that.get("users").toArray())
                 .filter(function (user_in_party) {return _.isNull(user_in_party.get("deleted")); })
-                .sortBy(function (user_in_party) {return user_in_party.get("active"); })
+                .sortBy(function (user_in_party) {return user_in_party.get("ts_last_action"); })
                 .reverse()
                 .value();
         },
@@ -876,13 +902,9 @@ if (typeof exports !== "undefined") {
             return PM.models.User.MASTER_ID === user_id_to_check || that.get("owner_id") === user_id_to_check;
         },
 
-        /**
-         * sort of subjective idea of whether a party is new...
-         */
-        isNew: function () {
+        shouldShowInviteFriendsOnOpen: function () {
             var that = this;
-            return (that.get("log").length < 3 && //new party has changename and invite of owner action
-                    (clutils.nowts() - that.get("created") < 60)); //created less than one minute ago
+            return that.get("users").length === 1 && that.get("playlist").length === 0;
         },
 
         /**
@@ -890,7 +912,7 @@ if (typeof exports !== "undefined") {
           **/
         createAndApplyMasterAction: function (type, properties, success_callback, failure_callback) {
             var that = this;
-            PM.models.Action.createAndApplyAction(PM.models.User.MASTER_ID, that.id, type, properties, success_callback, failure_callback);
+            PM.models.Action.createAndApplyAction(PM.models.User.MASTER_ID, that, type, properties, success_callback, failure_callback);
         },
 
         applyPlayStatusFeedback: function (play_status, current_playlist_index, current_place_in_track) {
@@ -900,7 +922,7 @@ if (typeof exports !== "undefined") {
                 current_playlist_index: current_playlist_index,
                 current_place_in_track: current_place_in_track,
             };
-            PM.models.Action.createAndApplyAction(PM.models.User.MASTER_ID, that.id, "PlayStatusFeedback", data);
+            PM.models.Action.createAndApplyAction(PM.models.User.MASTER_ID, that, "PlayStatusFeedback", data);
         },
 
         validate: function (attrs) {

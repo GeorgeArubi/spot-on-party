@@ -3,7 +3,7 @@
 if (!window.PM) {
     window.PM = {};
 }
-
+var clutils = window.clutils;
 
 (function (PM, Backbone, $, _) {
     "use strict";
@@ -37,15 +37,10 @@ if (!window.PM) {
                 if (loggedin) {
                     PM.domain.FacebookDomain.getLoggedinUserData(function (facebookdata) {
                         PM.app.loggedin_user = PM.models.User.getByFacebookData(facebookdata);
-                        var logintobackend = function (callback) {
-                            PM.domain.FacebookDomain.getAccessToken(function (accessToken) {
-                                PM.domain.PartyNodeDomain.loginAsMaster(accessToken, function () {
-                                    (callback || function () {})();
-                                });
-                            });
-                        };
-                        PM.domain.PartyNodeDomain.on("connect", logintobackend);
-                        logintobackend(function () {checkFacebookLogin(loggedincode); });
+                        PM.domain.FacebookDomain.getAccessToken(function (accessToken) {
+                            PM.domain.PartyNodeDomain.connect(accessToken, true);
+                            checkFacebookLogin(loggedincode);
+                        });
                     });
                 } else {
                     PM.app.navigate("", {trigger: true});
@@ -106,29 +101,33 @@ if (!window.PM) {
             if (party_name === "") {
                 party_name = PM.models.Party.getDefaultPartyName(PM.app.loggedin_user);
             }
-            PM.domain.PartyNodeDomain.createNewParty(function (party_id) {
-                var party = new PM.models.Party({
-                    _id: party_id,
-                    owner_id: PM.app.loggedin_user.id,
-                });
+            var party_id = clutils.getUniqueId();
+            var party = new PM.models.Party({
+                _id: party_id,
+            });
 
-                PM.collections.Parties.getInstance().add(party);
-                party.shareNewActions();
+            PM.collections.Parties.getInstance().add(party);
+            party.shareNewActions();
 
-                party.createAndApplyMasterAction(
+            party.createAndApplyMasterAction(
+                "Initialize",
+                {owner_id: PM.app.loggedin_user.id},
+                function () {
+                    party.createAndApplyMasterAction(
                         "ChangeName",
                         {name: party_name},
                         function () {
-                        party.createAndApplyMasterAction(
-                            "Invite",
-                            {invited_user_id: PM.app.loggedin_user.id},
-                            function () {
-                                PM.app.navigate("party/" + party.id, {trigger: true});
-                            }
-                        );
-                    }
-                );
-            });
+                            party.createAndApplyMasterAction(
+                                "Invite",
+                                {invited_user_id: PM.app.loggedin_user.id},
+                                function () {
+                                    PM.app.navigate("party/" + party.id, {trigger: true});
+                                }
+                            );
+                        }
+                    );
+                }
+            );
         }, 10000, /*immediate*/ true), // kill double clicks within 10 seconds
     });
 
@@ -424,7 +423,7 @@ if (!window.PM) {
             var that = this;
             that.$el.html(that.template());
             target.html(that.$el);
-            if (that.party.isNew()) {
+            if (that.party.shouldShowInviteFriendsOnOpen()) {
                 that.inviteUsers();
             }
             that.updateUserBar();
@@ -460,8 +459,8 @@ if (!window.PM) {
                 el.find("img.icon").attr("src", user.getProfilePictureUrl());
                 el.find(".name").text(user.get("name"));
                 el.toggleClass("owner", that.party.isOwner(user.id));
-                if (user_in_party.get("active") !== el[0].last_active) {
-                    el[0].last_active = user_in_party.get("active");
+                if (user_in_party.get("ts_last_action") !== el[0].last_ts_last_action) {
+                    el[0].last_ts_last_action = user_in_party.get("ts_last_action");
                     el.addClass("new");
                     _.delay(function () {el.removeClass("new"); }, 1);
                 }

@@ -41,7 +41,7 @@ if (typeof exports !== "undefined") {
 
     //check whether it's a timestamp within some reasonable range. May not work with ancient dates...
     clutils.isTimestamp = function (value) {
-        return _.isNumber(value) && value === Math.floor(value) && value > 1000000000000 && value < 2000000000000;
+        return !!/^[12][0-9]{12}$/.exec(value);
     };
 
     /*jshint eqeqeq: false */
