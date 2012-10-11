@@ -86,7 +86,7 @@ window.PM.domain.SpotifyAppIntegrator = window.Toolbox.Base.extend({
                     if (that.activeParty.get("play_status") === "play") {
                         targetms = that.activeParty.get("current_place_in_track") + track_in_playlist.getTrack().get("duration");
                     } else { //pause
-                        targetms = clutils.newts() + track_in_playlist.getTrack().get("duration") - that.activeParty.get("current_place_in_track");
+                        targetms = clutils.nowts() + track_in_playlist.getTrack().get("duration") - that.activeParty.get("current_place_in_track");
                     }
                     $(expectedplaytimes[index]).prop("expectedtime", null);
                     return;
