@@ -6,7 +6,7 @@
 
     var app = require('express')();
     var server = require('http').createServer(app);
-    var io = require('socket.io').listen(server);
+    var socket_io = require('socket.io');
     var domain = require('domain');
     var winston = require("winston");
     var mongodb = require('mongodb');
@@ -35,8 +35,10 @@
             }
             var db_collections = {
                 actions: new mongodb.Collection(db, "actions"),
+                partyindex: new mongodb.Collection(db, "partyindex"),
             };
 
+            var io = socket_io.listen(server);
             io.set("authorization", partyconnection.Connection.authorize);
             io.sockets.on('connection', function (socket) {
                 var connection = new socket.handshake.partynode.ConnectionClass(socket, db_collections, db_error_domain, socket.handshake.partynode);

@@ -142,3 +142,5 @@ window.PM.domain.AbstractFacebookDomain = window.Toolbox.Base.extend({
         return (new Date().valueOf()) + that.ALMOST_EXPIRES_THRESHOLD > that.fb_status.authResponse.expiresOn;
     }
 });
+
+window._.extend(window.PM.domain.AbstractFacebookDomain, window.Backbone.Events);

@@ -39,6 +39,9 @@ var clutils = window.clutils;
                         PM.app.loggedin_user = PM.models.User.getByFacebookData(facebookdata);
                         PM.domain.FacebookDomain.getAccessToken(function (accessToken) {
                             PM.domain.PartyNodeDomain.connect(accessToken, true);
+                            PM.domain.FacebookDomain.on("new token", function (token) {
+                                PM.domain.PartyNodeDomain.updateToken(token);
+                            });
                             checkFacebookLogin(loggedincode);
                         });
                     });

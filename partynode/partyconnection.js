@@ -30,6 +30,7 @@ var partyconnection = exports;
         listen: function () {
             var that = this;
             that.setupListen("share action");
+            that.setupListen("update token");
         },
 
         "share action": function (action_data, callback) {
@@ -45,6 +46,7 @@ var partyconnection = exports;
                     action.applyValidatedAction();
                     that.db_collections.actions.insert(action.serialize(), that.db_error_domain.intercept(function () {
                         callback(true);
+                        that.db_collections.partyindex.save(party.indexableObject());
                     }));
                 } catch (error) {
                     throw "Error: party " + party.id + ", applying action " + action.get("number") + " failed: " + error.toString() + "\n" + error.stack;
@@ -59,6 +61,26 @@ var partyconnection = exports;
                 _isString: true
             },
             _strict: false
+        },
+
+        "update token": function (token, callback) {
+            var that = this;
+            var url = "https://graph.facebook.com/me?fields=id%2Cname&access_token=" + encodeURIComponent(token);
+            request.get(url, function (error, undefined /*response*/, json) {
+                if (error) {
+                    throw error;
+                }
+                var object = JSON.parse(json);
+                var user_id = parseInt(object.id, 10);
+                if (user_id !== that.user_id) {
+                    throw "expected a valid token of the same user";
+                }
+                that.token = token;
+                callback(true);
+            });
+        },
+        "update token constraints": {
+            _matches: /^[A-Za-z0-9]{10,200}$/
         },
 
         setupListen: function (name) {
@@ -118,38 +140,6 @@ var partyconnection = exports;
             winston.log(severity, that.socket.id + ": " + message, metadata);
         },
 
-        listenMaster: function () {
-            var that = this;
-            
-            var constraints = {
-                party_id: {
-                    _isString: true
-                },
-                _TYPE: {
-                    _isString: true
-                },
-                _strict: false
-            };
-            that.socket_action("share action", constraints, function (action_data, callback) {
-                that.loadParty(action_data.party_id, function (party) {
-                    if (party.get("log").length === 0) {
-                        clutils.checkConstraints(action_data._TYPE, {_is: PM.models.InitializeAction.type});
-                    } else if (!party.isOwner(that.user_id)) {
-                        throw "Not party's owner";
-                    }
-                    var action = PM.models.Action.unserializeFromTrusted(action_data, party);
-                    try {
-                        action.applyValidatedAction();
-                        that.db_collections.actions.insert(action.serialize(), that.db_error_domain.intercept(function () {
-                            callback(true);
-                        }));
-                    } catch (error) {
-                        throw "Error: party " + party.id + ", applying action " + action.get("number") + " failed: " + error.toString() + "\n" + error.stack;
-                    }
-                });
-            });
-        },
-
         loadParty: function (party_id, callback) {
             var that = this;
             var party = PM.collections.Parties.getInstance().get(party_id);
@@ -170,7 +160,6 @@ var partyconnection = exports;
                 }
             }));
         },
-
     }, {
 
         authorize: function (handshakeData, callback) {
@@ -215,7 +204,7 @@ var partyconnection = exports;
                     callback(null, true);
                 });
             });
-
         },
+
     });
 })();

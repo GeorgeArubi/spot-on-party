@@ -860,8 +860,14 @@ if (typeof exports !== "undefined") {
                 owner_id: that.get("owner_id"),
                 created: that.get("created"),
                 last_updated: that.get("last_updated"),
-                track_ids: that.get("playlist").filter(function (track_in_playlist) {return !track_in_playlist.isDeleted(); }).pluck("track_id"),
-                user_ids: that.get("users").filter(function (user_in_party) {return !user_in_party.wasKicked(); }).pluck("user_id"),
+                track_ids: that.get("playlist").chain()
+                    .filter(function (track_in_playlist) {return !track_in_playlist.isDeleted(); })
+                    .map(function (track_in_playlist) { return track_in_playlist.get("track_id"); })
+                    .value(),
+                user_ids: that.get("users").chain()
+                    .filter(function (user_in_party) {return !user_in_party.wasKicked(); })
+                    .map(function (user_in_party) {return user_in_party.get("user_id"); })
+                    .value(),
             };
         },
 

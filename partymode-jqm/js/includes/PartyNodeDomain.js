@@ -36,11 +36,27 @@ if (typeof exports !== "undefined") {
 
         connect: function (token, master) {
             var that = this;
-            var url = that.HOST + '?token=' + encodeURIComponent(token) + '&master=' + (master ? 1 : 0);
+            that.token = token;
+            that.master = master;
+            var url = that.HOST + '?' + that.buildQueryString();
             that.socket = io.connect(url);
             that.socket.on("connect", function () {
                 console.log("connected to backend");
             });
+        },
+
+        buildQueryString: function () {
+            var that = this;
+            return 'token=' + encodeURIComponent(that.token) + '&master=' + (that.master ? 1 : 0);
+        },
+
+        updateToken: function (new_token) {
+            var that = this;
+            if (new_token !== that.token) {
+                that.token = new_token;
+                that.socket.socket.options.query = that.buildQueryString();
+                that.socket.emit("update token", that.token, that.callbackCatchError());
+            }
         },
 
         callbackCatchError: function (callback) {
@@ -52,18 +68,6 @@ if (typeof exports !== "undefined") {
                     callback(result);
                 }
             };
-        },
-
-        loginAsMaster: function (token, callback) {
-            var that = this;
-            console.log("loggin in as master");
-            that.socket.emit("login", {token: token, master: true}, that.callbackCatchError(function (result) {
-                if (!result) {
-                    throw "Login failed! " + result;
-                } else {
-                    callback();
-                }
-            }));
         },
 
         shareAction: function (action_data, callback) {
