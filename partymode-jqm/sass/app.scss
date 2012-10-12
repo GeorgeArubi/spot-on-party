@@ -150,6 +150,24 @@ h3 {margin: 0px;}
     }
 }
 
+.old-parties-page {
+    .art {
+        $art-size: 140px;
+        position: relative; float: left;
+        .covers {
+            width: $art-size; height: $art-size; border-radius: 10px; -webkit-box-shadow: 1px 1px 4px #202020; overflow: hidden;
+            position: relative;
+            img {width: $art-size / 2; height: $art-size / 2; float: left; 
+                &:only-of-type {width: $art-size; height: $art-size; }
+            }
+        }
+        .play-button {
+            position: absolute; bottom: 5px; right: 5px; width: $art-size / 2 - 10px; height: $art-size / 2 - 10px; -webkit-transition: opacity 200ms; background-color: green; opacity: 0;
+        }
+        &:hover .play-button {opacity: .8}
+    }
+}
+
 .footer {margin-top: 100px; padding-top: 5px; border-top: 1px solid silver;
     text-align: center;
 }

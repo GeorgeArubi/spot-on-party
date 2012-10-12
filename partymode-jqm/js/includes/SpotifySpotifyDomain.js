@@ -35,6 +35,7 @@ window.PM.domain.SpotifySpotifyDomain = window.Toolbox.Base.extend({ //strange n
                     name: sptrack.data.name.decodeForText(),
                     artists: _.map(sptrack.data.artists, function (artist) {return artist.name.decodeForText(); }),
                     album: sptrack.data.album.name.decodeForText(),
+                    albumcover: sptrack.data.album.cover,
                     duration: sptrack.data.duration,
                 };
                 return data;
@@ -52,6 +53,7 @@ window.PM.domain.SpotifySpotifyDomain = window.Toolbox.Base.extend({ //strange n
                 name: sptrack.data.name.decodeForText(),
                 artists: _.map(sptrack.data.artists, function (artist) {return artist.name.decodeForText(); }),
                 album: sptrack.data.album.name.decodeForText(),
+                albumcover: sptrack.data.album.cover,
                 duration: sptrack.data.duration,
             };
             callback(data);

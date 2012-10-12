@@ -25,6 +25,7 @@ var partyconnection = exports;
             that.user_id = partynode_data.user_id;
             that.username = partynode_data.username;
             that.log("info", "New master connection from " + socket.handshake.address.address + ":" + socket.handshake.address.port + " user " + that.username + "(" + that.user_id + ")");
+            that.cursors = {};
         },
 
         listen: function () {
@@ -32,6 +33,7 @@ var partyconnection = exports;
             that.setupListen("share action");
             that.setupListen("get own party");
             that.setupListen("update token");
+            that.setupListen("get own parties");
         },
 
         "share action": function (action_data, callback) {
@@ -45,7 +47,7 @@ var partyconnection = exports;
                 var action = PM.models.Action.unserializeFromTrusted(action_data, party);
                 try {
                     action.applyValidatedAction();
-                    that.db_collections.actions.insert(action.serialize(), that.db_error_domain.intercept(function () {
+                    that.db_collections.actions.insert(action.serialize(), that.catchDatabaseError(function () {
                         callback(true);
                         that.db_collections.partyindex.save(party.indexableObject());
                     }));
@@ -96,6 +98,47 @@ var partyconnection = exports;
         "get own party constraints": {
             _isUniqueId: true
         },
+
+        "get own parties": function (options, callback) {
+            var that = this;
+            var query = {
+                owner_id: that.user_id,
+            };
+            if (options.before_timestamp) {
+                query.last_updated = {'$lt': options.before_timestamp};
+            }
+
+            var cursor = that.db_collections.partyindex.find(query, {sort: [["last_updated", "desc"]]});
+            if (options.limit) {
+                cursor.batchSize = Math.max(options.limit, 2); // batchSize of 1 doesn't seem to be supported...
+            }
+            var readMore = function (parties_data) {
+                cursor.nextObject(that.catchDatabaseError(function (partyindex_data) {
+                    if (!partyindex_data || (options.limit && options.limit === parties_data.length)) {
+                        //done
+                        callback(parties_data, cursor.totalNumberOfRecords);
+                    } else {
+                        var party_id = partyindex_data._id;
+                        that.loadParty(party_id, function (party) {
+                            parties_data.push(party.serialize());
+                            readMore(parties_data);
+                        });
+                    }
+                }));
+            };
+            readMore([]);
+        },
+        "get own parties constraints": {
+            before_timestamp: {
+                _isTimestamp: true,
+                _optional: true,
+
+            },
+            limit: {
+                _isNumber: true,
+            },
+        },
+
 
         setupListen: function (name) {
             var that = this;
@@ -164,7 +207,7 @@ var partyconnection = exports;
             party = new PM.models.Party({_id: party_id});
             PM.collections.Parties.getInstance().add(party);
             var acursor = that.db_collections.actions.find({party_id: party.id}, {sort: {"number": 1}});
-            acursor.each(that.db_error_domain.intercept(function (action_data) {
+            acursor.each(that.catchDatabaseError(function (action_data) {
                 if (action_data) {
                     var action = PM.models.Action.unserializeFromTrusted(action_data, party);
                     action.applyValidatedAction();
@@ -173,6 +216,20 @@ var partyconnection = exports;
                     callback(party);
                 }
             }));
+        },
+
+        catchDatabaseError: function (callback) {
+            var that = this;
+            return function () {
+                var args = _.toArray(arguments);
+                var error = args.shift();
+                if (error) {
+                    that.db_error_domain.run(function () {
+                        throw error;
+                    });
+                }
+                return callback.apply(null, args);
+            };
         },
     }, {
 

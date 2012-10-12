@@ -1,0 +1,6 @@
+<div class="logo-small"></div>
+<div class="buttons">
+    <button class="sp-button" id="to-create-party-page">create new party</button>
+</div>
+<div id="parties"></div>
+

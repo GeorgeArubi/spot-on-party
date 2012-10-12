@@ -116,7 +116,9 @@ window.PM.domain.FacebookSpotifyDomain = window.PM.domain.AbstractFacebookDomain
         var that = this;
         that.showLoginPopup(function () {
             that.trigger("new token", that.fb_status.authResponse.accessToken);
-            callback();
+            if (callback) {
+                callback();
+            }
         });
     },
 

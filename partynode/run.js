@@ -28,11 +28,13 @@
 
     var mongoServer = new mongodb.Server(config.db.host, config.db.port, config.db.serverOptions);
     var db = new mongodb.Db(config.db.database, mongoServer, config.db.dbOptions);
+    winston.info("STARTUP: connecting to database");
     db.open(db_error_domain.intercept(function () {
         db.authenticate(config.db.username, config.db.password, db_error_domain.intercept(function (success) {
             if (!success) {
                 throw "DB authentication denied";
             }
+            winston.info("STARTUP: connected");
             var db_collections = {
                 actions: new mongodb.Collection(db, "actions"),
                 partyindex: new mongodb.Collection(db, "partyindex"),

@@ -302,7 +302,12 @@ if (typeof exports !== "undefined") {
         didAction: function (when) {
             var that = this;
             that.set("ts_last_action", when);
-        }
+        },
+
+        getUser: function () {
+            var that = this;
+            return PM.models.User.getById(that.get("user_id"));
+        },
     }, {
         type: "UserInParty",
 
@@ -315,10 +320,11 @@ if (typeof exports !== "undefined") {
 
     PM.models.Track = PM.models.BaseModelLazyLoad.extend({
         _fields: {
-            name: "",
-            artist: "",
-            album: "",
-            duration: "",
+            name: 1,
+            artist: 1,
+            album: 1,
+            albumcover: 1,
+            duration: 1,
         },
 
         lazyLoad: function () {
@@ -460,7 +466,7 @@ if (typeof exports !== "undefined") {
             if (that.get("number") && that.get("number") !== that.party.get("log").length + 1) {
                 throw "action has number " + that.get("number") + " but party expects number " + (that.party.get("log").length + 1);
             } else {
-                that.set("number", that.party.get("log").length + 1);
+                that.set("number", that.party.get("log").length + 1, {silent: true}); //be silent, we don't want to trigger validation; either we already did that, or we explicitly don't want it
                 that.on("change", function () {throw "trying to change an action, which is not allowed"; });
                 that.applyActionToParty();
                 that.party.get("log").add(that);
@@ -947,11 +953,17 @@ if (typeof exports !== "undefined") {
 
         getMembersInPartyOrderedByActive: function () {
             var that = this;
-            return _.chain(that.get("users").toArray())
-                .filter(function (user_in_party) {return _.isNull(user_in_party.get("deleted")); })
+            return that.get("users")
+                .chain()
+                .filter(function (user_in_party) {return !user_in_party.wasKicked(); })
                 .sortBy(function (user_in_party) {return user_in_party.get("ts_last_action"); })
                 .reverse()
                 .value();
+        },
+
+        getNotDeletedTracksInPlaylist: function () {
+            var that = this;
+            return that.get("playlist").filter(function (track_in_playlist) {return !track_in_playlist.isDeleted(); });
         },
 
         isJoined: function (user_or_user_id) {

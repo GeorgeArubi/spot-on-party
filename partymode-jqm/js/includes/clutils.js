@@ -84,6 +84,7 @@ if (typeof exports !== "undefined") {
             "_isNumeric": cl_assertToObject(clutils, "Numeric"),
             "_isUniqueId": cl_assertToObject(clutils, "UniqueId"),
             "_isTimestamp": cl_assertToObject(clutils, "Timestamp"),
+            "_optional": function () {},
         };
         cl_assert(_.isObject(constraints), "syntax error: constraints is not an object " + constraints);
 
@@ -98,7 +99,9 @@ if (typeof exports !== "undefined") {
                     if (_.isObject(object) && constraint in object) {
                         clutils.checkConstraints(object[constraint], constraints[constraint], mypath + " -> " + constraint);
                     } else {
-                        cl_assert(false, "expected key \"" + constraint + "\" not in object");
+                        if (!constraints[constraint]._optional) {
+                            cl_assert(false, "expected key \"" + constraint + "\" not in object");
+                        }
                     }
                 }
 
@@ -114,6 +117,25 @@ if (typeof exports !== "undefined") {
                 }
             }
         }
+    };
+
+    clutils.pastDateText = function (date) {
+        var timestamp = _.isDate(date) ? date.valueOf() : date;
+        var nowts = clutils.nowts();
+        var MINUTE = 60 * 1000;
+        var HOUR = 60 * MINUTE;
+        var DAY = 24 * HOUR;
+        var diff = nowts - timestamp;
+        if (diff < MINUTE) {
+            return "just now";
+        }
+        if (diff < 0.75 * HOUR) {
+            return Math.round(diff / MINUTE) + " minutes ago";
+        }
+        if (diff < 0.75 * DAY) {
+            return Math.round(diff / HOUR) + " hours ago";
+        }
+        return Math.round(diff / DAY) + " days ago";
     };
 })();
 

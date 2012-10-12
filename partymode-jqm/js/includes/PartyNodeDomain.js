@@ -5,6 +5,7 @@ var root = this;
 var _ = root._;
 var Toolbox = root.Toolbox;
 var Backbone = root.Backbone;
+var clutils = root.clutils;
 var io = root.io;
 var PM = root.PM;
 
@@ -13,12 +14,14 @@ if (typeof exports !== "undefined") {
     if (!_) {_ = require("./underscore"); }
     if (!Toolbox) {Toolbox = require("./toolbox"); }
     if (!Backbone) {Backbone = require("./backbone"); }
+    if (!clutils) {clutils = require("./clutils"); }
     if (!io) {io = require("./sockets.io"); }
     PM = exports;
 } else {
     if (!_) {throw "Underscore not loaded"; }
     if (!Toolbox) {throw "Toolbox not loaded"; }
     if (!Backbone) {throw "Backbone not loaded"; }
+    if (!clutils) {throw "clutils not loaded"; }
     if (!io) {throw "Sockets.io not loaded"; }
     if (!PM) {
         PM = {};
@@ -76,6 +79,15 @@ if (typeof exports !== "undefined") {
         getOwnParty: function (party_id, callback) {
             var that = this;
             that.socket.emit("get own party", party_id, that.callbackCatchError(callback));
+        },
+
+        getOwnParties: function (limit, before_timestamp, callback) {
+            var that = this;
+            var options = {limit: limit};
+            if (clutils.isTimestamp(before_timestamp)) {
+                options.before_timestamp = before_timestamp;
+            }
+            that.socket.emit("get own parties", options, that.callbackCatchError(callback));
         },
 
         shareAction: function (action_data, callback) {

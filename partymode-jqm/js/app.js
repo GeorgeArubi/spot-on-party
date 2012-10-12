@@ -7,7 +7,7 @@ var clutils = window.clutils;
 
 (function (PM, Backbone, $, _) {
     "use strict";
-    var FacebookLoginView, StartNewPartyView, PartyView, InviteUsersView, AddTrackView;
+    var FacebookLoginView, StartNewPartyView, PartyView, InviteUsersView, AddTrackView, OldPartiesView;
 
     var getTemplate = function (id) {
         var template = PM.templates[id];
@@ -587,6 +587,60 @@ var clutils = window.clutils;
         },
     });
 
+    OldPartiesView = Backbone.View.extend({
+        className: "old-parties-page",
+
+        events: {
+        },
+
+        template: getTemplate("old-parties-page"),
+
+        render: function (target) {
+            var that = this;
+            that.$el.html(that.template());
+            target.html(that.$el);
+            _.delay(_.bind(that.loadAndRenderPartiesInView, that), 0);
+            return that;
+        },
+
+        loadAndRenderPartiesInView: function () {
+            var that = this;
+            //TODO: check whether we need to load more parties
+            var template = getTemplate("old-party");
+            var limit = 10;
+            var before_timestamp = that.last_shown_party_last_updated;
+            window.mytracks = [];
+            PM.domain.PartyNodeDomain.getOwnParties(limit, before_timestamp, function (parties_data) {
+                _.each(parties_data, function (party_data) {
+                    var party = PM.models.Party.unserialize(party_data);
+                    var tracks = _.map(party.getNotDeletedTracksInPlaylist(), function (track_in_playlist) {return track_in_playlist.getTrack(); });
+                    var domnode;
+                    var fixcoverart = _.debounce(function () {
+                        if (_.all(tracks, function (track) {return track.get("_status") !== PM.models.Track.LOADING; })) {
+                            var seen = {};
+                            var target = $(".covers", domnode);
+                            target.empty();
+                            _.each(tracks, function (track) {
+                                var albumcover = track.get("albumcover");
+                                if (_.keys(seen).length < 4 && albumcover && !seen[albumcover]) {
+                                    seen[albumcover] = true;
+                                    var img = $('<img>');
+                                    img.attr("src", albumcover);
+                                    target.append(img);
+                                }
+                                target.parent().removeClass("loading");
+                            });
+                        }
+
+                    }, 50);
+                    _.each(tracks, function (track) {track.onLoaded(fixcoverart); });
+                    domnode = $(template({party: party, }));
+                    that.$('#parties').append(domnode);
+                });
+            });
+        }
+    });
+
     var AppRouter = Backbone.Router.extend({
         routes: {
             "": "facebookLogin",
@@ -613,7 +667,10 @@ var clutils = window.clutils;
         },
 
         partyHistory: function () {
-            console.log("partyHistory");
+            checkFacebookLogin(function () {
+                var view = new OldPartiesView();
+                changeView(view);
+            });
         },
 
         showParty: function (id) {
