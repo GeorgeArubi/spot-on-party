@@ -110,7 +110,6 @@ var clutils = window.clutils;
             });
 
             PM.collections.Parties.getInstance().add(party);
-            party.shareNewActions();
 
             party.createAndApplyMasterAction(
                 "Initialize",
@@ -387,8 +386,11 @@ var clutils = window.clutils;
             that.closeOverlayView();
             that.party.get("users").off("add", that.updateUserBar, that);
             that.party.get("users").off("change", that.updateUserBar, that);
-            PM.domain.SpotifyAppIntegrator.stopParty(that.party);
-            PM.collections.Parties.getInstance().remove(that.party); //if we leave the party, in theory it could continue somewhere else so we want to load it again then
+            that.party.createAndApplyMasterAction("End", {}, function () {
+                PM.domain.SpotifyAppIntegrator.stopParty(that.party);
+                that.party.stopShareNewActions();
+                PM.collections.Parties.getInstance().remove(that.party); //if we leave the party, in theory it could continue somewhere else so we want to load it again then
+            });
         },
 
         addOverlayView: function (overlayView) {
@@ -430,15 +432,20 @@ var clutils = window.clutils;
                 }
                 that.$('#playlist-placeholder').html(playlistNode);
             };
+            var activatePartyAndDoRender = function () {
+                if (!that.party.get("active")) {
+                    that.party.createAndApplyMasterAction("Start", {}, doRender);
+                }
+            };
             that.party = PM.collections.Parties.getInstance().get(that.party_id);
+            that.party.shareNewActions();
             if (that.party) {
-                doRender();
+                activatePartyAndDoRender();
             } else {
                 PM.domain.PartyNodeDomain.getOwnParty(that.party_id, function (party_data) {
                     that.party = PM.models.Party.unserialize(party_data);
                     PM.collections.Parties.getInstance().add(that.party);
-                    that.party.shareNewActions();
-                    doRender();
+                    activatePartyAndDoRender();
                 });
             }
             return that;
@@ -583,7 +590,7 @@ var clutils = window.clutils;
         },
 
         endParty: function () {
-            console.log("TODO implement end party");
+            PM.app.navigate("party/new", {trigger: true, });
         },
     });
 
@@ -591,6 +598,8 @@ var clutils = window.clutils;
         className: "old-parties-page",
 
         events: {
+            "click .continue-party": "continueParty",
+            "click .add-as-playlist": "addAsPlaylist",
         },
 
         template: getTemplate("old-parties-page"),
@@ -635,10 +644,23 @@ var clutils = window.clutils;
                     }, 50);
                     _.each(tracks, function (track) {track.onLoaded(fixcoverart); });
                     domnode = $(template({party: party, }));
+                    domnode[0].party = party;
+                    var playlist_node = PM.domain.SpotifyAppIntegrator.getPlaylistDomForOldPartyPage(party);
+                    $(".playlist-placeholder", domnode).append(playlist_node);
                     that.$('#parties').append(domnode);
                 });
             });
-        }
+        },
+
+        continueParty: function (event) {
+            var party = $(event.currentTarget).parents(".party")[0].party;
+            PM.app.navigate("party/" + party.id, {trigger: true});
+        },
+
+        addAsPlaylist: function (event) {
+            var party = $(event.currentTarget).parents(".party")[0].party;
+
+        },
     });
 
     var AppRouter = Backbone.Router.extend({

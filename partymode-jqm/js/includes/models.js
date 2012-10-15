@@ -781,6 +781,45 @@ if (typeof exports !== "undefined") {
         type: "TrackRemove",
     });
 
+    PM.models.StartAction = PM.models.Action.extend({
+        validate: function (attrs) {
+            var that = this;
+            if (that.party.get("active")) {
+                return "trying to start an already active party";
+            }
+            return that.constructor.__super__.validate.call(that, attrs);
+        },
+
+        applyActionToParty: function () {
+            var that = this;
+            that.party.set({
+                "active": true,
+                "last-updated": that.get("created"),
+            });
+        },
+    }, {
+        type: "Start",
+    });
+
+    PM.models.EndAction = PM.models.Action.extend({
+        validate: function (attrs) {
+            var that = this;
+            if (!that.party.get("active")) {
+                return "trying to end an inactive party";
+            }
+            return that.constructor.__super__.validate.call(that, attrs);
+        },
+
+        applyActionToParty: function () {
+            var that = this;
+            that.party.set({
+                "active": false,
+            });
+        },
+    }, {
+        type: "End",
+    });
+
     PM.models.PauseAction = PM.models.Action.extend({
         validate: function (attrs) {
             var that = this;
@@ -1007,11 +1046,18 @@ if (typeof exports !== "undefined") {
             }
         },
 
+        shareAction: function (action) {
+            PM.domain.PartyNodeDomain.shareAction(action.serialize());
+        },
+
         shareNewActions: function () {
             var that = this;
-            that.get("log").on("add", function (action) {
-                PM.domain.PartyNodeDomain.shareAction(action.serialize());
-            });
+            that.get("log").on("add", that.shareAction, that);
+        },
+
+        stopShareNewActions: function () {
+            var that = this;
+            that.get("log").off("add", that.shareAction, that);
         },
 
 

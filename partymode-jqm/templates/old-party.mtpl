@@ -1,21 +1,21 @@
 <% var members_in_party = party.getMembersInPartyOrderedByActive() %>
 <% var tracks_in_playlist = party.getNotDeletedTracksInPlaylist() %>
+<% var members_shown = 8 %>
 <div class="party">
     <div class="art loading">
         <% if (tracks_in_playlist.length > 0) { %>
             <div class="covers"></div>
-            <div class="play-button"></div>
         <% } %>
     </div>
     <div class="info">
-        <div class="party-name"><%- party.get("name") %></div>
+        <h2 class="party-name"><%- party.get("name") %></h2>
         <div class="party-when"><%- clutils.pastDateText(party.get("last_updated")) %></div>
         <div class="users-bar">
-            <% _.each(members_in_party.slice(0,6), function (user_in_party) { %>
-                <img src="<%- user_in_party.getUser().getProfilePictureUrl() %>">
-            <% }); %>
-            <% if (members_in_party.length > 6 ) { %>
-            <div class="more">+ <%- (members_in_party.length - 6) %>more</div>
+            <% _.each(members_in_party.slice(0,members_shown), function (user_in_party) { 
+                %><img src="<%- user_in_party.getUser().getProfilePictureUrl() %>"><%
+             }); %>
+            <% if (members_in_party.length > members_shown ) { %>
+            <div class="more">+ <%- (members_in_party.length - members_shown) %> more</div>
             <% } %>
         </div>
         <div class="buttons">

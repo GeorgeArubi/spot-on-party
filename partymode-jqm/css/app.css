@@ -319,34 +319,54 @@ h3 {
     margin-top: 7px;
     margin-right: 15px; }
 
-.old-parties-page .art {
-  position: relative;
-  float: left; }
-  .old-parties-page .art .covers {
+.old-parties-page .party {
+  margin: 25px; }
+  .old-parties-page .party .art {
+    float: left;
     width: 140px;
     height: 140px;
     border-radius: 10px;
     -webkit-box-shadow: 1px 1px 4px #202020;
     overflow: hidden;
-    position: relative; }
-    .old-parties-page .art .covers img {
+    margin-right: 20px; }
+    .old-parties-page .party .art .covers img {
       width: 70px;
       height: 70px;
       float: left; }
-      .old-parties-page .art .covers img:only-of-type {
+      .old-parties-page .party .art .covers img:only-of-type {
         width: 140px;
         height: 140px; }
-  .old-parties-page .art .play-button {
-    position: absolute;
-    bottom: 5px;
-    right: 5px;
-    width: 60px;
-    height: 60px;
-    -webkit-transition: opacity 200ms;
-    background-color: green;
-    opacity: 0; }
-  .old-parties-page .art:hover .play-button {
-    opacity: .8; }
+  .old-parties-page .party .info {
+    float: left; }
+    .old-parties-page .party .info h2 {
+      color: white;
+      font-size: 30px; }
+    .old-parties-page .party .info .party-when {
+      color: white;
+      margin-top: 4px;
+      font-size: 13px; }
+    .old-parties-page .party .info .users-bar {
+      margin-top: 10px;
+      position: relative;
+      width: 400px;
+      height: 50px; }
+      .old-parties-page .party .info .users-bar img {
+        width: 50px;
+        height: 50px;
+        margin: 0;
+        float: none; }
+      .old-parties-page .party .info .users-bar .more {
+        position: absolute;
+        bottom: 0px;
+        right: 0px;
+        padding: 1px;
+        background-color: black;
+        opacity: 0.8;
+        font-size: 9px; }
+    .old-parties-page .party .info .buttons {
+      margin-top: 15px; }
+  .old-parties-page .party .playlist-placeholder {
+    clear: both; }
 
 .footer {
   margin-top: 100px;

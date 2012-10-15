@@ -44,25 +44,29 @@ __p+='';
  var members_in_party = party.getMembersInPartyOrderedByActive() 
 __p+='\n';
  var tracks_in_playlist = party.getNotDeletedTracksInPlaylist() 
+__p+='\n';
+ var members_shown = 8 
 __p+='\n<div class="party">\n    <div class="art loading">\n        ';
  if (tracks_in_playlist.length > 0) { 
-__p+='\n            <div class="covers"></div>\n            <div class="play-button"></div>\n        ';
+__p+='\n            <div class="covers"></div>\n        ';
  } 
-__p+='\n    </div>\n    <div class="info">\n        <div class="party-name">'+
+__p+='\n    </div>\n    <div class="info">\n        <h2 class="party-name">'+
 ((__t=( party.get("name") ))==null?'':_.escape(__t))+
-'</div>\n        <div class="party-when">'+
+'</h2>\n        <div class="party-when">'+
 ((__t=( clutils.pastDateText(party.get("last_updated")) ))==null?'':_.escape(__t))+
 '</div>\n        <div class="users-bar">\n            ';
- _.each(members_in_party.slice(0,6), function (user_in_party) { 
-__p+='\n                <img src="'+
+ _.each(members_in_party.slice(0,members_shown), function (user_in_party) { 
+                
+__p+='<img src="'+
 ((__t=( user_in_party.getUser().getProfilePictureUrl() ))==null?'':_.escape(__t))+
-'">\n            ';
- }); 
+'">';
+
+             }); 
 __p+='\n            ';
- if (members_in_party.length > 6 ) { 
+ if (members_in_party.length > members_shown ) { 
 __p+='\n            <div class="more">+ '+
-((__t=( (members_in_party.length - 6) ))==null?'':_.escape(__t))+
-'more</div>\n            ';
+((__t=( (members_in_party.length - members_shown) ))==null?'':_.escape(__t))+
+' more</div>\n            ';
  } 
 __p+='\n        </div>\n        <div class="buttons">\n            <button class="sp-button sp-icon add-as-playlist"><span class="sp-plus"></span>Add as playlist</button>\n            <button class="sp-button sp-icon share"><span class="sp-share"></span>Share</button>\n            <button class="sp-button continue-party">Continue party</button>\n        </div>\n    </div>\n    <div class="playlist-placeholder">\n        playlist comes here!!\n    </div>\n    ';
  if (tracks_in_playlist.length > 6) { 

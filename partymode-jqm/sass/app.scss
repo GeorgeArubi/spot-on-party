@@ -151,20 +151,28 @@ h3 {margin: 0px;}
 }
 
 .old-parties-page {
-    .art {
-        $art-size: 140px;
-        position: relative; float: left;
-        .covers {
-            width: $art-size; height: $art-size; border-radius: 10px; -webkit-box-shadow: 1px 1px 4px #202020; overflow: hidden;
-            position: relative;
-            img {width: $art-size / 2; height: $art-size / 2; float: left; 
-                &:only-of-type {width: $art-size; height: $art-size; }
+    .party {
+        margin: 25px;
+        .art {
+            $art-size: 140px;
+            float: left; width: $art-size; height: $art-size; border-radius: 10px; -webkit-box-shadow: 1px 1px 4px #202020; overflow: hidden; margin-right: 20px;
+            .covers {
+                img {width: $art-size / 2; height: $art-size / 2; float: left; 
+                    &:only-of-type {width: $art-size; height: $art-size; }
+                }
             }
         }
-        .play-button {
-            position: absolute; bottom: 5px; right: 5px; width: $art-size / 2 - 10px; height: $art-size / 2 - 10px; -webkit-transition: opacity 200ms; background-color: green; opacity: 0;
+        .info {
+            float: left;
+            h2 {color: white; font-size: 30px; }
+            .party-when {color: white; margin-top: 4px; font-size: 13px; }
+            .users-bar {margin-top: 10px; position: relative; width: 8 * 50px; height: 50px;
+                img {width: 50px; height: 50px; margin: 0; float: none;}
+                .more {position: absolute; bottom: 0px; right: 0px; padding: 1px; background-color: black;  opacity: 0.8; font-size: 9px;}
+            }
+            .buttons {margin-top: 15px; }
         }
-        &:hover .play-button {opacity: .8}
+        .playlist-placeholder {clear: both;}
     }
 }
 

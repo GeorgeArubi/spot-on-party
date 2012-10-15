@@ -78,6 +78,10 @@ window.PM.domain.SpotifyAppIntegrator = window.Toolbox.Base.extend({
 
     updateExpectedPlayTimesWorker: function () {
         var that = this;
+        if (!that.activeParty) {
+            //party has ended, but for some reason timer has survived...
+            return;
+        }
         var expectedplaytimes = $('#playlist-placeholder .expectedplaytime');
         
         switch (that.activeParty.get("play_status")) {
@@ -181,6 +185,15 @@ window.PM.domain.SpotifyAppIntegrator = window.Toolbox.Base.extend({
         that.list = new that.views.List(that.spotifyPlaylist, function (track) {return new that.myTrackView(track); });
         return that.list.node;
     },
+
+    getPlaylistDomForOldPartyPage: function (party) {
+        var that = this;
+        var tracks_in_playlist = party.getNotDeletedTracksInPlaylist();
+        var playlist = new that.models.Playlist();
+        _.each(tracks_in_playlist, function (track_in_playlist) {playlist.add(track_in_playlist.get("track_id")); });
+        return (new that.views.List(playlist)).node;
+    },
+
 
     isStoppedOrNotPlayingFromApp: function () {
         var that = this;
