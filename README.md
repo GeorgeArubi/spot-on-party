@@ -1,4 +1,4 @@
-spot-on-party
-=============
+partymode
+=========
 
-Spotify app to do collaborative playlist management, including GAE backend
+Spotify app to do collaborative playlist management, including nodejs backend
