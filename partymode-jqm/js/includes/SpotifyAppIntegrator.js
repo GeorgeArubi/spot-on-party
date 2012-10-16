@@ -39,7 +39,7 @@ window.PM.domain.SpotifyAppIntegrator = window.Toolbox.Base.extend({
             this.node.appendChild(willplayat[0]);
             var delete_btn = $("<span><span></span></span>");
             delete_btn.addClass("delete-button");
-            this.node.appendChild(delete_btn[0]);
+            this.node.insertBefore(delete_btn[0], $('.sp-track-field-name', this.node)[0]);
             _.delay(_.bind(function () {
                 var index = $(this.node).prevAll().length;
                 var playlist = that.activeParty.get("playlist");
@@ -192,6 +192,14 @@ window.PM.domain.SpotifyAppIntegrator = window.Toolbox.Base.extend({
         var playlist = new that.models.Playlist();
         _.each(tracks_in_playlist, function (track_in_playlist) {playlist.add(track_in_playlist.get("track_id")); });
         return (new that.views.List(playlist)).node;
+    },
+
+    addPartyAsPlaylist: function (party) {
+        var that = this;
+        var tracks_in_playlist = party.getNotDeletedTracksInPlaylist();
+        var playlist = new that.models.Playlist(party.get("name"));
+        _.each(tracks_in_playlist, function (track_in_playlist) {playlist.add(track_in_playlist.get("track_id")); });
+        return playlist;
     },
 
 

@@ -1,6 +1,6 @@
 <div class="logo-small"></div>
 <div class="buttons">
-    <button class="sp-button" id="to-create-party-page">create new party</button>
+    <a href="#party/new">create new party</a>
 </div>
 <div id="parties"></div>
 

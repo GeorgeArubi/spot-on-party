@@ -365,13 +365,12 @@ var clutils = window.clutils;
         events: {
             "click #add-track": "addTrack",
             "click #invite-users": "inviteUsers",
-            "click #end-party": "endParty",
             "click #overlay-backdrop": "closeOverlayView",
             "click #users-bar li .kick": "kickUser",
             "click #users-bar .arrow-left": function () {this.scrollUserBar("-"); },
             "click #users-bar .arrow-right": function () {this.scrollUserBar("+"); },
             "keyup": function (event) {if (event.keyCode === 27) {this.closeOverlayView(); }},
-            "click #playlist-placeholder .delete-button": "deleteTrack",
+            "click #playlist-placeholder .delete-button": "toggleDeleteTrack",
         },
 
         initialize: function (attributes) {
@@ -433,12 +432,14 @@ var clutils = window.clutils;
                 that.$('#playlist-placeholder').html(playlistNode);
             };
             var activatePartyAndDoRender = function () {
+                that.party.shareNewActions();
                 if (!that.party.get("active")) {
                     that.party.createAndApplyMasterAction("Start", {}, doRender);
+                } else {
+                    doRender();
                 }
             };
             that.party = PM.collections.Parties.getInstance().get(that.party_id);
-            that.party.shareNewActions();
             if (that.party) {
                 activatePartyAndDoRender();
             } else {
@@ -451,11 +452,15 @@ var clutils = window.clutils;
             return that;
         },
 
-        deleteTrack: function (event) {
+        toggleDeleteTrack: _.debounce(function (event) { //debouce to prevent double-click
             var that = this;
             var index = $(event.currentTarget.parentNode).prevAll().length;
-            that.party.createAndApplyMasterAction("TrackRemove", {position: index, });
-        },
+            if (that.party.get("playlist").at(index).isDeleted()) {
+                that.party.createAndApplyMasterAction("TrackUnRemove", {position: index, });
+            } else {
+                that.party.createAndApplyMasterAction("TrackRemove", {position: index, });
+            }
+        }, 200, {immediate: true}),
 
         updateUserBar: _.debounce(function () {
             var that = this;
@@ -589,9 +594,6 @@ var clutils = window.clutils;
             that.addOverlayView(new InviteUsersView({parent: that}));
         },
 
-        endParty: function () {
-            PM.app.navigate("party/new", {trigger: true, });
-        },
     });
 
     OldPartiesView = Backbone.View.extend({
@@ -600,6 +602,7 @@ var clutils = window.clutils;
         events: {
             "click .continue-party": "continueParty",
             "click .add-as-playlist": "addAsPlaylist",
+            "click .playlist-see-all": "playlistSeeAll",
         },
 
         template: getTemplate("old-parties-page"),
@@ -646,7 +649,7 @@ var clutils = window.clutils;
                     domnode = $(template({party: party, }));
                     domnode[0].party = party;
                     var playlist_node = PM.domain.SpotifyAppIntegrator.getPlaylistDomForOldPartyPage(party);
-                    $(".playlist-placeholder", domnode).append(playlist_node);
+                    $(".playlist-placeholder", domnode).empty().append(playlist_node);
                     that.$('#parties').append(domnode);
                 });
             });
@@ -659,7 +662,13 @@ var clutils = window.clutils;
 
         addAsPlaylist: function (event) {
             var party = $(event.currentTarget).parents(".party")[0].party;
+            PM.domain.SpotifyAppIntegrator.addPartyAsPlaylist(party);
+        },
 
+        playlistSeeAll: function (event) {
+            var party = $(event.currentTarget).parents(".party")[0].party;
+            $(event.currentTarget).prevAll(".playlist-placeholder").css("max-height", (20 * party.getNotDeletedTracksInPlaylist().length) + "px");
+            $(event.currentTarget).css("visibility", "hidden");
         },
     });
 

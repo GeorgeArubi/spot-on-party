@@ -33,7 +33,7 @@ return __p;
 PM.templates["old-parties-page"]=function(obj){
 var __t,__p='',__j=Array.prototype.join,print=function(){__p+=__j.call(arguments,'');};
 with(obj||{}){
-__p+='<div class="logo-small"></div>\n<div class="buttons">\n    <button class="sp-button" id="to-create-party-page">create new party</button>\n</div>\n<div id="parties"></div>\n\n';
+__p+='<div class="logo-small"></div>\n<div class="buttons">\n    <a href="#party/new">create new party</a>\n</div>\n<div id="parties"></div>\n\n';
 }
 return __p;
 };
@@ -46,11 +46,11 @@ __p+='\n';
  var tracks_in_playlist = party.getNotDeletedTracksInPlaylist() 
 __p+='\n';
  var members_shown = 8 
-__p+='\n<div class="party">\n    <div class="art loading">\n        ';
+__p+='\n<div class="party">\n    <div class="art">\n        ';
  if (tracks_in_playlist.length > 0) { 
 __p+='\n            <div class="covers"></div>\n        ';
  } 
-__p+='\n    </div>\n    <div class="info">\n        <h2 class="party-name">'+
+__p+='\n    </div><div class="info">\n        <h2 class="party-name">'+
 ((__t=( party.get("name") ))==null?'':_.escape(__t))+
 '</h2>\n        <div class="party-when">'+
 ((__t=( clutils.pastDateText(party.get("last_updated")) ))==null?'':_.escape(__t))+
@@ -68,7 +68,7 @@ __p+='\n            <div class="more">+ '+
 ((__t=( (members_in_party.length - members_shown) ))==null?'':_.escape(__t))+
 ' more</div>\n            ';
  } 
-__p+='\n        </div>\n        <div class="buttons">\n            <button class="sp-button sp-icon add-as-playlist"><span class="sp-plus"></span>Add as playlist</button>\n            <button class="sp-button sp-icon share"><span class="sp-share"></span>Share</button>\n            <button class="sp-button continue-party">Continue party</button>\n        </div>\n    </div>\n    <div class="playlist-placeholder">\n        playlist comes here!!\n    </div>\n    ';
+__p+='\n        </div>\n        <div class="buttons">\n            <button class="sp-button sp-icon add-as-playlist"><span class="sp-plus"></span>Add as playlist</button>\n            <button class="sp-button sp-icon share"><span class="sp-share"></span>Share</button>\n            <button class="sp-button continue-party">Continue party</button>\n        </div>\n    </div>\n    <div class="playlist-placeholder clipped">\n        playlist comes here!!\n    </div>\n    ';
  if (tracks_in_playlist.length > 6) { 
 __p+='\n        <div class="playlist-see-all">See all '+
 ((__t=( tracks_in_playlist.length ))==null?'':_.escape(__t))+
@@ -81,7 +81,7 @@ return __p;
 PM.templates["party-page"]=function(obj){
 var __t,__p='',__j=Array.prototype.join,print=function(){__p+=__j.call(arguments,'');};
 with(obj||{}){
-__p+='<div id="overlay-backdrop"></div>\n<div id="overlay-placeholder"></div>\n<div class="logo-small"></div>\n<div class="buttons">\n    <button class="sp-button sp-icon" id="add-track"><span class="sp-plus"></span>add song</button>\n    <button class="sp-button" id="invite-users">invite friends</button>\n    <button class="sp-button" id="end-party">end party</button>\n</div>\n<div id="users-bar"><div class="arrow arrow-left"></div><div class="arrow arrow-right"></div><ul></ul></div>\n<div id="playlist-placeholder"></div>\n\n';
+__p+='<div id="overlay-backdrop"></div>\n<div id="overlay-placeholder"></div>\n<div class="logo-small"></div>\n<div class="buttons">\n    <a id="add-track">add song</a>\n    <a id="invite-users">invite friends</a>\n    <a id="end-party" href="#party/new">end party</a>\n</div>\n<div id="users-bar"><div class="arrow arrow-left"></div><div class="arrow arrow-right"></div><ul></ul></div>\n<div id="playlist-placeholder"></div>\n\n';
 }
 return __p;
 };

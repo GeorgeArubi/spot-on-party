@@ -781,6 +781,38 @@ if (typeof exports !== "undefined") {
         type: "TrackRemove",
     });
 
+    PM.models.TrackUnRemoveAction = PM.models.Action.extend({
+        _fields: {
+            position: 1,
+        },
+
+        validate: function (attrs) {
+            var that = this;
+            if (!that.party.isOwner(attrs.user_id)) {
+                return "only owner can do this";
+            }
+            if (!_.isNumber(attrs.position)) {
+                return "position must be present";
+            }
+            var track_in_playlist = that.party.get("playlist").at(attrs.position);
+            if (!_.isObject(track_in_playlist) || !track_in_playlist.isDeleted()) {
+                return "no track in the playlist at that position, or not deleted";
+            }
+            return that.constructor.__super__.validate.call(that, attrs);
+        },
+
+        applyActionToParty: function () {
+            var that = this;
+            var playlist = that.party.get("playlist");
+            playlist.at(that.get("position")).set({
+                deleted_by_user_id: null
+            });
+            that.party.set("last_updated", that.get("created"));
+        },
+    }, {
+        type: "TrackUnRemove",
+    });
+
     PM.models.StartAction = PM.models.Action.extend({
         validate: function (attrs) {
             var that = this;
@@ -794,7 +826,7 @@ if (typeof exports !== "undefined") {
             var that = this;
             that.party.set({
                 "active": true,
-                "last-updated": that.get("created"),
+                "last_updated": that.get("created"),
             });
         },
     }, {

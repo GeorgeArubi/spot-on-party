@@ -2,10 +2,11 @@ $spotify-dark-background-color: #363636;
 $spotify-search-results-background-color: #474747;
 $partymode-logo-color: #87ceeb;
 @mixin big-button {font-size: 30px; border-radius: 15px; height: 50px; border: 0px; outline: none; color: $spotify-dark-background-color; padding: 0;}
+@mixin small-button {font-size: 14px; border-radius: 5px; height: 20px; border: 0px; outline: none; color: $spotify-dark-background-color; padding: 0 15px; background-color: $partymode-logo-color; display: inline-block; line-height: 20px;}
 
-body {min-width: 600px;}
+body {min-width: 611px;}
 
-a {color: inherit; text-decoration: inherit;}
+a {color: inherit; text-decoration: inherit; cursor: default;}
 a:hover {text-decoration: inherit;}
 h3 {margin: 0px;}
 
@@ -45,19 +46,21 @@ h3 {margin: 0px;}
         #new-party-submit {@include big-button; width: 265px; background-color: #7FFF7F; padding-top: 1px;}
         .or:before {content: "\2013  ";} /* note: two spaces, one to end the hex character, one space to insert */
         .or:after {content: " \2013 ";}
-        .or {font-size: 35pt; font-weight: bold; margin: 25px;}
-        #view-party-history {@include big-button; width: 265px; background-color: #7FAFFF; display: inline-block; line-height: 50px;}
+        .or {font-size: 35pt; font-weight: bold; margin: 25px 0 30px;}
+        #view-party-history {@include big-button; width: 265px; background-color: $partymode-logo-color; display: inline-block; line-height: 50px;}
     }
 }
 
 .party-page {
-    .buttons {
-        text-align: right; margin: 0 15px 15px;
-        button { margin-left: 15px; }
+    > .buttons {
+        text-align: right;
+        a {@include small-button; background-color: #7fff7f; margin-right: 10px;}
+        a#end-party {background-color: #FF7777; margin-right: 20px;}
     }
     #users-bar {
         $users-bar-icon-size: 50px;
         $users-bar-size: 16;
+        margin-top: 20px;
         .arrow {display: none; position: absolute; width: 30px; height: 50px;}
         &.need-arrows .arrow {display: block; }
         .arrow-left {background-image: url(../img/arrow-left.png); left: 20px;}
@@ -86,13 +89,13 @@ h3 {margin: 0px;}
         }    
     }
     #playlist-placeholder {
+        margin-top: 25px;
         .expectedplaytime {width: 50px; text-align: right; }
         .delete-button {position: relative; width: 26px;
             > span {background-image: url(../img/delete.png); width: 16px; height: 16px; top: 2px; left: 5px; position: absolute;}
-            &:hover > span {background-position-x: -16px}
         }
         .sp-track.deleted {
-            .delete-button {background-color: silver; > span {display: none; }}
+            .delete-button > span {background-position-x: -16px; } 
             .expectedplaytime, .addedby {background-color: silver; color: red; }
         }
     }
@@ -151,11 +154,15 @@ h3 {margin: 0px;}
 }
 
 .old-parties-page {
+    > .buttons {
+        text-align: right;
+        a {@include small-button; margin-right: 20px;}
+    }
     .party {
-        margin: 25px;
+        $art-size: 140px;
+        margin: 60px 25px;
         .art {
-            $art-size: 140px;
-            float: left; width: $art-size; height: $art-size; border-radius: 10px; -webkit-box-shadow: 1px 1px 4px #202020; overflow: hidden; margin-right: 20px;
+            display: inline-block; width: $art-size; height: $art-size; border-radius: 10px; -webkit-box-shadow: 1px 1px 4px #202020; overflow: hidden; margin-right: 20px; vertical-align: top;
             .covers {
                 img {width: $art-size / 2; height: $art-size / 2; float: left; 
                     &:only-of-type {width: $art-size; height: $art-size; }
@@ -163,16 +170,17 @@ h3 {margin: 0px;}
             }
         }
         .info {
-            float: left;
+            display: inline-block; vertical-align: top;
             h2 {color: white; font-size: 30px; }
             .party-when {color: white; margin-top: 4px; font-size: 13px; }
             .users-bar {margin-top: 10px; position: relative; width: 8 * 50px; height: 50px;
-                img {width: 50px; height: 50px; margin: 0; float: none;}
+                img {width: 50px; height: 50px; margin: 0;}
                 .more {position: absolute; bottom: 0px; right: 0px; padding: 1px; background-color: black;  opacity: 0.8; font-size: 9px;}
             }
             .buttons {margin-top: 15px; }
         }
-        .playlist-placeholder {clear: both;}
+        .playlist-placeholder {-webkit-transition: max-height 500ms; overflow: hidden; max-height: 120px; margin-top: 15px;}
+        .playlist-see-all {background-color: #202020; padding: 2px 8px; border-radius: 5px; margin-top: 8px; font-size: 11px; display: inline-block;}
     }
 }
 

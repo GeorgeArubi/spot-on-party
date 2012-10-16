@@ -2,9 +2,9 @@
 <div id="overlay-placeholder"></div>
 <div class="logo-small"></div>
 <div class="buttons">
-    <button class="sp-button sp-icon" id="add-track"><span class="sp-plus"></span>add song</button>
-    <button class="sp-button" id="invite-users">invite friends</button>
-    <button class="sp-button" id="end-party">end party</button>
+    <a id="add-track">add song</a>
+    <a id="invite-users">invite friends</a>
+    <a id="end-party" href="#party/new">end party</a>
 </div>
 <div id="users-bar"><div class="arrow arrow-left"></div><div class="arrow arrow-right"></div><ul></ul></div>
 <div id="playlist-placeholder"></div>

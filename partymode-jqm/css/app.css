@@ -1,9 +1,10 @@
 body {
-  min-width: 600px; }
+  min-width: 611px; }
 
 a {
   color: inherit;
-  text-decoration: inherit; }
+  text-decoration: inherit;
+  cursor: default; }
 
 a:hover {
   text-decoration: inherit; }
@@ -94,7 +95,7 @@ h3 {
   .new-party-page #new-party-form .or {
     font-size: 35pt;
     font-weight: bold;
-    margin: 25px; }
+    margin: 25px 0 30px; }
   .new-party-page #new-party-form #view-party-history {
     font-size: 30px;
     border-radius: 15px;
@@ -104,98 +105,111 @@ h3 {
     color: #363636;
     padding: 0;
     width: 265px;
-    background-color: #7FAFFF;
+    background-color: skyblue;
     display: inline-block;
     line-height: 50px; }
 
-.party-page .buttons {
-  text-align: right;
-  margin: 0 15px 15px; }
-  .party-page .buttons button {
-    margin-left: 15px; }
-.party-page #users-bar .arrow {
-  display: none;
-  position: absolute;
-  width: 30px;
-  height: 50px; }
-.party-page #users-bar.need-arrows .arrow {
-  display: block; }
-.party-page #users-bar .arrow-left {
-  background-image: url(../img/arrow-left.png);
-  left: 20px; }
-.party-page #users-bar .arrow-right {
-  background-image: url(../img/arrow-right.png);
-  left: 858px; }
-.party-page #users-bar > ul {
-  width: 800px;
-  height: 50px;
-  overflow: hidden;
-  position: relative;
-  left: 54px; }
-  .party-page #users-bar > ul > li {
-    width: 50px;
-    height: 50px;
+.party-page > .buttons {
+  text-align: right; }
+  .party-page > .buttons a {
+    font-size: 14px;
+    border-radius: 5px;
+    height: 20px;
+    border: 0px;
+    outline: none;
+    color: #363636;
+    padding: 0 15px;
+    background-color: skyblue;
+    display: inline-block;
+    line-height: 20px;
+    background-color: #7fff7f;
+    margin-right: 10px; }
+  .party-page > .buttons a#end-party {
+    background-color: #FF7777;
+    margin-right: 20px; }
+.party-page #users-bar {
+  margin-top: 20px; }
+  .party-page #users-bar .arrow {
+    display: none;
     position: absolute;
-    left: 0px;
-    -webkit-transition: left 500ms; }
-    .party-page #users-bar > ul > li > img.icon {
-      -webkit-transition: margin 1s, width 1s, height 1s;
+    width: 30px;
+    height: 50px; }
+  .party-page #users-bar.need-arrows .arrow {
+    display: block; }
+  .party-page #users-bar .arrow-left {
+    background-image: url(../img/arrow-left.png);
+    left: 20px; }
+  .party-page #users-bar .arrow-right {
+    background-image: url(../img/arrow-right.png);
+    left: 858px; }
+  .party-page #users-bar > ul {
+    width: 800px;
+    height: 50px;
+    overflow: hidden;
+    position: relative;
+    left: 54px; }
+    .party-page #users-bar > ul > li {
       width: 50px;
       height: 50px;
-      margin: 0; }
-    .party-page #users-bar > ul > li.new {
-      -webkit-transition: none; }
-      .party-page #users-bar > ul > li.new > img.icon {
-        width: 0;
-        height: 0;
-        margin: 25px;
+      position: absolute;
+      left: 0px;
+      -webkit-transition: left 500ms; }
+      .party-page #users-bar > ul > li > img.icon {
+        -webkit-transition: margin 1s, width 1s, height 1s;
+        width: 50px;
+        height: 50px;
+        margin: 0; }
+      .party-page #users-bar > ul > li.new {
         -webkit-transition: none; }
-    .party-page #users-bar > ul > li > .hoverdata {
-      opacity: 0;
-      -webkit-transition: opacity 100ms; }
-    .party-page #users-bar > ul > li:hover > .hoverdata {
-      opacity: 1; }
-    .party-page #users-bar > ul > li > .kick {
+        .party-page #users-bar > ul > li.new > img.icon {
+          width: 0;
+          height: 0;
+          margin: 25px;
+          -webkit-transition: none; }
+      .party-page #users-bar > ul > li > .hoverdata {
+        opacity: 0;
+        -webkit-transition: opacity 100ms; }
+      .party-page #users-bar > ul > li:hover > .hoverdata {
+        opacity: 1; }
+      .party-page #users-bar > ul > li > .kick {
+        width: 16px;
+        height: 16px;
+        background-image: url(../img/close.png);
+        position: absolute;
+        top: 0;
+        right: 0; }
+      .party-page #users-bar > ul > li.owner > .kick {
+        display: none; }
+      .party-page #users-bar > ul > li > .name {
+        background-color: rgba(0, 0, 0, 0.7);
+        position: absolute;
+        left: 2px;
+        bottom: 2px;
+        height: 30px;
+        right: 2px;
+        overflow: hidden;
+        padding: 2px;
+        font-size: 10px; }
+.party-page #playlist-placeholder {
+  margin-top: 25px; }
+  .party-page #playlist-placeholder .expectedplaytime {
+    width: 50px;
+    text-align: right; }
+  .party-page #playlist-placeholder .delete-button {
+    position: relative;
+    width: 26px; }
+    .party-page #playlist-placeholder .delete-button > span {
+      background-image: url(../img/delete.png);
       width: 16px;
       height: 16px;
-      background-image: url(../img/close.png);
-      position: absolute;
-      top: 0;
-      right: 0; }
-    .party-page #users-bar > ul > li.owner > .kick {
-      display: none; }
-    .party-page #users-bar > ul > li > .name {
-      background-color: rgba(0, 0, 0, 0.7);
-      position: absolute;
-      left: 2px;
-      bottom: 2px;
-      height: 30px;
-      right: 2px;
-      overflow: hidden;
-      padding: 2px;
-      font-size: 10px; }
-.party-page #playlist-placeholder .expectedplaytime {
-  width: 50px;
-  text-align: right; }
-.party-page #playlist-placeholder .delete-button {
-  position: relative;
-  width: 26px; }
-  .party-page #playlist-placeholder .delete-button > span {
-    background-image: url(../img/delete.png);
-    width: 16px;
-    height: 16px;
-    top: 2px;
-    left: 5px;
-    position: absolute; }
-  .party-page #playlist-placeholder .delete-button:hover > span {
-    background-position-x: -16px; }
-.party-page #playlist-placeholder .sp-track.deleted .delete-button {
-  background-color: silver; }
+      top: 2px;
+      left: 5px;
+      position: absolute; }
   .party-page #playlist-placeholder .sp-track.deleted .delete-button > span {
-    display: none; }
-.party-page #playlist-placeholder .sp-track.deleted .expectedplaytime, .party-page #playlist-placeholder .sp-track.deleted .addedby {
-  background-color: silver;
-  color: red; }
+    background-position-x: -16px; }
+  .party-page #playlist-placeholder .sp-track.deleted .expectedplaytime, .party-page #playlist-placeholder .sp-track.deleted .addedby {
+    background-color: silver;
+    color: red; }
 
 #overlay-backdrop {
   display: none;
@@ -319,16 +333,31 @@ h3 {
     margin-top: 7px;
     margin-right: 15px; }
 
+.old-parties-page > .buttons {
+  text-align: right; }
+  .old-parties-page > .buttons a {
+    font-size: 14px;
+    border-radius: 5px;
+    height: 20px;
+    border: 0px;
+    outline: none;
+    color: #363636;
+    padding: 0 15px;
+    background-color: skyblue;
+    display: inline-block;
+    line-height: 20px;
+    margin-right: 20px; }
 .old-parties-page .party {
-  margin: 25px; }
+  margin: 60px 25px; }
   .old-parties-page .party .art {
-    float: left;
+    display: inline-block;
     width: 140px;
     height: 140px;
     border-radius: 10px;
     -webkit-box-shadow: 1px 1px 4px #202020;
     overflow: hidden;
-    margin-right: 20px; }
+    margin-right: 20px;
+    vertical-align: top; }
     .old-parties-page .party .art .covers img {
       width: 70px;
       height: 70px;
@@ -337,7 +366,8 @@ h3 {
         width: 140px;
         height: 140px; }
   .old-parties-page .party .info {
-    float: left; }
+    display: inline-block;
+    vertical-align: top; }
     .old-parties-page .party .info h2 {
       color: white;
       font-size: 30px; }
@@ -353,8 +383,7 @@ h3 {
       .old-parties-page .party .info .users-bar img {
         width: 50px;
         height: 50px;
-        margin: 0;
-        float: none; }
+        margin: 0; }
       .old-parties-page .party .info .users-bar .more {
         position: absolute;
         bottom: 0px;
@@ -366,7 +395,17 @@ h3 {
     .old-parties-page .party .info .buttons {
       margin-top: 15px; }
   .old-parties-page .party .playlist-placeholder {
-    clear: both; }
+    -webkit-transition: max-height 500ms;
+    overflow: hidden;
+    max-height: 120px;
+    margin-top: 15px; }
+  .old-parties-page .party .playlist-see-all {
+    background-color: #202020;
+    padding: 2px 8px;
+    border-radius: 5px;
+    margin-top: 8px;
+    font-size: 11px;
+    display: inline-block; }
 
 .footer {
   margin-top: 100px;
