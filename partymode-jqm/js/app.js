@@ -110,6 +110,7 @@ var clutils = window.clutils;
             });
 
             PM.collections.Parties.getInstance().add(party);
+            party.shareNewActions();
 
             party.createAndApplyMasterAction(
                 "Initialize",
@@ -123,6 +124,7 @@ var clutils = window.clutils;
                                 "Invite",
                                 {invited_user_id: PM.app.loggedin_user.id},
                                 function () {
+                                    party.stopShareNewActions(); // as soon as the party is shown, it will start sharing new actions again
                                     PM.app.navigate("party/" + party.id, {trigger: true});
                                 }
                             );
@@ -424,10 +426,8 @@ var clutils = window.clutils;
                 that.party.get("users").on("add", that.updateUserBar, that);
                 that.party.get("users").on("change", that.updateUserBar, that);
                 var playlistNode = PM.domain.SpotifyAppIntegrator.startPartyReturnHtmlNode(that.party);
-                if (that.party.get("play_status") === "play") {
+                if (that.party.get("current_playlist_index") !== -1) {
                     that.party.trigger("playcommand", "play", that.party.get("current_playlist_index"));
-                } else {
-                    that.party.trigger("playcommand", "pause");
                 }
                 that.$('#playlist-placeholder').html(playlistNode);
             };
@@ -607,22 +607,26 @@ var clutils = window.clutils;
 
         template: getTemplate("old-parties-page"),
 
+        initialize: function () {
+            var that = this;
+            $(window).scroll(_.bind(that.checkToLoadContent, that));
+        },
+
         render: function (target) {
             var that = this;
             that.$el.html(that.template());
             target.html(that.$el);
-            _.delay(_.bind(that.loadAndRenderPartiesInView, that), 0);
+            _.delay(_.bind(that.checkToLoadContent, that), 0);
             return that;
         },
 
-        loadAndRenderPartiesInView: function () {
+        loadAndRenderMoreParties: function () {
             var that = this;
-            //TODO: check whether we need to load more parties
             var template = getTemplate("old-party");
             var limit = 10;
             var before_timestamp = that.last_shown_party_last_updated;
             window.mytracks = [];
-            PM.domain.PartyNodeDomain.getOwnParties(limit, before_timestamp, function (parties_data) {
+            PM.domain.PartyNodeDomain.getOwnParties(limit, before_timestamp, function (parties_data, parties_left) {
                 _.each(parties_data, function (party_data) {
                     var party = PM.models.Party.unserialize(party_data);
                     var tracks = _.map(party.getNotDeletedTracksInPlaylist(), function (track_in_playlist) {return track_in_playlist.getTrack(); });
@@ -651,9 +655,22 @@ var clutils = window.clutils;
                     var playlist_node = PM.domain.SpotifyAppIntegrator.getPlaylistDomForOldPartyPage(party);
                     $(".playlist-placeholder", domnode).empty().append(playlist_node);
                     that.$('#parties').append(domnode);
+                    that.last_shown_party_last_updated = party.get("last_updated");
                 });
+                that.$("#parties").removeClass("loading");
+                if (parties_left === 0) {
+                    that.no_more_to_load = true;
+                }
             });
         },
+
+        checkToLoadContent: _.debounce(function () {
+            var that = this;
+            if (!that.no_more_to_load && !that.$("#parties").hasClass("loading") && $(window).scrollTop() >= $(document).height() - $(window).height() - 100) {
+                that.$("#parties").addClass("loading");
+                that.loadAndRenderMoreParties();
+            }
+        }, 50),
 
         continueParty: function (event) {
             var party = $(event.currentTarget).parents(".party")[0].party;

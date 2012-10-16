@@ -116,7 +116,7 @@ var partyconnection = exports;
                 cursor.nextObject(that.catchDatabaseError(function (partyindex_data) {
                     if (!partyindex_data || (options.limit && options.limit === parties_data.length)) {
                         //done
-                        callback(parties_data, cursor.totalNumberOfRecords);
+                        callback(parties_data, cursor.totalNumberOfRecords - parties_data.length);
                     } else {
                         var party_id = partyindex_data._id;
                         that.loadParty(party_id, function (party) {

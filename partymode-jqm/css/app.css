@@ -406,6 +406,15 @@ h3 {
     margin-top: 8px;
     font-size: 11px;
     display: inline-block; }
+.old-parties-page > .throbber {
+  display: none;
+  position: relative;
+  background-color: inherit;
+  margin-top: 40px; }
+  .old-parties-page > .throbber > div {
+    left: 50%; }
+.old-parties-page #parties.loading ~ .throbber {
+  display: block; }
 
 .footer {
   margin-top: 100px;

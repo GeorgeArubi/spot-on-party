@@ -33,7 +33,7 @@ return __p;
 PM.templates["old-parties-page"]=function(obj){
 var __t,__p='',__j=Array.prototype.join,print=function(){__p+=__j.call(arguments,'');};
 with(obj||{}){
-__p+='<div class="logo-small"></div>\n<div class="buttons">\n    <a href="#party/new">create new party</a>\n</div>\n<div id="parties"></div>\n\n';
+__p+='<div class="logo-small"></div>\n<div class="buttons">\n    <a href="#party/new">create new party</a>\n</div>\n<div id="parties"></div>\n<div class="throbber"><div></div></div>\n';
 }
 return __p;
 };

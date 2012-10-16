@@ -182,6 +182,10 @@ h3 {margin: 0px;}
         .playlist-placeholder {-webkit-transition: max-height 500ms; overflow: hidden; max-height: 120px; margin-top: 15px;}
         .playlist-see-all {background-color: #202020; padding: 2px 8px; border-radius: 5px; margin-top: 8px; font-size: 11px; display: inline-block;}
     }
+    > .throbber {display: none; position: relative; background-color: inherit; margin-top: 40px;
+        > div {left: 50%;}
+    }
+    #parties.loading~.throbber {display: block; }
 }
 
 .footer {margin-top: 100px; padding-top: 5px; border-top: 1px solid silver;

@@ -68,7 +68,7 @@ if (typeof exports !== "undefined") {
                     throw "An error occured with your call: " + JSON.stringify(result.error);
                 }
                 if (callback) {
-                    callback(result);
+                    callback.apply(this, arguments);
                 }
             };
         },
