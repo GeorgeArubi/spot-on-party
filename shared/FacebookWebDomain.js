@@ -36,6 +36,7 @@ if (!PM) {
                 var authchange = function (response) {
                     that.fb_status = response;
                     if (response.status === "connected") {
+                        that.fb_status.authResponse.expiresOn = (new Date()).valueOf + (that.fb_status.authResponse.expiresIn * 1000);
                         _.each(that.afterLoginCalls, function (func) {
                             func();
                         });

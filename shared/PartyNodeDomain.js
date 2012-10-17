@@ -83,11 +83,31 @@ if (typeof exports !== "undefined") {
 
         getOwnParties: function (limit, before_timestamp, callback) {
             var that = this;
+            return that.getParties("get own parties", limit, before_timestamp, callback);
+        },
+
+        getParties: function (method, limit, before_timestamp, callback) {
+            var that = this;
             var options = {limit: limit};
             if (clutils.isTimestamp(before_timestamp)) {
                 options.before_timestamp = before_timestamp;
             }
-            that.socket.emit("get own parties", options, that.callbackCatchError(callback));
+            that.socket.emit(method, options, that.callbackCatchError(callback));
+        },
+
+        getMyParty: function (party_id, callback) {
+            var that = this;
+            that.socket.emit("get my party", party_id, that.callbackCatchError(callback));
+        },
+
+        getMyParties: function (limit, before_timestamp, callback) {
+            var that = this;
+            return that.getParties("get my parties", limit, before_timestamp, callback);
+        },
+
+        getMyActiveParties: function (limit, before_timestamp, callback) {
+            var that = this;
+            return that.getParties("get my active parties", limit, before_timestamp, callback);
         },
 
         shareAction: function (action_data, callback) {

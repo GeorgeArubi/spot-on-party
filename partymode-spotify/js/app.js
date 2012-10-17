@@ -33,16 +33,18 @@ var clutils = window.clutils;
         if (PM.app.loggedin_user) {
             loggedincode();
         } else {
-            PM.domain.FacebookSpotifyDomain.isLoggedin(function (loggedin) {
+            PM.domain.FacebookDomain.isLoggedin(function (loggedin) {
                 if (loggedin) {
-                    PM.domain.FacebookDomain.getLoggedinUserData(function (facebookdata) {
-                        PM.app.loggedin_user = PM.models.User.getByFacebookData(facebookdata);
-                        PM.domain.FacebookDomain.getAccessToken(function (accessToken) {
-                            PM.domain.PartyNodeDomain.connect(accessToken, true);
-                            PM.domain.FacebookDomain.on("new token", function (token) {
-                                PM.domain.PartyNodeDomain.updateToken(token);
+                    PM.domain.FacebookDomain.getLoggedinUserId(function (user_id) {
+                        PM.app.loggedin_user = PM.models.User.getById(user_id);
+                        PM.app.loggedin_user.onLoaded(function () {
+                            PM.domain.FacebookDomain.getAccessToken(function (accessToken) {
+                                PM.domain.PartyNodeDomain.connect(accessToken, true);
+                                PM.domain.FacebookDomain.on("new token", function (token) {
+                                    PM.domain.PartyNodeDomain.updateToken(token);
+                                });
+                                checkFacebookLogin(loggedincode);
                             });
-                            checkFacebookLogin(loggedincode);
                         });
                     });
                 } else {
@@ -335,7 +337,7 @@ var clutils = window.clutils;
                 return;
             }
             that.$('#track-search-results').addClass("loading");
-            PM.domain.SpotifySpotifyDomain.search(searchtext, function (tracks_data) {
+            PM.domain.SpotifyDomain.search(searchtext, function (tracks_data) {
                 var tracks = _.map(tracks_data, function (track_data) {
                     return PM.models.Track.getBySpotifyData(track_data);
                 });

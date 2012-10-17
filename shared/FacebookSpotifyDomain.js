@@ -74,7 +74,7 @@ window.PM.domain.FacebookSpotifyDomain = window.PM.domain.AbstractFacebookDomain
         var auth = sp.require('sp://import/scripts/api/auth');
         auth.authenticateWithFacebook(that.FACEBOOK_APP_ID, [], {
             onSuccess : function (received_accesstoken, ttl) {
-                var params = {fields: "id,name", access_token: received_accesstoken};
+                var params = {fields: "id", access_token: received_accesstoken};
                 window.$.ajax({
                     url: that.FACEBOOK_GRAPH_URL + "me",
                     data: params,
@@ -86,7 +86,6 @@ window.PM.domain.FacebookSpotifyDomain = window.PM.domain.AbstractFacebookDomain
                                 "accessToken": received_accesstoken,
                                 "expiresOn": (new Date().valueOf()) + ttl * 1000,
                                 "userID": result.id,
-                                "userName": result.name,
                             },
                         };
                         localStorage.setItem("fb_status", JSON.stringify(that.fb_status));

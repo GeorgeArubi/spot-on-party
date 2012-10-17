@@ -1,0 +1,20 @@
+<% if (parties.length > 0) { %>
+<ul data-role="listview">
+    <li data-role="list-divider">All parties</li> 
+    <% _.each(parties, function (party) { %>
+    <li>
+        <a href="#oldparty_<%- encodeURIComponent(party.id) %>">
+        
+            <h2 class="party-name"><%- party.get("name") %></h2>
+            <div class="party-when"><%- clutils.pastDateText(party.get("last_updated")) %></div>
+            <span class="ui-li-aside">u: <%- party.getMembersInPartyOrderedByActive().length %> t: <%- party.getNotDeletedTracksInPlaylist().length %></span>
+        </a>
+    </li>
+    <% }); %>
+</ul>
+<% } %>
+<% if (parties_left > 0 ) { %>
+<p>Man you're popular; you actually have more parties than can be shown</p>
+<% } %>
+
+

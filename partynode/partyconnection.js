@@ -24,46 +24,7 @@ var partyconnection = exports;
             that.db_error_domain = db_error_domain;
             that.user_id = partynode_data.user_id;
             that.username = partynode_data.username;
-            that.log("info", "New master connection from " + socket.handshake.address.address + ":" + socket.handshake.address.port + " user " + that.username + "(" + that.user_id + ")");
             that.cursors = {};
-        },
-
-        listen: function () {
-            var that = this;
-            that.setupListen("share action");
-            that.setupListen("get own party");
-            that.setupListen("update token");
-            that.setupListen("get own parties");
-        },
-
-        "share action": function (action_data, callback) {
-            var that = this;
-            that.loadParty(action_data.party_id, function (party) {
-                if (party.get("log").length === 0) {
-                    clutils.checkConstraints(action_data._TYPE, {_is: PM.models.InitializeAction.type});
-                } else if (!party.isOwner(that.user_id)) {
-                    throw "Not party's owner";
-                }
-                var action = PM.models.Action.unserializeFromTrusted(action_data, party);
-                try {
-                    action.applyValidatedAction();
-                    that.db_collections.actions.insert(action.serialize(), that.catchDatabaseError(function () {
-                        callback(true);
-                        that.db_collections.partyindex.save(party.indexableObject());
-                    }));
-                } catch (error) {
-                    throw "Error: party " + party.id + ", applying action " + action.get("number") + " failed: " + error.toString() + "\n" + error.stack;
-                }
-            });
-        },
-        "share action constraints": {
-            party_id: {
-                _isUniqueId: true
-            },
-            _TYPE: {
-                _isString: true
-            },
-            _strict: false
         },
 
         "update token": function (token, callback) {
@@ -85,61 +46,6 @@ var partyconnection = exports;
         "update token constraints": {
             _matches: /^[A-Za-z0-9]{10,200}$/
         },
-
-        "get own party": function (party_id, callback) {
-            var that = this;
-            that.loadParty(party_id, function (party) {
-                if (party.get("owner_id") !== that.user_id) {
-                    throw "Party with id " + party_id + "not found";
-                }
-                callback(party.serialize());
-            });
-        },
-        "get own party constraints": {
-            _isUniqueId: true
-        },
-
-        "get own parties": function (options, callback) {
-            var that = this;
-            var query = {
-                owner_id: that.user_id,
-            };
-            if (options.before_timestamp) {
-                query.last_updated = {'$lt': options.before_timestamp};
-            }
-
-            var cursor = that.db_collections.partyindex.find(query, {sort: [["last_updated", "desc"]]});
-            if (options.limit) {
-                cursor.batchSize = Math.max(options.limit, 2); // batchSize of 1 doesn't seem to be supported...
-            }
-            var readMore = function (parties_data) {
-                cursor.nextObject(that.catchDatabaseError(function (partyindex_data) {
-                    if (!partyindex_data || (options.limit && options.limit === parties_data.length)) {
-                        //done
-                        callback(parties_data, cursor.totalNumberOfRecords - parties_data.length);
-                    } else {
-                        var party_id = partyindex_data._id;
-                        that.loadParty(party_id, function (party) {
-                            parties_data.push(party.serialize());
-                            readMore(parties_data);
-                        });
-                    }
-                }));
-            };
-            readMore([]);
-        },
-        "get own parties constraints": {
-            before_timestamp: {
-                _isTimestamp: true,
-                _optional: true,
-
-            },
-            limit: {
-                _isNumber: true,
-            },
-        },
-
-
         setupListen: function (name) {
             var that = this;
             var handler = _.bind(that[name], that);
@@ -195,6 +101,42 @@ var partyconnection = exports;
         log: function (severity, message, metadata) {
             var that = this;
             winston.log(severity, that.socket.id + ": " + message, metadata);
+        },
+
+        loadParties: function (query, options, callback) {
+            var that = this;
+            clutils.checkConstraints(options, {
+                before_timestamp: {
+                    _isTimestamp: true,
+                    _optional: true,
+                },
+                limit: {
+                    _isNumber: true,
+                },
+            });
+            if (options.before_timestamp) {
+                query.last_updated = {'$lt': options.before_timestamp};
+            }
+
+            var cursor = that.db_collections.partyindex.find(query, {sort: [["last_updated", "desc"]]});
+            if (options.limit) {
+                cursor.batchSize = Math.max(options.limit, 2); // batchSize of 1 doesn't seem to be supported...
+            }
+            var readMore = function (parties_data) {
+                cursor.nextObject(that.catchDatabaseError(function (partyindex_data) {
+                    if (!partyindex_data || (options.limit && options.limit === parties_data.length)) {
+                        //done
+                        callback(parties_data, cursor.totalNumberOfRecords - parties_data.length);
+                    } else {
+                        var party_id = partyindex_data._id;
+                        that.loadParty(party_id, function (party) {
+                            parties_data.push(party.serialize());
+                            readMore(parties_data);
+                        });
+                    }
+                }));
+            };
+            readMore([]);
         },
 
         loadParty: function (party_id, callback) {
@@ -267,10 +209,10 @@ var partyconnection = exports;
                         user_id: parseInt(object.id, 10),
                         username: object.name,
                     };
-                    if (handshakeData.query.master) {
-                        handshakeData.partynode.ConnectionClass = partyconnection.Connection;
+                    if (clutils.toBoolean(handshakeData.query.master)) {
+                        handshakeData.partynode.ConnectionClass = partyconnection.MasterConnection;
                     } else {
-                        throw "no not-master connect yet";
+                        handshakeData.partynode.ConnectionClass = partyconnection.ClientConnection;
                     }
                     callback(null, true);
                 });
@@ -278,4 +220,147 @@ var partyconnection = exports;
         },
 
     });
+
+    partyconnection.MasterConnection = partyconnection.Connection.extend({
+        initialize: function () {
+            var that = this;
+            partyconnection.Connection.prototype.initialize.apply(that, arguments);
+            that.log("info", "New master connection from " + that.socket.handshake.address.address + ":" + that.socket.handshake.address.port + " user " + that.username + "(" + that.user_id + ")");
+        },
+
+        listen: function () {
+            var that = this;
+            that.setupListen("share action");
+            that.setupListen("get own party");
+            that.setupListen("update token");
+            that.setupListen("get own parties");
+        },
+
+        "share action": function (action_data, callback) {
+            var that = this;
+            that.loadParty(action_data.party_id, function (party) {
+                if (party.get("log").length === 0) {
+                    clutils.checkConstraints(action_data._TYPE, {_is: PM.models.InitializeAction.type});
+                } else if (!party.isOwner(that.user_id)) {
+                    throw "Not party's owner";
+                }
+                var action = PM.models.Action.unserializeFromTrusted(action_data, party);
+                try {
+                    action.applyValidatedAction();
+                    that.db_collections.actions.insert(action.serialize(), that.catchDatabaseError(function () {
+                        callback(true);
+                        that.db_collections.partyindex.save(party.indexableObject());
+                    }));
+                } catch (error) {
+                    throw "Error: party " + party.id + ", applying action " + action.get("number") + " failed: " + error.toString() + "\n" + error.stack;
+                }
+            });
+        },
+        "share action constraints": {
+            party_id: {
+                _isUniqueId: true
+            },
+            _TYPE: {
+                _isString: true
+            },
+            _strict: false
+        },
+
+        "get own party": function (party_id, callback) {
+            var that = this;
+            that.loadParty(party_id, function (party) {
+                if (party.get("owner_id") !== that.user_id) {
+                    throw "Party with id " + party_id + "not found";
+                }
+                callback(party.serialize());
+            });
+        },
+        "get own party constraints": {
+            _isUniqueId: true
+        },
+
+        "get own parties": function (options, callback) {
+            var that = this;
+            var query = {
+                owner_id: that.user_id,
+            };
+            return that.loadParties(query, options, callback);
+        },
+        "get own parties constraints": {
+            before_timestamp: {
+                _isTimestamp: true,
+                _optional: true,
+
+            },
+            limit: {
+                _isNumber: true,
+            },
+        },
+    });
+
+    partyconnection.ClientConnection = partyconnection.Connection.extend({
+        initialize: function () {
+            var that = this;
+            partyconnection.Connection.prototype.initialize.apply(that, arguments);
+            that.log("info", "New client connection from " + that.socket.handshake.address.address + ":" + that.socket.handshake.address.port + " user " + that.username + "(" + that.user_id + ")");
+        },
+
+        listen: function () {
+            var that = this;
+            that.setupListen("update token");
+            that.setupListen("get my active parties");
+            that.setupListen("get my parties");
+            that.setupListen("get my party");
+        },
+
+        "get my party": function (party_id, callback) {
+            var that = this;
+            that.loadParty(party_id, function (party) {
+                if (!party.isMember(that.user_id)) {
+                    throw "Party with id " + party_id + "not found";
+                }
+                callback(party.serialize());
+            });
+        },
+        "get my party constraints": {
+            _isUniqueId: true
+        },
+
+
+        "get my active parties": function (options, callback) {
+            var that = this;
+            var query = {
+                user_ids: that.user_id,
+                active: true,
+            };
+            return that.loadParties(query, options, callback);
+        },
+        "get my active parties constraints": {
+            before_timestamp: {
+                _isTimestamp: true,
+                _optional: true,
+            },
+            limit: {
+                _isNumber: true,
+            },
+        },
+
+        "get my parties": function (options, callback) {
+            var that = this;
+            var query = {
+                user_ids: that.user_id,
+            };
+            return that.loadParties(query, options, callback);
+        },
+        "get my parties constraints": {
+            before_timestamp: {
+                _isTimestamp: true,
+                _optional: true,
+            },
+            limit: {
+                _isNumber: true,
+            },
+        },
+    });
 })();
+ 

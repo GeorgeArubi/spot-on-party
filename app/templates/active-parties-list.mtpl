@@ -1,0 +1,18 @@
+<% if (parties.length > 0) { %>
+<ul data-role="listview">
+    <li data-role="list-divider">Active parties</li> 
+    <% _.each(parties, function (party) { %>
+    <li>
+        <a href="#activeparty_<%- encodeURIComponent(party.id) %>">
+            <h2 class="party-name"><%- party.get("name") %></h2>
+            <span class="ui-li-aside">u: <%- party.getMembersInPartyOrderedByActive().length %> t: <%- party.getNotDeletedTracksInPlaylist().length %></span>
+        </a>
+    </li>
+    <% }); %>
+</ul>
+<% } else { %>
+<p>There are no active parties</p>
+<% } %>
+<% if (parties_left > 0 ) { %>
+<p>Man you're popular; you actually have more active parties than can be shown</p>
+<% } %>

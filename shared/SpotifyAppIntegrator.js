@@ -127,11 +127,7 @@ window.PM.domain.SpotifyAppIntegrator = window.Toolbox.Base.extend({
                     el.innerText = "";
                 } else {
                     var waitms = el.expectedtime - clutils.nowts();
-                    var wait_secondpart = Math.floor(waitms / 1000) % 60;
-                    var wait_minutepart = Math.floor(waitms / 60000) % 60;
-                    var wait_hourpart = Math.floor(waitms / 3600000) % 60;
-                    var wait_string = (wait_hourpart > 0 ? wait_hourpart + ":" + (wait_minutepart < 10 ? "0" : "") : "") + wait_minutepart + ":" + (wait_secondpart < 10 ? "0" : "") + wait_secondpart;
-                    $(el).text(wait_string);
+                    $(el).text(clutils.formatTimeMs(waitms));
                 }
             });
         }

@@ -83,18 +83,10 @@ window.PM.domain.AbstractFacebookDomain = window.Toolbox.Base.extend({
         });
     },
 
-    /**
-     * Please note: function is synchronous, so will not wait for user_id to arrive. Don't call too early
-     */
-    getLoggedinUserId: function () {
-        var that = this;
-        return that.fb_status.authResponse.userID;
-    },
-
-    getLoggedinUserData: function (callback) {
+    getLoggedinUserId: function (callback) {
         var that = this;
         that.callAfterLogin(function () {
-            callback({id: that.fb_status.authResponse.userID, name: that.fb_status.authResponse.userName});
+            callback(that.fb_status.authResponse.userID);
         });
     },
 

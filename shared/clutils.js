@@ -34,6 +34,14 @@ if (typeof exports !== "undefined") {
         return id;
     };
 
+    clutils.formatTimeMs = function (timems) {
+        var time_secondpart = Math.floor(timems / 1000) % 60;
+        var time_minutepart = Math.floor(timems / 60000) % 60;
+        var time_hourpart = Math.floor(timems / 3600000) % 60;
+        var time_string = (time_hourpart > 0 ? time_hourpart + ":" + (time_minutepart < 10 ? "0" : "") : "") + time_minutepart + ":" + (time_secondpart < 10 ? "0" : "") + time_secondpart;
+        return time_string;
+    };
+
     clutils.isUniqueId = function (value) {
         return !!/^[A-Za-z0-9_\-]{10}$/.exec(value);
     };
@@ -136,6 +144,22 @@ if (typeof exports !== "undefined") {
             return Math.round(diff / HOUR) + " hours ago";
         }
         return Math.round(diff / DAY) + " days ago";
+    };
+
+    /**
+     * Does something intelligent to toBoolean conversion.
+     * Everything that evaluates to false, is false
+     * in addition, strings "false", "off", "no" and "0" are false as well.
+     * My jury is still out on empty array and object... So for now they are true
+     **/
+    clutils.toBoolean = function (value) {
+        if (!value) {
+            return false;
+        }
+        if (value in ["0", "false", "off", "no"]) {
+            return false;
+        }
+        return true;
     };
 })();
 

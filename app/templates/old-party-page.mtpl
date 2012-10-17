@@ -1,0 +1,29 @@
+<div data-role="header">
+    <h1><%- party.get("name") %></h1>
+    <a href="#partyoverview" data-role="button" data-icon="arrow-l">back</a>
+    <a href="#oldpartyusers_<%- encodeURIComponent(party.id) %>" data-role="button" data-icon="arrow-l">users</a>
+</div>
+<div data-role="content">
+    <iframe src="https://embed.spotify.com/?uri=spotify:trackset:PREFEREDTITLE:5Z7ygHQo02SUrFmcgpwsKW,1x6ACsKV4UdWS2FMuPFUiT,4bi73jCM02fMpkI11Lqmfe" frameborder="0" allowtransparency="true"></iframe>
+    <div class="party-when"><%- clutils.pastDateText(party.get("last_updated")) %></div>
+    <div class="playlist">
+        <span class="header">Playlist</span>
+        <ul data-role="listview">
+            <% _.each(party.getNotDeletedTracksInPlaylist(), function (track_in_playlist, index) { %>
+                <% var id = "id_" + track_in_playlist.cid %>
+                <li id="<%- id %>"><a href="<%- track_in_playlist.get("track_id") %>">
+                    <h2 class="track-name"></h2>
+                    <div class="track-album"></div>
+                    <div class="track-artist"></div>
+                    <div class="track-duration"></div>
+                </a>
+                </li>
+                <% track_in_playlist.getTrack().onLoaded(function (track) {
+                    $('#' + id + ' .track-name').text(track.get("name"));
+                    $('#' + id + ' .track-album').text(track.get("album"));
+                    $('#' + id + ' .track-artist').text(track.get("artist"));
+                    $('#' + id + ' .track-duration').text(clutils.formatTimeMs(track.get("duration")));
+                }); %>
+            <% }); %>
+        </ul>
+</div>
