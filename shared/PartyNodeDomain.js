@@ -1,4 +1,4 @@
-/*jshint browser: true*/
+/*jshint*/
 /*global require, exports*/
 
 var root = this;

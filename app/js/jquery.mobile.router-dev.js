@@ -262,9 +262,8 @@ $(document).bind("mobileinit",function(){
 						handleFn=_self.userHandlers[handler];
 					}
 					if (handleFn){
-						try { handleFn.apply(_self.userHandlers, [e.type,res,ui,page,e]);
+						handleFn.apply(_self.userHandlers, [e.type,res,ui,page,e]);
 							bHandled = true;
-						}catch(err){ debug(err); }
 					}
 				}
 				if (bHandled && _self.conf.firstMatchOnly) return false;

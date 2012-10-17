@@ -4,7 +4,8 @@
 (function () {
     "use strict";
 
-    var app = require('express')();
+    var express = require('express');
+    var app = express();
     var server = require('http').createServer(app);
     var socket_io = require('socket.io');
     var domain = require('domain');
@@ -25,6 +26,8 @@
     app.get('/', function (req, res) {
         res.sendfile(__dirname + '/index.html');
     });
+
+    app.use('/app', express.static(__dirname + '/../app'));
 
     var mongoServer = new mongodb.Server(config.db.host, config.db.port, config.db.serverOptions);
     var db = new mongodb.Db(config.db.database, mongoServer, config.db.dbOptions);

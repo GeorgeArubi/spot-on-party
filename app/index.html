@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Partymode</title>
+        <link rel="stylesheet" href="css/app.css" />
+        <link rel="stylesheet" href="http://code.jquery.com/mobile/1.2.0/jquery.mobile-1.2.0.css" />
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.js"></script>
+        <script src="js/jquery.mobile.router-dev.js"></script>
+        <script type="text/javascript">
+            $(document).bind("mobileinit", function () {
+                $.mobile.defaultPageTransition = 'slide';
+            });
+        </script>
+        <script src="http://code.jquery.com/mobile/1.2.0/jquery.mobile-1.2.0.js"></script>
+        <script src="http://underscorejs.org/underscore.js"></script>
+        <script src="http://backbonejs.org/backbone.js"></script>
+        <script src="shared/socket.io.js"></script>
+        <script src="shared/toolbox.js"></script>
+        <script src="shared/clutils.js"></script>
+        <script src="templates/templates.js"></script>
+    </head>
+
+    <body>
+        <div id="login" data-role="page">login</div>
+
+
+        <script src="shared/config.js"></script>
+        <script src="shared/AbstractFacebookDomain.js"></script>
+        <script src="shared/FacebookWebDomain.js"></script>
+       <!--        <script src="shared/SpotifySpotifyDomain.js"></script>
+        <script src="shared/SpotifyAppIntegrator.js"></script>
+        -->        <script src="shared/PartyNodeDomain.js"></script>
+        <script src="shared/models.js"></script>
+        <script src="js/app.js"></script>
+    </body>
+</html>

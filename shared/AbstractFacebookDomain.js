@@ -12,7 +12,7 @@ window.PM.domain.AbstractFacebookDomain = window.Toolbox.Base.extend({
     /*instance members*/
 }, {
     /*static members*/
-    FACEBOOK_APP_ID: (window.location.host === "tiggr.local" ? "233580756759588" : "312921805471592"), //spotify fb has own id
+    FACEBOOK_APP_ID: (window.location.hostname === "tiggr.local" ? "233580756759588" : "312921805471592"), //spotify fb has own id
     FACEBOOK_GRAPH_URL: (window.location.protocol === "http" ? "http:" : "https:") + "//graph.facebook.com/",
     ALMOST_EXPIRES_THRESHOLD: 10 * 60 * 1000, // 10 minutes
 

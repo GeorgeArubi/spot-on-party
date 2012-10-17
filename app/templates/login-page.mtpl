@@ -1,0 +1,14 @@
+<div data-role="header">
+    <h1>Partymode</h1>
+</div>
+<div data-role="content">
+<% if (party_id) { %>
+    <h2>You have been invited to join a party</h2>
+    <p>and control its music. Before you enter however, we want to know who you are. Please log in with your facebook account below. We promise not to publish anything on your timeline, unless you explicitly ask for it.</p>
+    <% } else { %>
+    <p>At Partymode you can control music at parties you have been invited to. If you have been invited to a party, please follow the link you have been sent. You can log in here to get an overview of all parties you were ever invited to.</p>
+    <% } %>
+    <div class="fb-login-button"></div>
+
+    <div class="disclaimer">If you really care about this kind of stuff, you can read our privacy policy</div>
+</div>

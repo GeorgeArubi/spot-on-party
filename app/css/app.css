@@ -1,0 +1,7 @@
+.login-page .fb-login-button {
+  border: 0;
+  outline: none;
+  width: 152px;
+  height: 22px;
+  background: url(../img/fb-login.png) no-repeat;
+  display: inline-block; }
