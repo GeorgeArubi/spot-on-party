@@ -42,6 +42,10 @@ if (typeof exports !== "undefined") {
         return time_string;
     };
 
+    clutils.isUniqueIdOrZero = function (value) {
+        return value === 0 || clutils.isUniqueId(value);
+    };
+
     clutils.isUniqueId = function (value) {
         return !!/^[A-Za-z0-9_\-]{10}$/.exec(value);
     };
@@ -91,6 +95,7 @@ if (typeof exports !== "undefined") {
             "_matches": function (value, myobject) {cl_assert(value.exec(myobject), "object doesn't match " + value + ": " + JSON.stringify(myobject)); },
             "_isNumeric": cl_assertToObject(clutils, "Numeric"),
             "_isUniqueId": cl_assertToObject(clutils, "UniqueId"),
+            "_isUniqueIdOrZero": cl_assertToObject(clutils, "UniqueIdOrZero"),
             "_isTimestamp": cl_assertToObject(clutils, "Timestamp"),
             "_optional": function () {},
         };
@@ -156,7 +161,7 @@ if (typeof exports !== "undefined") {
         if (!value) {
             return false;
         }
-        if (value in ["0", "false", "off", "no"]) {
+        if (["0", "false", "off", "no"].indexOf(value) !== -1) {
             return false;
         }
         return true;

@@ -14,17 +14,25 @@ var partyconnection = exports;
     var request = require("request");
     var winston = require("winston");
 
+    var ActivePartyCollection = PM.collections.Parties.extend({
+    });
+
     partyconnection.Connection = Toolbox.Base.extend({
         initialize: function (socket, db_collections, db_error_domain, partynode_data) {
             var that = this;
             that.error = false;
             that.queue = [];
             that.socket = socket;
+            that.socket.on("disconnect", _.bind(that.onDisconnect, that));
             that.db_collections = db_collections;
             that.db_error_domain = db_error_domain;
             that.user_id = partynode_data.user_id;
             that.username = partynode_data.username;
             that.cursors = {};
+        },
+
+        onDisconnect: function () {
+            throw "Running abstract onDisconnect. Shouldn't be doing that....";
         },
 
         "update token": function (token, callback) {
@@ -46,6 +54,7 @@ var partyconnection = exports;
         "update token constraints": {
             _matches: /^[A-Za-z0-9]{10,200}$/
         },
+
         setupListen: function (name) {
             var that = this;
             var handler = _.bind(that[name], that);
@@ -141,13 +150,13 @@ var partyconnection = exports;
 
         loadParty: function (party_id, callback) {
             var that = this;
-            var party = PM.collections.Parties.getInstance().get(party_id);
+            var party = that.constructor.getPartyCache().get(party_id);
             if (party) {
                 callback(party);
                 return;
             }
             party = new PM.models.Party({_id: party_id});
-            PM.collections.Parties.getInstance().add(party);
+            that.constructor.getPartyCache().add(party);
             var acursor = that.db_collections.actions.find({party_id: party.id}, {sort: {"number": 1}});
             acursor.each(that.catchDatabaseError(function (action_data) {
                 if (action_data) {
@@ -155,7 +164,16 @@ var partyconnection = exports;
                     action.applyValidatedAction();
                 } else {
                     //all action data has been loaded, we're done
-                    callback(party);
+                    if (party.get("active")) {
+                        // party can't be active, or we would have had it in cache. So probably victim of server crash. End the party
+                        party.createAndApplyMasterAction("End", {}, function (action) {
+                            that.db_collections.actions.insert(action.serialize(), that.catchDatabaseError(function () {
+                                callback(party);
+                            }));
+                        });
+                    } else {
+                        callback(party);
+                    }
                 }
             }));
         },
@@ -219,6 +237,19 @@ var partyconnection = exports;
             });
         },
 
+        getPartyCache: function () {
+            if (!partyconnection.Connection.partyCache) {
+                partyconnection.Connection.partyCache = new PM.collections.Parties();
+            }
+            return partyconnection.Connection.partyCache;
+        },
+
+        getActivePartyCollection: function () {
+            if (!partyconnection.Connection.activePartyCollection) {
+                partyconnection.Connection.activePartyCollection = new ActivePartyCollection();
+            }
+            return partyconnection.Connection.activePartyCollection;
+        },
     });
 
     partyconnection.MasterConnection = partyconnection.Connection.extend({
@@ -228,13 +259,43 @@ var partyconnection = exports;
             that.log("info", "New master connection from " + that.socket.handshake.address.address + ":" + that.socket.handshake.address.port + " user " + that.username + "(" + that.user_id + ")");
         },
 
+
+        onDisconnect: function () {
+            var that = this;
+            that.log("Disconnect");
+            that.deactivateParty(false);
+        },
+        
         listen: function () {
             var that = this;
             that.setupListen("share action");
-            that.setupListen("get own party");
+            that.setupListen("activate party");
             that.setupListen("update token");
             that.setupListen("get own parties");
         },
+
+        /**
+         * Activates a party, which means that this connection will be the master of the party, and the party will be active to all members
+         * takes a party_id (party_id of 0 (not "0") means that the no party will be active.
+         * It returns the latest version of the party on the server. The client is expected to use this version (and not some other locally cached version), since in theory, it may have changed (for one thing, a "End" and "Start" may have been added and all clients may have been kicked).
+         **/
+        "activate party": function (party_id, callback) {
+            var that = this;
+            that.activateParty(party_id, function (party) {
+                if (!party_id) {
+                    callback();
+                    return;
+                }
+                if (!party) {
+                    throw "Party not found";
+                }
+                callback(party.serialize());
+            });
+        },
+        "activate party constraints": {
+            _isUniqueIdOrZero: true,
+        },
+
 
         "share action": function (action_data, callback) {
             var that = this;
@@ -266,19 +327,6 @@ var partyconnection = exports;
             _strict: false
         },
 
-        "get own party": function (party_id, callback) {
-            var that = this;
-            that.loadParty(party_id, function (party) {
-                if (party.get("owner_id") !== that.user_id) {
-                    throw "Party with id " + party_id + "not found";
-                }
-                callback(party.serialize());
-            });
-        },
-        "get own party constraints": {
-            _isUniqueId: true
-        },
-
         "get own parties": function (options, callback) {
             var that = this;
             var query = {
@@ -295,6 +343,68 @@ var partyconnection = exports;
             limit: {
                 _isNumber: true,
             },
+        },
+
+        deactivateParty: function (forced_by_actived_somewhere_else, callback) {
+            var that = this;
+            var That = that.constructor;
+            var party_id = that.active_party_id;
+            if (that.active_party_id) {
+                that.log("info", "deactivating party " + party_id);
+                var party = That.getActivePartyCollection().get(that.active_party_id);
+                if (party.ownerConnection !== that) {
+                    throw "Can only deativate own party";
+                }
+                party.ownerConnection = null;
+                party.createAndApplyMasterAction("End", {}, function (action) {
+                    that.db_collections.actions.insert(action.serialize(), that.catchDatabaseError(function () {
+                        That.getActivePartyCollection().remove(party);
+                        if (forced_by_actived_somewhere_else) {
+                            that.socket.emit("forced deactivated party", party.id);
+                        }
+                        that.active_party_id = 0;
+                        if (callback) {
+                            callback();
+                        }
+                    }));
+                });
+            } else {
+                if (callback) {
+                    callback();
+                }
+            }
+        },
+
+        activateParty: function (party_id, callback) {
+            var that = this;
+            var That = that.constructor;
+            var activate = function () {
+                if (party_id) {
+                    that.loadParty(party_id, function (party) {
+                        if (party.get("owner_id") !== that.user_id) {
+                            throw "Party with id " + party_id + "not found";
+                        }
+                        if (That.getActivePartyCollection().get(party_id)) {
+                            party.ownerConnection.deactivateParty(true);
+                        }
+                        party.ownerConnection = that;
+                        party.createAndApplyMasterAction("Start", {}, function (action) {
+                            that.db_collections.actions.insert(action.serialize(), that.catchDatabaseError(function () {
+                                That.getActivePartyCollection().add(party);
+                                that.active_party_id = party.id;
+                                callback(party);
+                            }));
+                        });
+                    });
+                } else {
+                    callback();
+                }
+            };
+            if (that.active_party_id) {
+                that.deactivateParty(false, activate);
+            } else {
+                activate();
+            }
         },
     });
 

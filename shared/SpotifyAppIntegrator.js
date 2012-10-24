@@ -160,11 +160,12 @@ window.PM.domain.SpotifyAppIntegrator = window.Toolbox.Base.extend({
         window.clearInterval(that.updateTimesInterval);
         party.off("playcommand", that.onPlayCommand, that);
         party.get("playlist").off("add", that.addPlaylistItem, that);
-        party.get("playlist").off("change", that.onChangePlaylistItem, that);
+        party.get("playlist").off("change:deleted_by_user_id", that.onChangePlaylistItem, that);
+        party.get("playlist").off("reset", that.onResetPlaylist, that);
         that.activeParty = null;
     },
 
-    startPartyReturnHtmlNode: function (party) {
+    startParty: function (party) {
         var that = this;
         if (that.activeParty) {
             throw "Can't start new party, old party " + that.activeParty.id + " is still running";
@@ -175,9 +176,14 @@ window.PM.domain.SpotifyAppIntegrator = window.Toolbox.Base.extend({
         party.on("playcommand", that.onPlayCommand, that);
         party.get("playlist").on("add", that.addPlaylistItem, that);
         party.get("playlist").on("change:deleted_by_user_id", that.onChangePlaylistItem, that);
+        party.get("playlist").on("reset", that.onResetPlaylist, that);
 
         that.updateTimesInterval = window.setInterval(_.bind(that.updateExpectedPlayTimesView, that), 500);
         that.createAndFillPlaylistFromParty();
+    },
+    
+    getHtmlNodeForActivePlaylist: function () {
+        var that = this;
         that.list = new that.views.List(that.spotifyPlaylist, function (track) {return new that.myTrackView(track); });
         return that.list.node;
     },
@@ -219,6 +225,23 @@ window.PM.domain.SpotifyAppIntegrator = window.Toolbox.Base.extend({
 
     onChangePlaylistItem: function () {
         var that = this;
+        that.spotifyPlaylist.notify(that.models.EVENT.CHANGE);
+    },
+
+    onResetPlaylist: function () {
+        var that = this;
+        var i, playlist = that.activeParty.get("playlist");
+        for (i = 0; i < playlist.length; i++) {
+            if (i >= that.spotifyPlaylist.length || playlist.at(i).get("track_id") !== that.spotifyPlaylist.get(i).uri) {
+                break;
+            }
+        }
+        while (i > that.spotifyPlaylist.length) {
+            that.spotifyPlaylist.remove(i);
+        }
+        for (; i < playlist.length; i++) {
+            that.spotifyPlaylist.add(playlist.at(i).get("track_id"));
+        }
         that.spotifyPlaylist.notify(that.models.EVENT.CHANGE);
     },
 

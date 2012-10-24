@@ -538,7 +538,6 @@ if (typeof exports !== "undefined") {
                 owner_id: that.get("owner_id"),
                 created: that.get("created"),
                 last_updated: that.get("created"),
-                active: true,
             });
         },
     }, {
@@ -991,7 +990,6 @@ if (typeof exports !== "undefined") {
             return {
                 _id: that.id,
                 name: that.get("name"),
-                active: that.get("active"),
                 owner_id: that.get("owner_id"),
                 created: that.get("created"),
                 last_updated: that.get("last_updated"),
@@ -1078,21 +1076,6 @@ if (typeof exports !== "undefined") {
             }
         },
 
-        shareAction: function (action) {
-            PM.domain.PartyNodeDomain.shareAction(action.serialize());
-        },
-
-        shareNewActions: function () {
-            var that = this;
-            that.get("log").on("add", that.shareAction, that);
-        },
-
-        stopShareNewActions: function () {
-            var that = this;
-            that.get("log").off("add", that.shareAction, that);
-        },
-
-
     }, {
         type: "Party",
         
@@ -1100,9 +1083,21 @@ if (typeof exports !== "undefined") {
             return owner.get("name").toLowerCase() + "'s party";
         },
 
-        unserialize: function (data) {
+        /**
+         * if party is provided, the party is copied into that one. Else a new party is created
+         **/
+        
+        unserialize: function (data, party) {
             var That = this;
-            var party = new That({
+            if (party) {
+                if (party.id !== data._id) {
+                    throw "Can only unserialize into a party with the same ID";
+                }
+            } else {
+                party = new That();
+            }
+
+            party.set({
                 _id: data._id,
                 name: data.name,
                 active: data.active,
@@ -1113,22 +1108,14 @@ if (typeof exports !== "undefined") {
                 created: data.created,
                 last_updated: data.last_updated,
             });
-            party.get("playlist").add(_.map(data.playlist, function (track_in_playlist_data) {return PM.models.TrackInPlaylist.unserialize(track_in_playlist_data); }));
-            party.get("users").add(_.map(data.users, function (user_in_party_data) {return PM.models.UserInParty.unserialize(user_in_party_data); }));
-            party.get("log").add(_.map(_.range(data.log), function (undefined) {return new PM.models.DummyAction(); }));
+            party.get("playlist").reset(_.map(data.playlist, function (track_in_playlist_data) {return PM.models.TrackInPlaylist.unserialize(track_in_playlist_data); }));
+            party.get("users").reset(_.map(data.users, function (user_in_party_data) {return PM.models.UserInParty.unserialize(user_in_party_data); }));
+            party.get("log").reset(_.map(_.range(data.log), function (undefined) {return new PM.models.DummyAction(); }));
             return party;
         },
     });
 
-    PM.collections.Parties = Backbone.Collection.extend({model: PM.models.Party}, {
-        getInstance: function () {
-            var That = this;
-            if (!That.instance) {
-                That.instance = new That();
-            }
-            return That.instance;
-        }
-    });
+    PM.collections.Parties = Backbone.Collection.extend({model: PM.models.Party});
 
     PM.util = PM.util || {};
 

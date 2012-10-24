@@ -61,7 +61,7 @@ window.PM.app = window.PM.app || {};
                 that.$el.html(that.template({party: that.party}));
                 that.$el.trigger("pagecreate");
             };
-            that.party = PM.collections.Parties.getInstance().get(that.options.party_id);
+            that.party = PM.app.oldPartyCache.get(that.options.party_id);
             if (that.party) {
                 doRender();
             } else {
@@ -71,7 +71,7 @@ window.PM.app = window.PM.app || {};
                     }
                     var party = PM.models.Party.unserialize(party_data);
                     that.party = party;
-                    PM.collections.Parties.getInstance().add(party);
+                    PM.app.oldPartyCache.add(party);
                     doRender();
                 });
             }
@@ -96,7 +96,7 @@ window.PM.app = window.PM.app || {};
             var that = this;
             PM.domain.PartyNodeDomain.getMyActiveParties(/*limit*/ 50, /*before_timestamp*/ null, function (parties_data, parties_left) {
                 var parties = _.map(parties_data, _.bind(PM.models.Party.unserialize, PM.models.Party));
-                PM.collections.Parties.getInstance().add(parties);
+                PM.app.oldPartyCache.add(parties);
                 var template = getTemplate("active-parties-list");
                 var html = template({parties: parties, parties_left: parties_left});
                 that.$('.active-parties').html(html).trigger("create");

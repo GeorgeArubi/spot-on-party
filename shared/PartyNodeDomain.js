@@ -45,40 +45,59 @@ if (typeof exports !== "undefined") {
             that.socket = io.connect(url);
             that.socket.on("connect", function () {
                 console.log("connected to backend");
+                if (that.activeParty) {
+                    that.activateParty(that.activeParty.id);
+                }
             });
         },
 
         buildQueryString: function () {
             var that = this;
-            return 'token=' + encodeURIComponent(that.token) + '&master=' + (that.master ? 1 : 0);
+            return 'token=' + encodeURIComponent(that.token) + '&master=' + (that.master ? "1" : "0");
         },
 
         updateToken: function (new_token) {
             var that = this;
             if (new_token !== that.token) {
                 that.token = new_token;
-                that.socket.socket.options.query = that.buildQueryString();
+                that.buildQueryString();
                 that.socket.emit("update token", that.token, that.callbackCatchError());
+            }
+        },
+
+        activateParty: function (party_id, callback) {
+            var that = this;
+            if (party_id) {
+                var party;
+                if (that.activeParty && that.activeParty.id === party_id) {
+                    party = that.activeParty;
+                }
+                that.socket.emit("activate party", party_id, that.callbackCatchError(function (party_data) {
+                    party = PM.models.Party.unserialize(party_data, party);
+                    that.activeParty = party;
+                    if (callback) {
+                        callback(party);
+                    }
+                }));
+            } else {
+                that.socket.emit("activate party", 0, that.callbackCatchError(function () {
+                    that.activeParty = null;
+                    if (callback) {
+                        callback(null);
+                    }
+                }));
             }
         },
 
         callbackCatchError: function (callback) {
             return function (result) {
-                if (result.error) {
+                if (result && result.error) {
                     throw "An error occured with your call: " + JSON.stringify(result.error);
                 }
                 if (callback) {
                     callback.apply(this, arguments);
                 }
             };
-        },
-
-        /*
-         * returns party_data
-         */
-        getOwnParty: function (party_id, callback) {
-            var that = this;
-            that.socket.emit("get own party", party_id, that.callbackCatchError(callback));
         },
 
         getOwnParties: function (limit, before_timestamp, callback) {

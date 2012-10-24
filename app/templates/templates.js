@@ -97,7 +97,7 @@ __p+='\n                <li id="'+
                 }); 
 __p+='\n            ';
  }); 
-__p+='\n        </ul>\n</div>\n';
+__p+='\n        </ul>\n    </div>\n</div>\n';
 }
 return __p;
 };
