@@ -48,6 +48,13 @@ if (typeof exports !== "undefined") {
                 if (that.activeParty) {
                     that.activateParty(that.activeParty.id);
                 }
+                that.trigger("connection");
+            });
+            that.socket.on("plus active party", function (party) {
+                that.trigger("plus-active-party", party);
+            });
+            that.socket.on("minus active party", function (party_id) {
+                that.trigger("minus-active-party", party_id);
             });
         },
 
@@ -124,9 +131,9 @@ if (typeof exports !== "undefined") {
             return that.getParties("get my parties", limit, before_timestamp, callback);
         },
 
-        getMyActiveParties: function (limit, before_timestamp, callback) {
+        getMyActiveParties: function (callback) {
             var that = this;
-            return that.getParties("get my active parties", limit, before_timestamp, callback);
+            that.socket.emit("get my active parties", null, that.callbackCatchError(callback));
         },
 
         shareAction: function (action_data, callback) {

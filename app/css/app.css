@@ -5,3 +5,19 @@
   height: 22px;
   background: url(../img/fb-login.png) no-repeat;
   display: inline-block; }
+
+.party-overview-page ul.parties li.active-party {
+  height: 55px;
+  -webkit-transition: height 500ms;
+  overflow: hidden; }
+  .party-overview-page ul.parties li.active-party.invisible {
+    height: 0;
+    border: none; }
+.party-overview-page ul.parties li.active-party.no-active-parties-message {
+  padding: 0; }
+  .party-overview-page ul.parties li.active-party.no-active-parties-message div {
+    text-align: center;
+    padding-top: 10px; }
+.party-overview-page ul.parties.has-active-parties li.active-party.no-active-parties-message {
+  height: 0px;
+  border: none; }

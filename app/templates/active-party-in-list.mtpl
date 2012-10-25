@@ -1,0 +1,6 @@
+<li class="party active-party">
+    <a href="#activeparty_<%- encodeURIComponent(party.id) %>">
+        <h2 class="party-name"><%- party.get("name") %></h2>
+        <span class="ui-li-aside">u: <%- party.getMembersInPartyOrderedByActive().length %> t: <%- party.getNotDeletedTracksInPlaylist().length %></span>
+    </a>
+</li>

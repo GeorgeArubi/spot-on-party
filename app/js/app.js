@@ -40,13 +40,25 @@ window.PM.app = window.PM.app || {};
         }
     };
 
+    var activeParties = new PM.collections.Parties();
+    PM.domain.PartyNodeDomain.on("connection", function () {
+        activeParties.reset([]);
+    });
+    PM.domain.PartyNodeDomain.on("plus-active-party", function (party_data) {
+        activeParties.add(PM.models.Party.unserialize(party_data));
+    });
+    PM.domain.PartyNodeDomain.on("minus-active-party", function (party_id) {
+        activeParties.remove(activeParties.get(party_id));
+    });
+
+
     var createAndRenderView = function (Viewclass, element, options) {
         var myoptions = _.extend(options || {}, {el: element});
         var view = new Viewclass(myoptions);
         view.render();
         var el = $(element);
         el.addClass(view.className);
-        el.attr("view", view);
+        el.prop("view", view);
         el.trigger("pagecreate");
     };
 
@@ -61,58 +73,72 @@ window.PM.app = window.PM.app || {};
                 that.$el.html(that.template({party: that.party}));
                 that.$el.trigger("pagecreate");
             };
-            that.party = PM.app.oldPartyCache.get(that.options.party_id);
-            if (that.party) {
+            PM.domain.PartyNodeDomain.getMyParty(that.options.party_id, function (party_data) {
+                if (!party_data) {
+                    throw "Party with id " + that.options.party_id + " could not be found";
+                }
+                var party = PM.models.Party.unserialize(party_data);
+                that.party = party;
                 doRender();
-            } else {
-                PM.domain.PartyNodeDomain.getMyParty(that.options.party_id, function (party_data) {
-                    if (!party_data) {
-                        throw "Party with id " + that.options.party_id + " could not be found";
-                    }
-                    var party = PM.models.Party.unserialize(party_data);
-                    that.party = party;
-                    PM.app.oldPartyCache.add(party);
-                    doRender();
-                });
-            }
+            });
             return that;
         },
-
-
     });
 
     PartyOverviewView = Backbone.View.extend({
         template: getTemplate('party-overview-page'),
         className: 'party-overview-page',
 
+        close: function () {
+            var that = this;
+            console.log("close");
+            activeParties.off("add", that.addActiveParty, that);
+            activeParties.off("remove", that.removeActiveParty, that);
+            activeParties.off("reset", that.resetActiveParties, that);
+        },
+
         render: function () {
             var that = this;
             that.$el.html(that.template());
-            that.loadAndRenderActiveParties(_.bind(that.loadAndRenderAllParties, that));
+            activeParties.on("add", that.addActiveParty, that);
+            activeParties.on("remove", that.removeActiveParty, that);
+            activeParties.on("reset", that.resetActiveParties, that);
+            that.resetActiveParties();
+            that.loadAndRenderAllParties();
             return that;
         },
 
-        loadAndRenderActiveParties: function (callback) {
+        resetActiveParties: function () {
             var that = this;
-            PM.domain.PartyNodeDomain.getMyActiveParties(/*limit*/ 50, /*before_timestamp*/ null, function (parties_data, parties_left) {
-                var parties = _.map(parties_data, _.bind(PM.models.Party.unserialize, PM.models.Party));
-                PM.app.oldPartyCache.add(parties);
-                var template = getTemplate("active-parties-list");
-                var html = template({parties: parties, parties_left: parties_left});
-                that.$('.active-parties').html(html).trigger("create");
-                if (callback) {
-                    callback();
-                }
-            });
+            that.$('ul.parties li.active-party.party').remove();
+            activeParties.each(_.bind(that.addActiveParty, that));
+            that.$('ul.parties').toggleClass("has-active-parties", activeParties.length > 0);
+        },
+
+        removeActiveParty: function (party) {
+            var that = this;
+            that.$('ul.parties li.active-party.party_' + party.id).addClass("invisible");
+            that.$('ul.parties').toggleClass("has-active-parties", activeParties.length > 0);
+        },
+
+        addActiveParty: function (party) {
+            var that = this;
+            var li = $(getTemplate("active-party-in-list")({party: party}));
+            li.addClass("invisible party_" + party.id);
+            _.delay(function () {li.removeClass("invisible"); }, 0);
+            that.$('#all-parties-divider').before(li);
+            that.$('ul.parties').toggleClass("has-active-parties", activeParties.length > 0);
+            that.$('ul.parties.ui-listview').listview('refresh');
         },
 
         loadAndRenderAllParties: function (callback) {
             var that = this;
             PM.domain.PartyNodeDomain.getMyParties(/*limit*/ 50, /*before_timestamp*/ null, function (parties_data, parties_left) {
-                var parties = _.map(parties_data, _.bind(PM.models.Party.unserialize, PM.models.Party));
+                var parties = _.map(parties_data, function (party_data) {return PM.models.Party.unserialize(party_data); });
                 var template = getTemplate("all-parties-list");
                 var html = template({parties: parties, parties_left: parties_left});
-                that.$('.all-parties').html(html).trigger("create");
+                that.$('#all-parties-divider').after(html);
+                that.$('ul.parties.ui-listview').listview('refresh');
                 if (callback) {
                     callback();
                 }
@@ -174,7 +200,7 @@ window.PM.app = window.PM.app || {};
         ".": {
             events: "h",
             handler: function (type, match, ui, page) {
-                var view = $(page).attr("view");
+                var view = $(page).prop("view");
                 if (view && view.close) {
                     view.close();
                 }

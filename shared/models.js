@@ -279,11 +279,6 @@ if (typeof exports !== "undefined") {
             return that.serializeAllButId();
         },
 
-        wasKicked: function () {
-            var that = this;
-            return clutils.isTimestamp(that.get("deleted"));
-        },
-
         validate: function (attrs) {
             if (!_.isNumber(attrs.user_id)) {
                 return "Need to provide a user_id";
@@ -649,7 +644,7 @@ if (typeof exports !== "undefined") {
             var that = this;
             var kicked_user_id = that.get("kicked_user_id");
             var record = that.party.getMemberRecord(kicked_user_id); //NOTE: validation guarantees that there is a record here
-            record.set({deleted: that.get("created"), joined: null}); //obviously not setting "ts_last_action"
+            that.party.get("users").remove(record);
             that.party.set("last_updated", that.get("created"));
         },
     }, {
@@ -998,7 +993,6 @@ if (typeof exports !== "undefined") {
                     .map(function (track_in_playlist) { return track_in_playlist.get("track_id"); })
                     .value(),
                 user_ids: that.get("users").chain()
-                    .filter(function (user_in_party) {return !user_in_party.wasKicked(); })
                     .map(function (user_in_party) {return user_in_party.get("user_id"); })
                     .value(),
             };
@@ -1011,7 +1005,7 @@ if (typeof exports !== "undefined") {
                 return that.getMemberRecord(that.get("owner_id"));
             }
             return that.get("users").find(function (user_in_party) {
-                return user_in_party.get("user_id") === user_id_to_check && _.isNull(user_in_party.get("deleted"));
+                return user_in_party.get("user_id") === user_id_to_check;
             });
         },
 
@@ -1024,7 +1018,6 @@ if (typeof exports !== "undefined") {
             var that = this;
             return that.get("users")
                 .chain()
-                .filter(function (user_in_party) {return !user_in_party.wasKicked(); })
                 .sortBy(function (user_in_party) {return user_in_party.get("ts_last_action"); })
                 .reverse()
                 .value();

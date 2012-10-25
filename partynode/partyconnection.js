@@ -14,7 +14,56 @@ var partyconnection = exports;
     var request = require("request");
     var winston = require("winston");
 
+    var parties_per_user = {};
+
     var ActivePartyCollection = PM.collections.Parties.extend({
+        initialize: function () {
+            console.log("initializing active party collection");
+            var that = this;
+
+            that.on("remove", function (party) {
+                party.get("users").each(function (user_in_party) {
+                    var user_id = user_in_party.get("user_id");
+                    delete parties_per_user[user_id][party.id];
+                    _.each(partyconnection.ClientConnection.getConnectionsForUserId(user_id), function (connection) {
+                        connection.alertMinusActiveParty(party);
+                    });
+                });
+                party.get("users").off("add", that.onMemberInvite, party);
+                party.get("users").off("remove", that.onMemberKick, party);
+            });
+            that.on("add", function (party) {
+                party.get("users").each(function (user_in_party) {
+                    var user_id = user_in_party.get("user_id");
+                    parties_per_user[user_id] = parties_per_user[user_id] || {};
+                    parties_per_user[user_id][party.id] = party;
+                    _.each(partyconnection.ClientConnection.getConnectionsForUserId(user_id), function (connection) {
+                        connection.alertPlusActiveParty(party);
+                    });
+                });
+                party.get("users").on("add", that.onMemberInvite, party);
+                party.get("users").on("remove", that.onMemberKick, party);
+            });
+        },
+
+        onMemberInvite: function (user_in_party) {
+            var party = this; // this is weird but we're binding this to the party so that we have a consistent item to add and remove as event handler
+            var user_id = user_in_party.get("user_id");
+            parties_per_user[user_id] = parties_per_user[user_id] || {};
+            parties_per_user[user_id][party.id] = party;
+            _.each(partyconnection.ClientConnection.getConnectionsForUserId(user_id), function (connection) {
+                connection.alertPlusActiveParty(party);
+            });
+        },
+
+        onMemberKick: function (user_in_party) {
+            var party = this; // this is weird but we're binding this to the party so that we have a consistent item to add and remove as event handler
+            var user_id = user_in_party.get("user_id");
+            delete parties_per_user[user_id][party];
+            _.each(partyconnection.ClientConnection.getConnectionsForUserId(user_id), function (connection) {
+                connection.alertMinusActiveParty(party.id);
+            });
+        },
     });
 
     partyconnection.Connection = Toolbox.Base.extend({
@@ -259,7 +308,6 @@ var partyconnection = exports;
             that.log("info", "New master connection from " + that.socket.handshake.address.address + ":" + that.socket.handshake.address.port + " user " + that.username + "(" + that.user_id + ")");
         },
 
-
         onDisconnect: function () {
             var that = this;
             that.log("Disconnect");
@@ -411,8 +459,19 @@ var partyconnection = exports;
     partyconnection.ClientConnection = partyconnection.Connection.extend({
         initialize: function () {
             var that = this;
+            var That = that.constructor;
             partyconnection.Connection.prototype.initialize.apply(that, arguments);
             that.log("info", "New client connection from " + that.socket.handshake.address.address + ":" + that.socket.handshake.address.port + " user " + that.username + "(" + that.user_id + ")");
+            That.addToIndex(that);
+            var parties = _.values(parties_per_user[that.user_id] || {});
+            _.each(parties, function (party) {that.alertPlusActiveParty(party); });
+        },
+
+        onDisconnect: function () {
+            var that = this;
+            var That = that.constructor;
+            that.log("info", "client connection disconnect");
+            That.removeFromIndex(that);
         },
 
         listen: function () {
@@ -436,23 +495,16 @@ var partyconnection = exports;
             _isUniqueId: true
         },
 
-
-        "get my active parties": function (options, callback) {
+        "get my active parties": function (undefined, callback) {
             var that = this;
-            var query = {
-                user_ids: that.user_id,
-                active: true,
-            };
-            return that.loadParties(query, options, callback);
+            var parties = parties_per_user[that.user_id] ? _.values(parties_per_user[that.user_id]) : [];
+            parties.sort(function (a, b) {
+                return a.get("last_updated") - b.get("last_updated");
+            });
+            callback(_.map(parties, function (party) {return party.serialize(); }));
         },
         "get my active parties constraints": {
-            before_timestamp: {
-                _isTimestamp: true,
-                _optional: true,
-            },
-            limit: {
-                _isNumber: true,
-            },
+            _isNull: true,
         },
 
         "get my parties": function (options, callback) {
@@ -470,6 +522,37 @@ var partyconnection = exports;
             limit: {
                 _isNumber: true,
             },
+        },
+
+        alertPlusActiveParty: function (party) {
+            var that = this;
+            that.socket.emit("plus active party", party.serialize());
+        },
+
+        alertMinusActiveParty: function (party) {
+            var that = this;
+            that.socket.emit("minus active party", party.id);
+        },
+    }, {
+        addToIndex: function (clientConnection) {
+            var That = this;
+            That.clientConnectionIndex = That.clientConnectionIndex || {};
+            That.clientConnectionIndex[clientConnection.user_id] = That.clientConnectionIndex[clientConnection.user_id] || [];
+            That.clientConnectionIndex[clientConnection.user_id].push(clientConnection);
+        },
+
+        removeFromIndex: function (clientConnection) {
+            var That = this;
+            That.clientConnectionIndex = That.clientConnectionIndex || {};
+            That.clientConnectionIndex[clientConnection.user_id] = _.reject(That.clientConnectionIndex[clientConnection.user_id] || [], function (conn) {
+                return conn === clientConnection;
+            });
+        },
+
+        getConnectionsForUserId: function (user_id) {
+            var That = this;
+            That.clientConnectionIndex = That.clientConnectionIndex || {};
+            return That.clientConnectionIndex[user_id] || [];
         },
     });
 })();

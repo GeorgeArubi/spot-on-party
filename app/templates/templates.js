@@ -1,31 +1,17 @@
 PM = window.PM || {};
 PM.templates = PM.templates || {};
-PM.templates["active-parties-list"]=function(obj){
+PM.templates["active-party-in-list"]=function(obj){
 var __t,__p='',__j=Array.prototype.join,print=function(){__p+=__j.call(arguments,'');};
 with(obj||{}){
-__p+='';
- if (parties.length > 0) { 
-__p+='\n<ul data-role="listview">\n    <li data-role="list-divider">Active parties</li> \n    ';
- _.each(parties, function (party) { 
-__p+='\n    <li>\n        <a href="#activeparty_'+
+__p+='<li class="party active-party">\n    <a href="#activeparty_'+
 ((__t=( encodeURIComponent(party.id) ))==null?'':_.escape(__t))+
-'">\n            <h2 class="party-name">'+
+'">\n        <h2 class="party-name">'+
 ((__t=( party.get("name") ))==null?'':_.escape(__t))+
-'</h2>\n            <span class="ui-li-aside">u: '+
+'</h2>\n        <span class="ui-li-aside">u: '+
 ((__t=( party.getMembersInPartyOrderedByActive().length ))==null?'':_.escape(__t))+
 ' t: '+
 ((__t=( party.getNotDeletedTracksInPlaylist().length ))==null?'':_.escape(__t))+
-'</span>\n        </a>\n    </li>\n    ';
- }); 
-__p+='\n</ul>\n';
- } else { 
-__p+='\n<p>There are no active parties</p>\n';
- } 
-__p+='\n';
- if (parties_left > 0 ) { 
-__p+='\n<p>Man you\'re popular; you actually have more active parties than can be shown</p>\n';
- } 
-__p+='\n';
+'</span>\n    </a>\n</li>\n';
 }
 return __p;
 };
@@ -34,11 +20,11 @@ var __t,__p='',__j=Array.prototype.join,print=function(){__p+=__j.call(arguments
 with(obj||{}){
 __p+='';
  if (parties.length > 0) { 
-__p+='\n<ul data-role="listview">\n    <li data-role="list-divider">All parties</li> \n    ';
+__p+='\n    ';
  _.each(parties, function (party) { 
-__p+='\n    <li>\n        <a href="#oldparty_'+
+__p+='\n    <li class="all-party">\n        <a href="#oldparty_'+
 ((__t=( encodeURIComponent(party.id) ))==null?'':_.escape(__t))+
-'">\n        \n            <h2 class="party-name">'+
+'">\n            <h2 class="party-name">'+
 ((__t=( party.get("name") ))==null?'':_.escape(__t))+
 '</h2>\n            <div class="party-when">'+
 ((__t=( clutils.pastDateText(party.get("last_updated")) ))==null?'':_.escape(__t))+
@@ -48,11 +34,11 @@ __p+='\n    <li>\n        <a href="#oldparty_'+
 ((__t=( party.getNotDeletedTracksInPlaylist().length ))==null?'':_.escape(__t))+
 '</span>\n        </a>\n    </li>\n    ';
  }); 
-__p+='\n</ul>\n';
+__p+='\n';
  } 
 __p+='\n';
  if (parties_left > 0 ) { 
-__p+='\n<p>Man you\'re popular; you actually have more parties than can be shown</p>\n';
+__p+='\n<li>This should be a load-more button (or unlimited scrolling) but this is not implemented yet</li>\n';
  } 
 __p+='\n\n\n';
 }
@@ -104,7 +90,7 @@ return __p;
 PM.templates["party-overview-page"]=function(obj){
 var __t,__p='',__j=Array.prototype.join,print=function(){__p+=__j.call(arguments,'');};
 with(obj||{}){
-__p+='<div data-role="header">\n    <h1>Parties</h1>\n    <button id="logout">logout</button>\n</div>\n\n<div data-role="content">\n    <div class="active-parties"></div>\n    <div class="all-parties"></div>\n</diV>\n';
+__p+='<div data-role="header">\n    <h1>Parties</h1>\n    <button id="logout">logout</button>\n</div>\n\n<div data-role="content">\n    <ul class="parties" data-role="listview">\n        <li data-role="list-divider" id="active-parties-divider">Active parties</li> \n        <li class="no-active-parties-message active-party">\n            <div>You are not invited to any parties at the moment</div>\n        </li>\n        <li data-role="list-divider" id="all-parties-divider">All parties</li> \n    </ul>\n</diV>\n';
 }
 return __p;
 };
