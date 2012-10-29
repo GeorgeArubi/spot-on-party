@@ -56,6 +56,9 @@ if (typeof exports !== "undefined") {
             that.socket.on("minus active party", function (party_id) {
                 that.trigger("minus-active-party", party_id);
             });
+            that.socket.on("new active party action", function (action_data, callback) {
+                that.trigger("new-active-party-action", action_data, callback); //TODO: fix callback issue. Now there is no guarantee that it's called ever, or more than once
+            });
         },
 
         buildQueryString: function () {
@@ -75,12 +78,8 @@ if (typeof exports !== "undefined") {
         activateParty: function (party_id, callback) {
             var that = this;
             if (party_id) {
-                var party;
-                if (that.activeParty && that.activeParty.id === party_id) {
-                    party = that.activeParty;
-                }
                 that.socket.emit("activate party", party_id, that.callbackCatchError(function (party_data) {
-                    party = PM.models.Party.unserialize(party_data, party);
+                    var party = PM.models.Party.unserialize(party_data);
                     that.activeParty = party;
                     if (callback) {
                         callback(party);

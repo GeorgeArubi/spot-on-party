@@ -303,6 +303,16 @@ if (typeof exports !== "undefined") {
             var that = this;
             return PM.models.User.getById(that.get("user_id"));
         },
+
+        isJoined: function () {
+            var that = this;
+            return that.get("joined") !== null;
+        },
+
+        unjoin: function () {
+            var that = this;
+            that.set("joined", null);
+        },
     }, {
         type: "UserInParty",
 
@@ -654,7 +664,7 @@ if (typeof exports !== "undefined") {
     PM.models.JoinAction = PM.models.Action.extend({
         validate: function (attrs) {
             var that = this;
-            if (PM.current_patry.isJoined(attrs.user_id)) {
+            if (that.party.isJoined(attrs.user_id)) {
                 return "User is already joined";
             }
             return that.constructor.__super__.validate.call(that, attrs);
@@ -673,7 +683,7 @@ if (typeof exports !== "undefined") {
         type: "Leave",
         validate: function (attrs) {
             var that = this;
-            if (!PM.current_patry.isJoined(attrs.user_id)) {
+            if (!that.party.isJoined(attrs.user_id)) {
                 return "User is not joined";
             }
             return that.constructor.__super__.validate.call(that, attrs);
@@ -841,6 +851,11 @@ if (typeof exports !== "undefined") {
             that.party.set({
                 "active": false,
             });
+            that.party.get("users").each(function (user_in_party) {
+                if (user_in_party.isJoined()) {
+                    user_in_party.unjoin();
+                }
+            });
         },
     }, {
         type: "End",
@@ -998,6 +1013,15 @@ if (typeof exports !== "undefined") {
             };
         },
 
+        initialize: function () {
+            var that = this;
+            var That = that.constructor;
+            if (That.partyCache[that.id]) {
+                throw "Aready party with this ID in partyCache";
+            }
+            That.partyCache[that.id] = that;
+        },
+
         getMemberRecord: function (user_or_user_id) {
             var that = this;
             var user_id_to_check = (_.isObject(user_or_user_id) ? user_or_user_id.id : user_or_user_id);
@@ -1064,6 +1088,10 @@ if (typeof exports !== "undefined") {
         },
 
         validate: function (attrs) {
+            var that = this;
+            if (attrs._id !== that.id) {
+                throw "Changing ID is not allowed";
+            }
             if (attrs.play_status !== "play" && attrs.play_status !== "stop" && attrs.play_status !== "pause") {
                 return "No valid play status: \"" + attrs.play_status + "\"";
             }
@@ -1080,18 +1108,15 @@ if (typeof exports !== "undefined") {
          * if party is provided, the party is copied into that one. Else a new party is created
          **/
         
-        unserialize: function (data, party) {
+        unserialize: function (data) {
             var That = this;
-            if (party) {
-                if (party.id !== data._id) {
-                    throw "Can only unserialize into a party with the same ID";
-                }
-            } else {
-                party = new That();
+            var party_id = data._id;
+            var party = That.partyCache[party_id];
+            if (!party) {
+                party = new That({_id: party_id});
             }
 
             party.set({
-                _id: data._id,
                 name: data.name,
                 active: data.active,
                 owner_id: data.owner_id,
@@ -1107,6 +1132,7 @@ if (typeof exports !== "undefined") {
             return party;
         },
     });
+    PM.models.Party.partyCache = {};
 
     PM.collections.Parties = Backbone.Collection.extend({model: PM.models.Party});
 

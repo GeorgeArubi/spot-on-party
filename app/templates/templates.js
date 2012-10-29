@@ -94,3 +94,10 @@ __p+='<div data-role="header">\n    <h1>Parties</h1>\n    <button id="logout">lo
 }
 return __p;
 };
+PM.templates["party-page"]=function(obj){
+var __t,__p='',__j=Array.prototype.join,print=function(){__p+=__j.call(arguments,'');};
+with(obj||{}){
+__p+='PARTY_PAGE\n';
+}
+return __p;
+};

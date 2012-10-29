@@ -6,7 +6,7 @@ window.PM.app = window.PM.app || {};
 
 (function (PM) {
     "use strict";
-    var LoginView, PartyOverviewView, OldPartyView;
+    var LoginView, PartyOverviewView, OldPartyView, PartyView;
 
     var getTemplate = function (id) {
         var template = PM.templates[id];
@@ -50,6 +50,13 @@ window.PM.app = window.PM.app || {};
     PM.domain.PartyNodeDomain.on("minus-active-party", function (party_id) {
         activeParties.remove(activeParties.get(party_id));
     });
+    PM.domain.PartyNodeDomain.on("new-active-party-action", function (action_data) {
+        var party = activeParties.get(action_data.party_id);
+        if (party) {
+            var action = PM.models.Action.unserializeFromTrusted(action_data, party);
+            action.applyValidatedAction();
+        }
+    });
 
 
     var createAndRenderView = function (Viewclass, element, options) {
@@ -85,16 +92,44 @@ window.PM.app = window.PM.app || {};
         },
     });
 
+    var partyactive_counter = 0; //when 0, there are no active parties.
+
+    PartyView = Backbone.View.extend({
+        template: getTemplate('party-page'),
+        className: 'party-page',
+
+        close: function () {
+            if (--partyactive_counter === 0) { //nice thing is: if we move to a page that also looks at this party, that page's render method is called before this page's close.
+                //tells the party that we left
+                PM.domain.PartyNodeDomain.activateParty(0, function () {console.log("unactivated"); });
+            }
+        },
+
+        render: function () {
+            var that = this;
+            clutils.checkConstraints(that.options.party_id, {_isUniqueId: true});
+            that.party = activeParties.get(that.options.party_id);
+            if (!that.party) {
+                $.mobile.changePage("$partyoverview");
+                return;
+            }
+
+            if (partyactive_counter++ === 0) {
+                // it doesn't really do anything for us, it's just that I'm now officially "joined"
+                PM.domain.PartyNodeDomain.activateParty(that.party.id);
+            }
+            that.$el.html(that.template({party: that.party}));
+            return that;
+        },
+    });
+
     PartyOverviewView = Backbone.View.extend({
         template: getTemplate('party-overview-page'),
         className: 'party-overview-page',
 
         close: function () {
             var that = this;
-            console.log("close");
-            activeParties.off("add", that.addActiveParty, that);
-            activeParties.off("remove", that.removeActiveParty, that);
-            activeParties.off("reset", that.resetActiveParties, that);
+            activeParties.off(null, null, that);
         },
 
         render: function () {
@@ -103,9 +138,19 @@ window.PM.app = window.PM.app || {};
             activeParties.on("add", that.addActiveParty, that);
             activeParties.on("remove", that.removeActiveParty, that);
             activeParties.on("reset", that.resetActiveParties, that);
+            activeParties.on("change", that.activePartyChange, that);
             that.resetActiveParties();
             that.loadAndRenderAllParties();
             return that;
+        },
+
+        activePartyChange: function (party) {
+            var that = this;
+            var el = that.$('ul.parties li.active-party.party_' + party.id);
+            var new_el = $(getTemplate("active-party-in-list")({party: party}));
+            $("h2", el).html($("h2", new_el).html());
+            $("a > span", el).html($("a > span", new_el).html());
+            that.$('ul.parties.ui-listview').listview('refresh');
         },
 
         resetActiveParties: function () {
@@ -188,6 +233,13 @@ window.PM.app = window.PM.app || {};
             events: "bs",
             handler: function (type, match, ui, page) {
                 createAndRenderViewLoggedin(PartyOverviewView, page);
+            },
+        },
+        "^#activeparty_([A-Za-z0-9_\\-]*)": {
+            events: "bs",
+            handler: function (type, match, ui, page) {
+                var party_id = match[1];
+                createAndRenderViewLoggedin(PartyView, page, {party_id: party_id});
             },
         },
         "^#oldparty_([A-Za-z0-9_\\-]*)": {

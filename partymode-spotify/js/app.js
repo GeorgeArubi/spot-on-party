@@ -58,12 +58,27 @@ var clutils = window.clutils;
         PM.domain.PartyNodeDomain.shareAction(action.serialize());
     };
 
+    var my_active_party = null;
+
+    var handleNewPartyAction = function (action_data, callback) {
+        if (my_active_party && action_data.party_id === my_active_party.id) {
+            var action = PM.models.Action.unserializeFromTrusted(action_data, my_active_party);
+            action.validateAndApplyAction(function () {
+                callback(true);
+            }, function () {
+                callback(false);
+            });
+        }
+    };
+
     var getAndActivateParty = function (party_id, callback) {
         PM.domain.PartyNodeDomain.activateParty(party_id, function (party) {
             if (!party) {
                 throw "Party not found";
             }
             party.get("log").on("add", shareAction);
+            my_active_party = party;
+            PM.domain.PartyNodeDomain.on("new-active-party-action", handleNewPartyAction);
             PM.domain.SpotifyAppIntegrator.startParty(party);
             callback(party);
         });
@@ -71,6 +86,8 @@ var clutils = window.clutils;
 
     var deactivateParty = function (party) {
         party.get("log").off("add", shareAction);
+        PM.domain.PartyNodeDomain.off("new-active-party-action", handleNewPartyAction);
+        my_active_party = null;
         PM.domain.SpotifyAppIntegrator.stopParty(party);
         PM.domain.PartyNodeDomain.activateParty(null);
     };

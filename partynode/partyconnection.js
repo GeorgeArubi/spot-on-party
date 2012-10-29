@@ -31,6 +31,7 @@ var partyconnection = exports;
                 });
                 party.get("users").off("add", that.onMemberInvite, party);
                 party.get("users").off("remove", that.onMemberKick, party);
+                party.get("log").off("add", that.onLogitemAdd, party);
             });
             that.on("add", function (party) {
                 party.get("users").each(function (user_in_party) {
@@ -43,6 +44,17 @@ var partyconnection = exports;
                 });
                 party.get("users").on("add", that.onMemberInvite, party);
                 party.get("users").on("remove", that.onMemberKick, party);
+                party.get("log").on("add", that.onLogitemAdd, party);
+            });
+        },
+
+        onLogitemAdd: function (action) {
+            var party = this; // this is weird but we're binding this to the party so that we have a consistent item to add and remove as event handler
+            party.get("users").each(function (user_in_party) {
+                var user_id = user_in_party.get("user_id");
+                _.each(partyconnection.ClientConnection.getConnectionsForUserId(user_id), function (connection) {
+                    connection.alertNewActivePartyAction(action);
+                });
             });
         },
 
@@ -104,6 +116,28 @@ var partyconnection = exports;
             _matches: /^[A-Za-z0-9]{10,200}$/
         },
 
+        /**
+         * Activates a party, which means that this connection will be the master of the party, and the party will be active to all members
+         * takes a party_id (party_id of 0 (not "0") means that the no party will be active.
+         * It returns the latest version of the party on the server. The client is expected to use this version (and not some other locally cached version), since in theory, it may have changed (for one thing, a "End" and "Start" may have been added and all clients may have been kicked).
+         **/
+        "activate party": function (party_id, callback) {
+            var that = this;
+            that.activateParty(party_id, function (party) {
+                if (!party_id) {
+                    callback();
+                    return;
+                }
+                if (!party) {
+                    throw "Party not found";
+                }
+                callback(party.serialize());
+            });
+        },
+        "activate party constraints": {
+            _isUniqueIdOrZero: true,
+        },
+
         setupListen: function (name) {
             var that = this;
             var handler = _.bind(that[name], that);
@@ -118,11 +152,14 @@ var partyconnection = exports;
          */
         socket_action: function (type, constraints, handler) {
             var that = this;
-            var new_handler = function (data, callback) {
+            var new_handler = function (data, callback, recievetime) {
+                var waittime = (new Date()).valueOf() - recievetime;
                 var my_callback = function () {
                     if (callback) {
                         callback.apply(that, arguments);
                     }
+                    that.log("info", "Call " + JSON.stringify(type) + " finished in " + ((new Date()).valueOf() - starttime) / 1000 + "s (" + waittime / 1000 + "s in waiting)");
+                    clearInterval(log_timer);
                     that.queue.shift(); //take myself off
                     _.delay(function () {
                         if (that.queue.length > 0) {
@@ -130,11 +167,15 @@ var partyconnection = exports;
                         }
                     }, 0);
                 };
-                that.log("debug", "received " + JSON.stringify(type) + " " + JSON.stringify(data));
+                var starttime = (new Date()).valueOf();
+                var log_timer = setInterval(function () {
+                    that.log("warn", "Function " + JSON.stringify(type) + " is taking " + ((new Date()).valueOf() - starttime) / 1000 + "s and still running");
+                }, 1000);
                 var handlerdomain = domain.create();
                 handlerdomain.on("error", function (er) {
                     that.error = er;
-                    that.log("error", er + "\n" + er.stack);
+                    that.log("error", ((new Date()).valueOf() - starttime) / 1000 + "s after start: " + er + "\n" + er.stack);
+                    clearInterval(log_timer);
                     that.log("error", er);
                     my_callback({error: er.toString()});
                 });
@@ -147,7 +188,12 @@ var partyconnection = exports;
                 });
             };
             that.socket.on(type, function () {
-                var args = arguments;
+                var args = _.toArray(arguments);
+                args.push((new Date()).valueOf());
+                that.log("debug", "received " + JSON.stringify(type) + " " + JSON.stringify(args[0]));
+                if (that.queue.length > 0) {
+                    that.log("debug", "call in waiting");
+                }
                 that.queue.push(function () {new_handler.apply(that, args); });
                 if (that.queue.length === 1) {
                     //else someone else was runnig atm
@@ -322,28 +368,6 @@ var partyconnection = exports;
             that.setupListen("get own parties");
         },
 
-        /**
-         * Activates a party, which means that this connection will be the master of the party, and the party will be active to all members
-         * takes a party_id (party_id of 0 (not "0") means that the no party will be active.
-         * It returns the latest version of the party on the server. The client is expected to use this version (and not some other locally cached version), since in theory, it may have changed (for one thing, a "End" and "Start" may have been added and all clients may have been kicked).
-         **/
-        "activate party": function (party_id, callback) {
-            var that = this;
-            that.activateParty(party_id, function (party) {
-                if (!party_id) {
-                    callback();
-                    return;
-                }
-                if (!party) {
-                    throw "Party not found";
-                }
-                callback(party.serialize());
-            });
-        },
-        "activate party constraints": {
-            _isUniqueIdOrZero: true,
-        },
-
 
         "share action": function (action_data, callback) {
             var that = this;
@@ -391,6 +415,15 @@ var partyconnection = exports;
             limit: {
                 _isNumber: true,
             },
+        },
+
+        sendAction: function (action, callback) {
+            var that = this;
+            that.socket.emit("new active party action", action.serialize(), function (result) {
+                if (callback) {
+                    callback(result);
+                }
+            });
         },
 
         deactivateParty: function (forced_by_actived_somewhere_else, callback) {
@@ -445,11 +478,11 @@ var partyconnection = exports;
                         });
                     });
                 } else {
-                    callback();
+                    callback(null);
                 }
             };
             if (that.active_party_id) {
-                that.deactivateParty(false, activate);
+                that.deactivateParty(false, activate, callback);
             } else {
                 activate();
             }
@@ -472,14 +505,15 @@ var partyconnection = exports;
             var That = that.constructor;
             that.log("info", "client connection disconnect");
             That.removeFromIndex(that);
+            that.deactivateParty();
         },
 
         listen: function () {
             var that = this;
             that.setupListen("update token");
-            that.setupListen("get my active parties");
             that.setupListen("get my parties");
             that.setupListen("get my party");
+            that.setupListen("activate party");
         },
 
         "get my party": function (party_id, callback) {
@@ -493,18 +527,6 @@ var partyconnection = exports;
         },
         "get my party constraints": {
             _isUniqueId: true
-        },
-
-        "get my active parties": function (undefined, callback) {
-            var that = this;
-            var parties = parties_per_user[that.user_id] ? _.values(parties_per_user[that.user_id]) : [];
-            parties.sort(function (a, b) {
-                return a.get("last_updated") - b.get("last_updated");
-            });
-            callback(_.map(parties, function (party) {return party.serialize(); }));
-        },
-        "get my active parties constraints": {
-            _isNull: true,
         },
 
         "get my parties": function (options, callback) {
@@ -533,6 +555,73 @@ var partyconnection = exports;
             var that = this;
             that.socket.emit("minus active party", party.id);
         },
+
+        alertNewActivePartyAction: function (action) {
+            var that = this;
+            that.socket.emit("new active party action", action.serialize());
+        },
+
+        deactivateParty: function (callback) {
+            var that = this;
+            var That = that.constructor;
+            var party_id = that.active_party_id;
+            if (that.active_party_id) {
+                that.log("info", "deactivating party " + party_id);
+                var party = That.getActivePartyCollection().get(that.active_party_id);
+                var action = PM.models.Action.createAction(that.user_id, party, "Leave", {});
+                party.ownerConnection.sendAction(action, function (result) {
+                    if (result) {
+                        that.active_party_id = null;
+                        if (callback) {
+                            callback();
+                        }
+                    } else {
+                        throw "Leave action failed";
+                    }
+                });
+            } else {
+                if (callback) {
+                    callback();
+                }
+            }
+        },
+
+        activateParty: function (party_id, callback) {
+            var that = this;
+            var That = that.constructor;
+            var activate = function () {
+                if (party_id) {
+                    var party = That.getActivePartyCollection().get(party_id);
+                    if (party) {
+                        var action = PM.models.Action.createAction(that.user_id, party, "Join", {});
+                        party.ownerConnection.sendAction(action, function (result) {
+                            if (result) {
+                                that.active_party_id = party_id;
+                                if (callback) {
+                                    callback(party);
+                                }
+                            } else {
+                                throw "Join action failed";
+                            }
+                        });
+                    } else {
+                        if (callback) {
+                            callback();
+                        }
+                    }
+                } else {
+                    if (callback) {
+                        callback();
+                    }
+                }
+            };
+            if (that.active_party_id) {
+                that.deactivateParty(activate);
+            } else {
+                activate();
+            }
+        },
+
     }, {
         addToIndex: function (clientConnection) {
             var That = this;
