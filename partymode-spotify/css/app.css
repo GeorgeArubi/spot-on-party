@@ -43,7 +43,7 @@ h3 {
     background-image: url(../img/on_off_slider_foreground.png);
     position: absolute;
     left: 0px;
-    -webkit-transition: left 200ms; }
+    -webkit-transition: left 250ms ease-out; }
 
 .on-off-slider-on .on-off-slider > div {
   left: 24px; }

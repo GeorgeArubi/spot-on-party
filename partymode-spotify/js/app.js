@@ -261,7 +261,7 @@ var clutils = window.clutils;
             "search #users-search-box": "updateFilter",
             "click #users-search-box": function (event) {event.target.select(); },
             "click #users-search-invite": "invite",
-            "click #users-search-results .users li": "userSelectClick",
+            "mousedown #users-search-results .users li": "userSelectClick",
         },
 
         initialize: function (options) {
@@ -300,7 +300,6 @@ var clutils = window.clutils;
             that.filterText = "";
             
             PM.models.User.getAllFriendsOfLoggedinUser(function (users) {
-                that.allFriends.add(PM.app.loggedin_user);
                 that.allFriends.add(users);
                 that.updateUsers();
                 that.$('#users-search-results').removeClass("loading");
@@ -313,9 +312,6 @@ var clutils = window.clutils;
             var that = this;
             var user = event.currentTarget.user;
             if (that.parent.party.isMember(user.id)) {
-                if (that.parent.party.isOwner(user.id)) {
-                    return; //Owners can't be added or removed. TODO give feedback
-                }
                 that.usersToInvite.remove(user);
                 if (that.usersToKick.get(user.id)) {
                     that.usersToKick.remove(user);

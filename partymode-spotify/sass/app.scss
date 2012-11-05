@@ -25,7 +25,7 @@ h3 {margin: 0px;}
 
 .on-off-slider {
     width: 55px; height: 22px; background-image: url(../img/on_off_slider_background.png);
-    > div { width: 31px; height: 21px; background-image: url(../img/on_off_slider_foreground.png); position: absolute; left: 0px; -webkit-transition: left 200ms;}
+    > div { width: 31px; height: 21px; background-image: url(../img/on_off_slider_foreground.png); position: absolute; left: 0px; -webkit-transition: left 250ms ease-out;}
 }
 
 .on-off-slider-on .on-off-slider > div {left: 24px; }
