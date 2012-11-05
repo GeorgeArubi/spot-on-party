@@ -12,6 +12,10 @@ a:hover {
 h3 {
   margin: 0px; }
 
+.sp-list > div {
+  background-position: 0 20px; }
+
+/* default style sheet starts with a line in bg color; want to start with alternating-color line */
 .logo {
   margin-bottom: 50px;
   position: relative; }
@@ -88,13 +92,15 @@ h3 {
     overflow: hidden;
     margin-right: 20px;
     vertical-align: top; }
-    .parties-overview-page #parties .party .art .covers img {
+    .parties-overview-page #parties .party .art img {
       width: 70px;
       height: 70px;
       float: left; }
-      .parties-overview-page #parties .party .art .covers img:only-of-type {
+      .parties-overview-page #parties .party .art img:only-of-type {
         width: 140px;
         height: 140px; }
+    .parties-overview-page #parties .party .art:empty {
+      visibility: hidden; }
   .parties-overview-page #parties .party .info {
     display: inline-block;
     vertical-align: top; }

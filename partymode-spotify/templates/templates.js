@@ -30,11 +30,7 @@ __p+='\n';
  var tracks_in_playlist = party.getNotDeletedTracksInPlaylist() 
 __p+='\n';
  var members_shown = 8 
-__p+='\n<div class="party">\n    <div class="art">\n        ';
- if (tracks_in_playlist.length > 0) { 
-__p+='\n            <div class="covers"></div>\n        ';
- } 
-__p+='\n    </div><div class="info">\n        <h2 class="party-name">'+
+__p+='\n<div class="party">\n    <div class="art"></div><div class="info">\n        <h2 class="party-name">'+
 ((__t=( party.get("name") ))==null?'':_.escape(__t))+
 '</h2>\n        <div class="party-when">'+
 ((__t=( clutils.pastDateText(party.get("last_updated")) ))==null?'':_.escape(__t))+

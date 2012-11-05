@@ -197,7 +197,7 @@ var clutils = window.clutils;
                     var fixcoverart = _.debounce(function () {
                         if (_.all(tracks, function (track) {return track.get("_status") !== PM.models.Track.LOADING; })) {
                             var seen = {};
-                            var target = $(".covers", domnode);
+                            var target = $(".art", domnode);
                             target.empty();
                             _.each(tracks, function (track) {
                                 var albumcover = track.get("albumcover");

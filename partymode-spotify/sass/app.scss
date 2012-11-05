@@ -8,6 +8,8 @@ a {color: inherit; text-decoration: inherit; cursor: default;}
 a:hover {text-decoration: inherit;}
 h3 {margin: 0px;}
 
+.sp-list > div {background-position: 0 20px;} /* default style sheet starts with a line in bg color; want to start with alternating-color line */
+
 .logo {
     margin-bottom: 50px;
     h2 {text-align: center; font-size: 24px;}
@@ -56,11 +58,10 @@ h3 {margin: 0px;}
             border-bottom: 1px solid #272727;
             .art {
                 display: inline-block; width: $art-size; height: $art-size; border-radius: 10px; -webkit-box-shadow: 1px 1px 4px #202020; overflow: hidden; margin-right: 20px; vertical-align: top;
-                .covers {
-                    img {width: $art-size / 2; height: $art-size / 2; float: left; 
-                        &:only-of-type {width: $art-size; height: $art-size; }
-                    }
+                img {width: $art-size / 2; height: $art-size / 2; float: left; 
+                    &:only-of-type {width: $art-size; height: $art-size; }
                 }
+                &:empty {visibility: hidden; }
             }
             .info {
                 display: inline-block; vertical-align: top;

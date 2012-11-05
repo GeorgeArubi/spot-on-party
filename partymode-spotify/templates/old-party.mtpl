@@ -2,11 +2,7 @@
 <% var tracks_in_playlist = party.getNotDeletedTracksInPlaylist() %>
 <% var members_shown = 8 %>
 <div class="party">
-    <div class="art">
-        <% if (tracks_in_playlist.length > 0) { %>
-            <div class="covers"></div>
-        <% } %>
-    </div><div class="info">
+    <div class="art"></div><div class="info">
         <h2 class="party-name"><%- party.get("name") %></h2>
         <div class="party-when"><%- clutils.pastDateText(party.get("last_updated")) %></div>
         <div class="users-bar">
