@@ -1,0 +1,14 @@
+<div class="logo-small"></div>
+<form action="javascript:void(0);" id="new-party-form">
+    <div class="text welcome">Welcome to partymode. Go on and launch your party</div>
+    <span class="text">&mdash;&gt;</span>
+    <input type="text" id="new-party-name" placeholder="<%- default_party_name  %>">
+    <input type="submit" class="sp-button" value="start new party" id="new-party-submit">
+</form>
+    
+<div id="parties"><div class="or text">&mdash;&gt; or check your previous parties</div></div>
+<div class="throbber"><div></div></div>
+<div class="footer">
+    <button class="sp-button" id="logout">log out</button>
+</div>
+ 

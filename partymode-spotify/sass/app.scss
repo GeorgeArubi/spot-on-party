@@ -1,7 +1,6 @@
 $spotify-dark-background-color: #363636;
 $spotify-search-results-background-color: #474747;
 $partymode-logo-color: #87ceeb;
-@mixin big-button {font-size: 30px; border-radius: 15px; height: 50px; border: 0px; outline: none; color: $spotify-dark-background-color; padding: 0;}
 
 body {min-width: 611px;}
 
@@ -39,15 +38,48 @@ h3 {margin: 0px;}
 }  
 
 
-.new-party-page {
-    #new-party-form {text-align: center; margin-top: 50px;
-        #new-party-name {@include big-button; width: 450px; background-color: #FFFFCF; padding-left: 5px; margin-right: 30px; }
-        #new-party-submit {@include big-button; width: 265px; background-color: #7FFF7F; padding-top: 1px;}
-        .or:before {content: "\2013  ";} /* note: two spaces, one to end the hex character, one space to insert */
-        .or:after {content: " \2013 ";}
-        .or {font-size: 35pt; font-weight: bold; margin: 25px 0 30px;}
-        #view-party-history {@include big-button; width: 265px; background-color: $partymode-logo-color; display: inline-block; line-height: 50px;}
+.parties-overview-page {
+    .text {font-size: 18px;}
+    #new-party-form {margin: 50px 25px;
+        > .welcome {margin-bottom: 15px;}
+        #new-party-name {width: 250px; padding-left: 5px; margin-right: 15px; }
     }
+    #parties {
+        .or {
+            margin: 15px 25px;
+            &:last-child {display: none; }
+        }
+        .party {
+            $art-size: 140px;
+            padding: 15px 25px;
+            border-top: 1px solid #3e3e3e;
+            border-bottom: 1px solid #272727;
+            .art {
+                display: inline-block; width: $art-size; height: $art-size; border-radius: 10px; -webkit-box-shadow: 1px 1px 4px #202020; overflow: hidden; margin-right: 20px; vertical-align: top;
+                .covers {
+                    img {width: $art-size / 2; height: $art-size / 2; float: left; 
+                        &:only-of-type {width: $art-size; height: $art-size; }
+                    }
+                }
+            }
+            .info {
+                display: inline-block; vertical-align: top;
+                h2 {color: white; font-size: 30px; }
+                .party-when {color: white; margin-top: 4px; font-size: 13px; }
+                .users-bar {margin-top: 10px; position: relative; width: 8 * 50px; height: 50px;
+                    img {width: 50px; height: 50px; margin: 0;}
+                    .more {position: absolute; bottom: 0px; right: 0px; padding: 1px; background-color: black;  opacity: 0.8; font-size: 9px;}
+                }
+                .buttons {margin-top: 15px; }
+            }
+            .playlist-placeholder {-webkit-transition: max-height 500ms; overflow: hidden; max-height: 120px; margin-top: 15px;}
+            .playlist-see-all {background-color: #202020; padding: 2px 8px; border-radius: 5px; margin-top: 8px; font-size: 11px; display: inline-block;}
+        }
+    }
+    > .throbber {display: none; position: relative; background-color: inherit; margin-top: 40px;
+        > div {left: 50%;}
+    }
+    #parties.loading~.throbber {display: block; }
 }
 
 .party-page {
@@ -170,40 +202,7 @@ h3 {margin: 0px;}
     }
 }
 
-.old-parties-page {
-    > .buttons {
-        text-align: right;
-        button {padding-right: 20px;}
-    }
-    .party {
-        $art-size: 140px;
-        margin: 60px 25px;
-        .art {
-            display: inline-block; width: $art-size; height: $art-size; border-radius: 10px; -webkit-box-shadow: 1px 1px 4px #202020; overflow: hidden; margin-right: 20px; vertical-align: top;
-            .covers {
-                img {width: $art-size / 2; height: $art-size / 2; float: left; 
-                    &:only-of-type {width: $art-size; height: $art-size; }
-                }
-            }
-        }
-        .info {
-            display: inline-block; vertical-align: top;
-            h2 {color: white; font-size: 30px; }
-            .party-when {color: white; margin-top: 4px; font-size: 13px; }
-            .users-bar {margin-top: 10px; position: relative; width: 8 * 50px; height: 50px;
-                img {width: 50px; height: 50px; margin: 0;}
-                .more {position: absolute; bottom: 0px; right: 0px; padding: 1px; background-color: black;  opacity: 0.8; font-size: 9px;}
-            }
-            .buttons {margin-top: 15px; }
-        }
-        .playlist-placeholder {-webkit-transition: max-height 500ms; overflow: hidden; max-height: 120px; margin-top: 15px;}
-        .playlist-see-all {background-color: #202020; padding: 2px 8px; border-radius: 5px; margin-top: 8px; font-size: 11px; display: inline-block;}
-    }
-    > .throbber {display: none; position: relative; background-color: inherit; margin-top: 40px;
-        > div {left: 50%;}
-    }
-    #parties.loading~.throbber {display: block; }
-}
+
 
 .footer {margin-top: 100px; padding-top: 5px; border-top: 1px solid silver;
     text-align: center;

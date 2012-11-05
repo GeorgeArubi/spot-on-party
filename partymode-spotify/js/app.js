@@ -7,7 +7,7 @@ var clutils = window.clutils;
 
 (function (PM, Backbone, $, _) {
     "use strict";
-    var FacebookLoginView, StartNewPartyView, PartyView, InviteUsersView, AddTrackView, OldPartiesView;
+    var FacebookLoginView, PartiesOverviewView, PartyView, InviteUsersView, AddTrackView, OldPartiesView;
 
     var getTemplate = function (id) {
         var template = PM.templates[id];
@@ -117,21 +117,30 @@ var clutils = window.clutils;
         },
     });
 
-    StartNewPartyView = Backbone.View.extend({
-        className: "new-party-page",
+    PartiesOverviewView = Backbone.View.extend({
+        className: "parties-overview-page",
 
         events: {
             "click #logout": "logout",
             "submit #new-party-form": "createNewParty",
+            "click .continue-party": "continueParty",
+            "click .add-as-playlist": "addAsPlaylist",
+            "click .playlist-see-all": "playlistSeeAll",
         },
 
-        template: getTemplate("new-party-page"),
+        template: getTemplate("parties-overview-page"),
+
+        close: function () {
+            $(window).off("scroll:parties_overview_page");
+        },
 
         render: function (target) {
             var that = this;
             that.$el.html(that.template({default_party_name: PM.models.Party.getDefaultPartyName(PM.app.loggedin_user)}));
             target.html(that.$el);
             that.$("#new-party-name").focus();
+            $(window).on("scroll:parties_overview_page", _.bind(that.checkToLoadContent, that));
+            _.delay(_.bind(that.checkToLoadContent, that), 0);
             return that;
         },
 
@@ -173,6 +182,74 @@ var clutils = window.clutils;
                 }
             );
         }, 10000, /*immediate*/ true), // kill double clicks within 10 seconds
+
+        loadAndRenderMoreParties: function () {
+            var that = this;
+            var template = getTemplate("old-party");
+            var limit = 10;
+            var before_timestamp = that.last_shown_party_last_updated;
+            window.mytracks = [];
+            PM.domain.PartyNodeDomain.getOwnParties(limit, before_timestamp, function (parties_data, parties_left) {
+                _.each(parties_data, function (party_data) {
+                    var party = PM.models.Party.unserialize(party_data);
+                    var tracks = _.map(party.getNotDeletedTracksInPlaylist(), function (track_in_playlist) {return track_in_playlist.getTrack(); });
+                    var domnode;
+                    var fixcoverart = _.debounce(function () {
+                        if (_.all(tracks, function (track) {return track.get("_status") !== PM.models.Track.LOADING; })) {
+                            var seen = {};
+                            var target = $(".covers", domnode);
+                            target.empty();
+                            _.each(tracks, function (track) {
+                                var albumcover = track.get("albumcover");
+                                if (_.keys(seen).length < 4 && albumcover && !seen[albumcover]) {
+                                    seen[albumcover] = true;
+                                    var img = $('<img>');
+                                    img.attr("src", albumcover);
+                                    target.append(img);
+                                }
+                                target.parent().removeClass("loading");
+                            });
+                        }
+
+                    }, 50);
+                    _.each(tracks, function (track) {track.onLoaded(fixcoverart); });
+                    domnode = $(template({party: party, }));
+                    domnode[0].party = party;
+                    var playlist_node = PM.domain.SpotifyAppIntegrator.getPlaylistDomForOldPartyPage(party);
+                    $(".playlist-placeholder", domnode).empty().append(playlist_node);
+                    that.$('#parties').append(domnode);
+                    that.last_shown_party_last_updated = party.get("last_updated");
+                });
+                that.$("#parties").removeClass("loading");
+                if (parties_left === 0) {
+                    that.no_more_to_load = true;
+                }
+            });
+        },
+
+        checkToLoadContent: _.debounce(function () {
+            var that = this;
+            if (!that.no_more_to_load && !that.$("#parties").hasClass("loading") && $(window).scrollTop() >= $(document).height() - $(window).height() - 100) {
+                that.$("#parties").addClass("loading");
+                that.loadAndRenderMoreParties();
+            }
+        }, 50),
+
+        continueParty: function (event) {
+            var party = $(event.currentTarget).parents(".party")[0].party;
+            PM.app.navigate("party/" + party.id, {trigger: true});
+        },
+
+        addAsPlaylist: function (event) {
+            var party = $(event.currentTarget).parents(".party")[0].party;
+            PM.domain.SpotifyAppIntegrator.addPartyAsPlaylist(party);
+        },
+
+        playlistSeeAll: function (event) {
+            var party = $(event.currentTarget).parents(".party")[0].party;
+            $(event.currentTarget).prevAll(".playlist-placeholder").css("max-height", (20 * party.getNotDeletedTracksInPlaylist().length) + "px");
+            $(event.currentTarget).css("visibility", "hidden");
+        },
     });
 
     InviteUsersView = Backbone.View.extend({
@@ -690,99 +767,6 @@ var clutils = window.clutils;
 
     });
 
-    OldPartiesView = Backbone.View.extend({
-        className: "old-parties-page",
-
-        events: {
-            "click .continue-party": "continueParty",
-            "click .add-as-playlist": "addAsPlaylist",
-            "click .playlist-see-all": "playlistSeeAll",
-        },
-
-        template: getTemplate("old-parties-page"),
-
-        initialize: function () {
-            var that = this;
-            $(window).scroll(_.bind(that.checkToLoadContent, that));
-        },
-
-        render: function (target) {
-            var that = this;
-            that.$el.html(that.template());
-            target.html(that.$el);
-            _.delay(_.bind(that.checkToLoadContent, that), 0);
-            return that;
-        },
-
-        loadAndRenderMoreParties: function () {
-            var that = this;
-            var template = getTemplate("old-party");
-            var limit = 10;
-            var before_timestamp = that.last_shown_party_last_updated;
-            window.mytracks = [];
-            PM.domain.PartyNodeDomain.getOwnParties(limit, before_timestamp, function (parties_data, parties_left) {
-                _.each(parties_data, function (party_data) {
-                    var party = PM.models.Party.unserialize(party_data);
-                    var tracks = _.map(party.getNotDeletedTracksInPlaylist(), function (track_in_playlist) {return track_in_playlist.getTrack(); });
-                    var domnode;
-                    var fixcoverart = _.debounce(function () {
-                        if (_.all(tracks, function (track) {return track.get("_status") !== PM.models.Track.LOADING; })) {
-                            var seen = {};
-                            var target = $(".covers", domnode);
-                            target.empty();
-                            _.each(tracks, function (track) {
-                                var albumcover = track.get("albumcover");
-                                if (_.keys(seen).length < 4 && albumcover && !seen[albumcover]) {
-                                    seen[albumcover] = true;
-                                    var img = $('<img>');
-                                    img.attr("src", albumcover);
-                                    target.append(img);
-                                }
-                                target.parent().removeClass("loading");
-                            });
-                        }
-
-                    }, 50);
-                    _.each(tracks, function (track) {track.onLoaded(fixcoverart); });
-                    domnode = $(template({party: party, }));
-                    domnode[0].party = party;
-                    var playlist_node = PM.domain.SpotifyAppIntegrator.getPlaylistDomForOldPartyPage(party);
-                    $(".playlist-placeholder", domnode).empty().append(playlist_node);
-                    that.$('#parties').append(domnode);
-                    that.last_shown_party_last_updated = party.get("last_updated");
-                });
-                that.$("#parties").removeClass("loading");
-                if (parties_left === 0) {
-                    that.no_more_to_load = true;
-                }
-            });
-        },
-
-        checkToLoadContent: _.debounce(function () {
-            var that = this;
-            if (!that.no_more_to_load && !that.$("#parties").hasClass("loading") && $(window).scrollTop() >= $(document).height() - $(window).height() - 100) {
-                that.$("#parties").addClass("loading");
-                that.loadAndRenderMoreParties();
-            }
-        }, 50),
-
-        continueParty: function (event) {
-            var party = $(event.currentTarget).parents(".party")[0].party;
-            PM.app.navigate("party/" + party.id, {trigger: true});
-        },
-
-        addAsPlaylist: function (event) {
-            var party = $(event.currentTarget).parents(".party")[0].party;
-            PM.domain.SpotifyAppIntegrator.addPartyAsPlaylist(party);
-        },
-
-        playlistSeeAll: function (event) {
-            var party = $(event.currentTarget).parents(".party")[0].party;
-            $(event.currentTarget).prevAll(".playlist-placeholder").css("max-height", (20 * party.getNotDeletedTracksInPlaylist().length) + "px");
-            $(event.currentTarget).css("visibility", "hidden");
-        },
-    });
-
     var AppRouter = Backbone.Router.extend({
         routes: {
             "": "facebookLogin",
@@ -803,7 +787,7 @@ var clutils = window.clutils;
 
         startParty: function () {
             checkFacebookLogin(function () {
-                var view = new StartNewPartyView();
+                var view = new PartiesOverviewView();
                 changeView(view);
             });
         },

@@ -21,22 +21,6 @@ __p+='<h3>Invite friends to your party</h3>\n<input type="search" id="users-sear
 }
 return __p;
 };
-PM.templates["new-party-page"]=function(obj){
-var __t,__p='',__j=Array.prototype.join,print=function(){__p+=__j.call(arguments,'');};
-with(obj||{}){
-__p+='<div class="logo-small"></div>\n<form action="javascript:void(0);" id="new-party-form">\n    <input type="text" id="new-party-name" placeholder="'+
-((__t=( default_party_name  ))==null?'':_.escape(__t))+
-'"><input type="submit" value="create new party" id="new-party-submit">\n    <div class="or">or</div>\n    <a href="#history" id="view-party-history">view old parties</a>\n</form>\n<div class="footer">\n    <button class="sp-button" id="logout">log out</button>\n</div>\n \n';
-}
-return __p;
-};
-PM.templates["old-parties-page"]=function(obj){
-var __t,__p='',__j=Array.prototype.join,print=function(){__p+=__j.call(arguments,'');};
-with(obj||{}){
-__p+='<div class="logo-small"></div>\n<div class="buttons">\n    <a href="#party/new">create new party</a>\n</div>\n<div id="parties"></div>\n<div class="throbber"><div></div></div>\n';
-}
-return __p;
-};
 PM.templates["old-party"]=function(obj){
 var __t,__p='',__j=Array.prototype.join,print=function(){__p+=__j.call(arguments,'');};
 with(obj||{}){
@@ -75,6 +59,15 @@ __p+='\n        <div class="playlist-see-all">See all '+
 ' tracks</div>\n    ';
  } 
 __p+='\n</div>\n';
+}
+return __p;
+};
+PM.templates["parties-overview-page"]=function(obj){
+var __t,__p='',__j=Array.prototype.join,print=function(){__p+=__j.call(arguments,'');};
+with(obj||{}){
+__p+='<div class="logo-small"></div>\n<form action="javascript:void(0);" id="new-party-form">\n    <div class="text welcome">Welcome to partymode. Go on and launch your party</div>\n    <span class="text">&mdash;&gt;</span>\n    <input type="text" id="new-party-name" placeholder="'+
+((__t=( default_party_name  ))==null?'':_.escape(__t))+
+'">\n    <input type="submit" class="sp-button" value="start new party" id="new-party-submit">\n</form>\n    \n<div id="parties"><div class="or text">&mdash;&gt; or check your previous parties</div></div>\n<div class="throbber"><div></div></div>\n<div class="footer">\n    <button class="sp-button" id="logout">log out</button>\n</div>\n \n';
 }
 return __p;
 };

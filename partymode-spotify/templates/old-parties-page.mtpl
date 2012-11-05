@@ -1,6 +1,0 @@
-<div class="logo-small"></div>
-<div class="buttons">
-    <a href="#party/new">create new party</a>
-</div>
-<div id="parties"></div>
-<div class="throbber"><div></div></div>
