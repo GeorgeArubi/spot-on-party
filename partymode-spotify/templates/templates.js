@@ -81,7 +81,7 @@ return __p;
 PM.templates["party-page"]=function(obj){
 var __t,__p='',__j=Array.prototype.join,print=function(){__p+=__j.call(arguments,'');};
 with(obj||{}){
-__p+='<div id="overlay-backdrop"></div>\n<div id="overlay-placeholder"></div>\n<div class="logo-small"></div>\n<div class="buttons">\n    <a id="add-track">add song</a>\n    <a id="invite-users">invite friends</a>\n    <a id="end-party" href="#party/new">end party</a>\n</div>\n<div id="users-bar"><div class="arrow arrow-left"></div><div class="arrow arrow-right"></div><ul></ul></div>\n<div id="playlist-placeholder"></div>\n\n';
+__p+='<div id="overlay-backdrop"></div>\n<div id="overlay-placeholder"></div>\n<div class="coverphoto-container">\n    <img class="coverphoto">\n    <div class="buttons">\n        <button class="sp-button" id="add-track">add song</button>\n        <button class="sp-button" id="invite-users">invite friends</button>\n        <a class="sp-button" id="end-party" href="#party/new">end party</a>\n    </div>\n    <div class="currentsong">\n        <img>\n        <div class="title"></div>\n        <div class="artist"></div>\n        <div class="requested-by"></div>\n    </div>\n\n</div>\n<div id="users-bar"><div class="arrow arrow-left"></div><div class="arrow arrow-right"></div><ul></ul></div>\n<div id="playlist-placeholder"></div>\n\n';
 }
 return __p;
 };

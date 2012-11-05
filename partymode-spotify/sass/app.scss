@@ -2,7 +2,6 @@ $spotify-dark-background-color: #363636;
 $spotify-search-results-background-color: #474747;
 $partymode-logo-color: #87ceeb;
 @mixin big-button {font-size: 30px; border-radius: 15px; height: 50px; border: 0px; outline: none; color: $spotify-dark-background-color; padding: 0;}
-@mixin small-button {font-size: 14px; border-radius: 5px; height: 20px; border: 0px; outline: none; color: $spotify-dark-background-color; padding: 0 15px; background-color: $partymode-logo-color; display: inline-block; line-height: 20px;}
 
 body {min-width: 611px;}
 
@@ -52,21 +51,39 @@ h3 {margin: 0px;}
 }
 
 .party-page {
-    > .buttons {
-        text-align: right;
-        a {@include small-button; background-color: #7fff7f; margin-right: 10px;}
-        a#end-party {background-color: #FF7777; margin-right: 20px;}
+    .coverphoto-container {
+        position: relative; overflow: hidden;
+        > img.coverphoto {position: absolute; width: 100%;}
+        > .buttons {
+            position: absolute; top: 20px; right: 10px;
+            button {margin-right: 10px;}
+        }
+        > .currentsong {
+            width: 70%;
+            position: absolute;
+            bottom: 25px;
+            border: 1px solid white;
+            border-radius: 7px;
+            height: 100px;
+            left: 15%;
+            background-color: rgba(0,0,0,.4);
+            background-origin: border-box;
+            margin: 1px;
+            padding-top: 10px;
+            > img {width: 100px; height: 100px; border-radius: 7px; position: absolute; left: 5px; top: 5px;}
+            > div {margin-left: 120px; margin-right: 10px; font-size: 24px; line-height: 28px; color: rgba(255,255,255,0.8); text-shadow: rgba(0,0,0,.8) 1px 1px 2px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;}
+        }
+        &.no-song-playing >.currentsong {display: none;}
     }
     #users-bar {
         $users-bar-icon-size: 50px;
-        $users-bar-size: 16;
-        margin-top: 20px;
+        height: $users-bar-icon-size; margin-top: 20px;
         .arrow {display: none; position: absolute; width: 30px; height: 50px;}
         &.need-arrows .arrow {display: block; }
         .arrow-left {background-image: url(../img/arrow-left.png); left: 20px;}
-        .arrow-right {background-image: url(../img/arrow-right.png); left: 20px + $users-bar-icon-size * $users-bar-size + 30px + 4px * 2;}
+        .arrow-right {background-image: url(../img/arrow-right.png); right: 20px;}
         > ul {
-            width: $users-bar-icon-size * $users-bar-size; height: $users-bar-icon-size; overflow: hidden; position: relative; left: 20px + 30px + 4px;
+            height: $users-bar-icon-size; overflow: hidden; position: absolute; left: 20px + 30px + 4px; right: 20px + 30px + 4px;
             > li {
                 width: $users-bar-icon-size; height: $users-bar-icon-size; position: absolute; left: 0px; -webkit-transition: left 500ms;
                 > img.icon {
@@ -156,7 +173,7 @@ h3 {margin: 0px;}
 .old-parties-page {
     > .buttons {
         text-align: right;
-        a {@include small-button; margin-right: 20px;}
+        button {padding-right: 20px;}
     }
     .party {
         $art-size: 140px;

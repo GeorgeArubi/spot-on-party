@@ -428,6 +428,9 @@ var clutils = window.clutils;
             that.party.get("users").off("add", that.updateUserBar, that);
             that.party.get("users").off("change", that.updateUserBar, that);
             that.party.get("users").off("reset", that.updateUserBar, that);
+            that.party.off("change:current_playlist_index", that.setCoverPhoto, that);
+            that.$('img.coverphoto').off("load.photopage");
+            $(window).off("resize.photopage");
             deactivateParty(that.party);
         },
 
@@ -451,6 +454,73 @@ var clutils = window.clutils;
             that.$('#overlay-placeholder').html("");
         },
 
+        resizeCoverPhoto: function () {
+            var that = this;
+            var width = that.$('.coverphoto-container').width();
+            var height = Math.floor(314 / 850 * width); // these are the dimensions of a fb cover photo
+            //now reposition image;
+            var image = that.$('img.coverphoto');
+            var imgheight = image.height();
+            if (imgheight > 0) {
+                var offset = image.attr("offset_y");
+                var heightdiff = imgheight - height;
+                if (heightdiff < 0) {
+                    heightdiff = 0;
+                    that.$('.coverphoto-container').height(imgheight);
+                } else {
+                    that.$('.coverphoto-container').height(height);
+                }
+                var top = Math.round(heightdiff * offset * 0.01);
+                image.css({top: "-" + top + "px"});
+            }
+        },
+
+        setCoverPhoto: function () {
+            var that = this;
+            var user;
+            if (that.party.get("current_playlist_index") === -1) {
+                user = that.party.getOwner();
+            } else {
+                var user_id = that.party.get("playlist").at(that.party.get("current_playlist_index")).get("user_id");
+                if (user_id === "master") {
+                    user = that.party.getOwner();
+                } else {
+                    user = PM.models.User.getById(user_id);
+                }
+            }
+            that.$('.coverphoto-container')[0].user = user;
+            user.onLoaded(function () {
+                if (that.$('.coverphoto-container')[0].user === user) { //else while loading this user, we were ordered to show another user
+                    if (user.get("cover_url")) {
+                        that.$('img.coverphoto').attr({
+                            offset_y: user.get("cover_offset_y"),
+                            src: user.get("cover_url"),
+                        });
+                        that.$('.coverphoto-container').removeClass("no-cover-photo");
+                    } else {
+                        that.$('.coverphoto-container').addClass("no-cover-photo");
+                    }
+                    that.$('.coverphoto-container .currentsong > .requested-by').text(user.get("name"));
+                }
+            });
+            
+            if (that.party.get("current_playlist_index") === -1) {
+                that.$('.coverphoto-container').addClass("no-song-playing");
+            } else {
+                that.$('.coverphoto-container').removeClass("no-song-playing");
+
+                var track = PM.models.Track.getById(that.party.get("playlist").at(that.party.get("current_playlist_index")).get("track_id"));
+                that.$('.coverphoto-container')[0].track = track;
+                track.onLoaded(function () {
+                    if (that.$('.coverphoto-container')[0].track === track) {
+                        that.$('.coverphoto-container .currentsong > img').attr({src: track.get("albumcover")});
+                        that.$('.coverphoto-container .currentsong > .title').text(track.get("name"));
+                        that.$('.coverphoto-container .currentsong > .artist').text(track.get("artist") + " - " + track.get("album"));
+                    }
+                });
+            }
+        },
+
         render: function (target) {
             var that = this;
             getAndActivateParty(that.party_id, function (party) {
@@ -464,11 +534,16 @@ var clutils = window.clutils;
                 that.party.get("users").on("add", that.updateUserBar, that);
                 that.party.get("users").on("change", that.updateUserBar, that);
                 that.party.get("users").on("reset", that.updateUserBar, that);
+                that.party.on("change:current_playlist_index", that.setCoverPhoto, that);
+                that.$('img.coverphoto').on("load.photopage", _.bind(that.resizeCoverPhoto, that));
+                $(window).on("resize.photopage", _.bind(that.resizeCoverPhoto, that));
+                $(window).on("resize.photopage", _.bind(that.updateUserBar, that));//needed to add/remove userbar arrows
                 var playlistNode = PM.domain.SpotifyAppIntegrator.getHtmlNodeForActivePlaylist(that.party);
                 if (that.party.get("current_playlist_index") !== -1) {
                     that.party.trigger("playcommand", "play", that.party.get("current_playlist_index"));
                 }
                 that.$('#playlist-placeholder').html(playlistNode);
+                that.setCoverPhoto();
             });
             return that;
         },
@@ -505,8 +580,6 @@ var clutils = window.clutils;
                     nameel.removeClass("loading");
                     nameel.text(user.get("name"));
                 });
-                el[0].addEventListener("DOMNodeInsertedIntoDocument", function () {console.log("element inserted"); });
-                $(el).on("DOMNodeRemovedFromDocument", function () {console.log("element removed"); });
                 el.toggleClass("owner", that.party.isOwner(user.id));
                 if (user_in_party.get("ts_last_action") !== el[0].last_ts_last_action) {
                     el[0].last_ts_last_action = user_in_party.get("ts_last_action");
@@ -520,10 +593,10 @@ var clutils = window.clutils;
                 }
             }
             that.scrollUserBar();
-            
+
             var maxUsersDisplayed = Math.floor(that.$('#users-bar > ul').width() / that.$('#users-bar > ul > li').width());
             $('#users-bar').toggleClass("need-arrows", users_in_party.length > maxUsersDisplayed);
-        }, 1),
+        }, 10),
 
         scrollUserBarBounceBack: _.debounce(function (amount) {
             var that = this;

@@ -195,12 +195,14 @@ if (typeof exports !== "undefined") {
     PM.models.User = PM.models.BaseModelLazyLoad.extend({
         _fields: {
             name: 1,
-            is_master: 1,
+            cover_url: 1,
+            cover_offset_y: 1,
         },
 
         defaults: {
             name: "",
-            is_master: false,
+            cover_url: false,
+            cover_offset_y: 0,
         },
 
         getProfilePictureUrl: function () {
@@ -235,8 +237,19 @@ if (typeof exports !== "undefined") {
 
         getByFacebookData: function (facebookdata) {
             var That = this;
-            clutils.checkConstraints(facebookdata, {id: {_isNumeric: true}, name: {_isString: true}});
-            var newdata = _.extend({_status: That.LOADED, _id: parseInt(facebookdata.id, 10)}, _.omit(facebookdata, "id"));
+            clutils.checkConstraints(facebookdata, {id: {_isNumeric: true}, name: {_isString: true}, cover: {
+                source: {_isString: true},
+                offset_y: {_isNumber: true},
+                id: {_isNumeric: true},
+                _optional: true,
+            }});
+            var newdata = {
+                _status: That.LOADED,
+                _id: parseInt(facebookdata.id, 10),
+                name: facebookdata.name,
+                cover_url: facebookdata.cover && facebookdata.cover.source,
+                cover_offset_y: facebookdata.cover && facebookdata.cover.offset_y,
+            };
             var user = new That(newdata);
             That.setToCache(user);
             return user;
@@ -712,6 +725,9 @@ if (typeof exports !== "undefined") {
             if (track.get("_status") !== "loaded") {
                 return "track could not be loaded";
             }
+            if (!that.party.isMember(attrs.user_id)) {
+                return "can only add song to a party you're member of";
+            }
             //TODO: also check whether track is playable etc...
             return that.constructor.__super__.validate.call(that, attrs);
         },
@@ -1020,6 +1036,11 @@ if (typeof exports !== "undefined") {
                 throw "Aready party with this ID in partyCache";
             }
             That.partyCache[that.id] = that;
+        },
+
+        getOwner: function () {
+            var that = this;
+            return PM.models.User.getById(that.get("owner_id"));
         },
 
         getMemberRecord: function (user_or_user_id) {

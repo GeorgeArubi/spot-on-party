@@ -109,25 +109,51 @@ h3 {
     display: inline-block;
     line-height: 50px; }
 
-.party-page > .buttons {
-  text-align: right; }
-  .party-page > .buttons a {
-    font-size: 14px;
-    border-radius: 5px;
-    height: 20px;
-    border: 0px;
-    outline: none;
-    color: #363636;
-    padding: 0 15px;
-    background-color: skyblue;
-    display: inline-block;
-    line-height: 20px;
-    background-color: #7fff7f;
-    margin-right: 10px; }
-  .party-page > .buttons a#end-party {
-    background-color: #FF7777;
-    margin-right: 20px; }
+.party-page .coverphoto-container {
+  position: relative;
+  overflow: hidden; }
+  .party-page .coverphoto-container > img.coverphoto {
+    position: absolute;
+    width: 100%; }
+  .party-page .coverphoto-container > .buttons {
+    position: absolute;
+    top: 20px;
+    right: 10px; }
+    .party-page .coverphoto-container > .buttons button {
+      margin-right: 10px; }
+  .party-page .coverphoto-container > .currentsong {
+    width: 70%;
+    position: absolute;
+    bottom: 25px;
+    border: 1px solid white;
+    border-radius: 7px;
+    height: 100px;
+    left: 15%;
+    background-color: rgba(0, 0, 0, 0.4);
+    background-origin: border-box;
+    margin: 1px;
+    padding-top: 10px; }
+    .party-page .coverphoto-container > .currentsong > img {
+      width: 100px;
+      height: 100px;
+      border-radius: 7px;
+      position: absolute;
+      left: 5px;
+      top: 5px; }
+    .party-page .coverphoto-container > .currentsong > div {
+      margin-left: 120px;
+      margin-right: 10px;
+      font-size: 24px;
+      line-height: 28px;
+      color: rgba(255, 255, 255, 0.8);
+      text-shadow: rgba(0, 0, 0, 0.8) 1px 1px 2px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow: hidden; }
+  .party-page .coverphoto-container.no-song-playing > .currentsong {
+    display: none; }
 .party-page #users-bar {
+  height: 50px;
   margin-top: 20px; }
   .party-page #users-bar .arrow {
     display: none;
@@ -141,13 +167,13 @@ h3 {
     left: 20px; }
   .party-page #users-bar .arrow-right {
     background-image: url(../img/arrow-right.png);
-    left: 858px; }
+    right: 20px; }
   .party-page #users-bar > ul {
-    width: 800px;
     height: 50px;
     overflow: hidden;
-    position: relative;
-    left: 54px; }
+    position: absolute;
+    left: 54px;
+    right: 54px; }
     .party-page #users-bar > ul > li {
       width: 50px;
       height: 50px;
@@ -335,18 +361,8 @@ h3 {
 
 .old-parties-page > .buttons {
   text-align: right; }
-  .old-parties-page > .buttons a {
-    font-size: 14px;
-    border-radius: 5px;
-    height: 20px;
-    border: 0px;
-    outline: none;
-    color: #363636;
-    padding: 0 15px;
-    background-color: skyblue;
-    display: inline-block;
-    line-height: 20px;
-    margin-right: 20px; }
+  .old-parties-page > .buttons button {
+    padding-right: 20px; }
 .old-parties-page .party {
   margin: 60px 25px; }
   .old-parties-page .party .art {

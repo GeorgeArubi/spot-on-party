@@ -15,6 +15,7 @@
 	"http://*.facebook.com/",
 	"https://*.facebook.net/",
 	"http://*.facebook.net/",
+    "https://*f-a.akamaihd.net/",
     "http://tiggr.local:8081/",
     "https://tiggr.local:8081/"
     ]

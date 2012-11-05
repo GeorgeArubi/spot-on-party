@@ -93,7 +93,7 @@ window.PM.domain.AbstractFacebookDomain = window.Toolbox.Base.extend({
     lookupUsers: function (user_ids, callback) {
         var that = this;
         that.getAccessToken(function (accessToken) {
-            var params = {ids: user_ids.join(","), fields: "id,name", access_token: accessToken};
+            var params = {ids: user_ids.join(","), fields: "id,name,cover", access_token: accessToken};
             window.$.ajax({
                 url: that.FACEBOOK_GRAPH_URL,
                 data: params,
@@ -113,7 +113,7 @@ window.PM.domain.AbstractFacebookDomain = window.Toolbox.Base.extend({
     getAllFriends: function (callback) {
         var that = this;
         that.getAccessToken(function (accessToken) {
-            var params = {fields: "id,name", access_token: accessToken};
+            var params = {fields: "id,name,cover", access_token: accessToken};
             window.$.ajax({
                 url: that.FACEBOOK_GRAPH_URL + "me/friends",
                 data: params,

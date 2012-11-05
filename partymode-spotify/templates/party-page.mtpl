@@ -1,10 +1,19 @@
 <div id="overlay-backdrop"></div>
 <div id="overlay-placeholder"></div>
-<div class="logo-small"></div>
-<div class="buttons">
-    <a id="add-track">add song</a>
-    <a id="invite-users">invite friends</a>
-    <a id="end-party" href="#party/new">end party</a>
+<div class="coverphoto-container">
+    <img class="coverphoto">
+    <div class="buttons">
+        <button class="sp-button" id="add-track">add song</button>
+        <button class="sp-button" id="invite-users">invite friends</button>
+        <a class="sp-button" id="end-party" href="#party/new">end party</a>
+    </div>
+    <div class="currentsong">
+        <img>
+        <div class="title"></div>
+        <div class="artist"></div>
+        <div class="requested-by"></div>
+    </div>
+
 </div>
 <div id="users-bar"><div class="arrow arrow-left"></div><div class="arrow arrow-right"></div><ul></ul></div>
 <div id="playlist-placeholder"></div>
