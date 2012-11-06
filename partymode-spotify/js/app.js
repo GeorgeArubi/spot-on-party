@@ -574,7 +574,7 @@ var clutils = window.clutils;
                     } else {
                         that.$('.coverphoto-container').addClass("no-cover-photo");
                     }
-                    that.$('.coverphoto-container .currentsong > .requested-by').text(user.get("name"));
+                    that.$('.coverphoto-container .currentsong > .requested-by').text(PM.models.User.getById(user_id).get("name")); //note: don't use "user" here because if master user, we want the name for the master user; master user will be loaded always so no need to wait...
                 }
             });
             
