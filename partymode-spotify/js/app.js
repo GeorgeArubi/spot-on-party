@@ -574,7 +574,10 @@ var clutils = window.clutils;
                     } else {
                         that.$('.coverphoto-container').addClass("no-cover-photo");
                     }
-                    that.$('.coverphoto-container .currentsong > .requested-by').text(PM.models.User.getById(user_id).get("name")); //note: don't use "user" here because if master user, we want the name for the master user; master user will be loaded always so no need to wait...
+                    if (that.party.get("current_playlist_index") !== -1) {
+                        var user_id = that.party.get("playlist").at(that.party.get("current_playlist_index")).get("user_id");
+                        that.$('.coverphoto-container .currentsong > .requested-by').text(PM.models.User.getById(user_id).get("name")); //note: don't use "user" here because if master user, we want the name for the master user; master user will be loaded always so no need to wait...
+                    }
                 }
             });
             
