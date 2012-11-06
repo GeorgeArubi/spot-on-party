@@ -173,8 +173,6 @@ h3 {
     height: 100px;
     left: 15%;
     background-color: rgba(0, 0, 0, 0.4);
-    background-origin: border-box;
-    margin: 1px;
     padding-top: 10px; }
     .party-page .coverphoto-container > .currentsong > img {
       width: 100px;
@@ -262,21 +260,40 @@ h3 {
 .party-page #playlist-placeholder {
   margin-top: 25px; }
   .party-page #playlist-placeholder .expectedplaytime {
-    width: 50px;
+    width: 60px;
     text-align: right; }
-  .party-page #playlist-placeholder .delete-button {
-    position: relative;
-    width: 26px; }
-    .party-page #playlist-placeholder .delete-button > span {
-      background-image: url(../img/delete.png);
-      width: 16px;
-      height: 16px;
-      top: 2px;
-      left: 5px;
-      position: absolute; }
-  .party-page #playlist-placeholder .sp-track.deleted .delete-button > span {
+    .party-page #playlist-placeholder .expectedplaytime .delete-button {
+      display: none;
+      border: 1px solid black;
+      background-image: -webkit-linear-gradient(#aaaaaa, #777777);
+      border-radius: 5px;
+      font-size: 9px;
+      line-height: 10px;
+      margin-top: 4px;
+      color: black;
+      height: 12px;
+      text-align: center; }
+  .party-page #playlist-placeholder .sp-track:hover .expectedplaytime .delete-button {
+    display: block; }
+  .party-page #playlist-placeholder .sp-track:hover .expectedplaytime .play-time {
+    display: none; }
+  .party-page #playlist-placeholder .sp-track.deleted .expectedplaytime .delete-button .delete {
+    display: none; }
+  .party-page #playlist-placeholder .sp-track:not(.deleted) .expectedplaytime .delete-button .undelete {
+    display: none; }
+  .party-page #playlist-placeholder a.sp-track > span {
+    position: relative; }
+    .party-page #playlist-placeholder a.sp-track > span hr.strike {
+      display: none;
+      border-style: none none solid;
+      position: absolute;
+      top: 5px;
+      width: 100%; }
+  .party-page #playlist-placeholder a.sp-track.deleted hr.strike {
+    display: block; }
+  .party-page #playlist-placeholder a.sp-track.deleted .delete-button > span {
     background-position-x: -16px; }
-  .party-page #playlist-placeholder .sp-track.deleted .expectedplaytime, .party-page #playlist-placeholder .sp-track.deleted .addedby {
+  .party-page #playlist-placeholder a.sp-track.deleted .expectedplaytime, .party-page #playlist-placeholder a.sp-track.deleted .addedby {
     background-color: silver;
     color: red; }
 

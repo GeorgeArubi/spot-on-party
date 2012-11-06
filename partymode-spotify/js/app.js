@@ -493,6 +493,7 @@ var clutils = window.clutils;
             that.overlayView = null;
             that.currentUserbarScrollPosition = 0;
             that.party_id = attributes.id;
+
         },
 
         close: function () {
@@ -623,7 +624,7 @@ var clutils = window.clutils;
 
         toggleDeleteTrack: _.debounce(function (event) { //debouce to prevent double-click
             var that = this;
-            var index = $(event.currentTarget.parentNode).prevAll().length;
+            var index = $(event.currentTarget.parentNode.parentNode).prevAll().length;
             if (that.party.get("playlist").at(index).isDeleted()) {
                 that.party.createAndApplyMasterAction("TrackUnRemove", {position: index, });
             } else {

@@ -92,17 +92,7 @@ h3 {margin: 0px;}
             button {margin-right: 10px;}
         }
         > .currentsong {
-            width: 70%;
-            position: absolute;
-            bottom: 25px;
-            border: 1px solid white;
-            border-radius: 7px;
-            height: 100px;
-            left: 15%;
-            background-color: rgba(0,0,0,.4);
-            background-origin: border-box;
-            margin: 1px;
-            padding-top: 10px;
+            width: 70%; position: absolute; bottom: 25px; border: 1px solid white; border-radius: 7px; height: 100px; left: 15%; background-color: rgba(0,0,0,.4); padding-top: 10px;
             > img {width: 100px; height: 100px; border-radius: 7px; position: absolute; left: 5px; top: 5px;}
             > div {margin-left: 120px; margin-right: 10px; font-size: 24px; line-height: 28px; color: rgba(255,255,255,0.8); text-shadow: rgba(0,0,0,.8) 1px 1px 2px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;}
         }
@@ -140,11 +130,25 @@ h3 {margin: 0px;}
     }
     #playlist-placeholder {
         margin-top: 25px;
-        .expectedplaytime {width: 50px; text-align: right; }
-        .delete-button {position: relative; width: 26px;
-            > span {background-image: url(../img/delete.png); width: 16px; height: 16px; top: 2px; left: 5px; position: absolute;}
+        .expectedplaytime {
+            width: 60px; text-align: right;
+            .delete-button {display: none; border: 1px solid black; background-image: -webkit-linear-gradient(#AAAAAA, #777777); border-radius: 5px; font-size: 9px; line-height: 10px; margin-top: 4px; color: black; height: 12px; text-align: center; }
         }
-        .sp-track.deleted {
+        .sp-track:hover .expectedplaytime {
+            .delete-button {display: block; }
+            .play-time {display: none; }
+        }
+        .sp-track.deleted .expectedplaytime .delete-button .delete {display: none; }
+        .sp-track:not(.deleted) .expectedplaytime .delete-button .undelete {display: none; }
+
+        a.sp-track > span {
+            position: relative;
+            hr.strike {display: none; border-style: none none solid; position: absolute; top: 5px; width: 100%; }
+        }
+
+        a.sp-track.deleted {
+            hr.strike {display: block}
+
             .delete-button > span {background-position-x: -16px; } 
             .expectedplaytime, .addedby {background-color: silver; color: red; }
         }

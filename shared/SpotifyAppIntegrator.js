@@ -19,6 +19,9 @@ window.PM.domain.SpotifyAppIntegrator = window.Toolbox.Base.extend({
         var sp = window.getSpotifyApi(1);
         that.models = sp.require('sp://import/scripts/api/models');
         that.models.player.observe(that.models.EVENT.CHANGE, _.bind(that.onPlayerEvent, that));
+        var stopDeleteButtonsFromSelectingTrack = _.debounce(function () {
+            $('#playlist-placeholder .delete-button').mousedown(function (event) {event.stopPropagation(); });
+        }, 1);
 
         that.views = sp.require('sp://import/scripts/api/views');
         that.myTrackView = function (track) {
@@ -34,12 +37,10 @@ window.PM.domain.SpotifyAppIntegrator = window.Toolbox.Base.extend({
             var addedby = $("<span>");
             addedby.addClass("addedby");
             this.node.appendChild(addedby[0]);
-            var willplayat = $("<span>");
+            var willplayat = $('<span><span class="play-time"></span><span class="delete-button"><span class="delete">skip song</span><span class="undelete">don\'t skip</span></span></span>');
             willplayat.addClass("expectedplaytime");
             this.node.appendChild(willplayat[0]);
-            var delete_btn = $("<span><span></span></span>");
-            delete_btn.addClass("delete-button");
-            this.node.insertBefore(delete_btn[0], $('.sp-track-field-name', this.node)[0]);
+            $(_.toArray(this.node.childNodes).slice(0, 4)).append('<hr class="strike">');
             _.delay(_.bind(function () {
                 var index = $(this.node).prevAll().length;
                 var playlist = that.activeParty.get("playlist");
@@ -48,7 +49,7 @@ window.PM.domain.SpotifyAppIntegrator = window.Toolbox.Base.extend({
                     $(addedby.parent()).addClass("deleted");
                     $(addedby.parent()).removeClass("sp-track-selected");
                     track_in_playlist.getDeletedByUser().onLoaded(function (user) {
-                        addedby.text("deleted by: " + user.get("name"));
+                        addedby.text("song skipped by: " + user.get("name"));
                     });
                 } else {
                     track_in_playlist.getUser().onLoaded(function (user) {
@@ -57,7 +58,8 @@ window.PM.domain.SpotifyAppIntegrator = window.Toolbox.Base.extend({
                 }
                 track_in_playlist.getTrack().onLoaded(_.bind(that.updateExpectedPlayTimes, that));
 
-            }, this), 1);
+            }, this), 0);
+            stopDeleteButtonsFromSelectingTrack();
         };
         that.myTrackView.prototype = that.views.Track.prototype;
     },
@@ -82,7 +84,7 @@ window.PM.domain.SpotifyAppIntegrator = window.Toolbox.Base.extend({
             //party has ended, but for some reason timer has survived...
             return;
         }
-        var expectedplaytimes = $('#playlist-placeholder .expectedplaytime');
+        var expectedplaytimes = $('#playlist-placeholder .expectedplaytime .play-time');
         
         switch (that.activeParty.get("play_status")) {
         case "stop":
@@ -120,7 +122,7 @@ window.PM.domain.SpotifyAppIntegrator = window.Toolbox.Base.extend({
 
     updateExpectedPlayTimesView: function (even_if_paused) {
         var that = this;
-        var expectedplaytimes = $('#playlist-placeholder .expectedplaytime');
+        var expectedplaytimes = $('#playlist-placeholder .expectedplaytime .play-time');
         if (even_if_paused || that.activeParty.get("play_status") === "play") {
             _.each(expectedplaytimes, function (el) {
                 if (!clutils.isTimestamp(el.expectedtime)) {
