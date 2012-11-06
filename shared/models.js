@@ -144,6 +144,36 @@ if (typeof exports !== "undefined") {
             var that = this;
             console.error("Should lazy-load: " + that.id);
         },
+
+        isLoaded: function () {
+            var that = this;
+            var That = this.constructor;
+            return that.get("_status") === That.LOADED;
+        },
+
+        /**
+         * Gets html for a field. If object has not loaded yet, gets some placeholder, which will be filled in as soon as the field is available
+         * It's a very good question whether this should be part of the model (probably not), but since it's just one function, I forgive myself
+         *
+         * NOTE: HTML has to be added to document directly, or the replace will not work
+         */
+        getHtmlLazyLoad: function (fieldname) {
+            var that = this;
+            var That = this.constructor;
+            That.id_counter = That.id_counter || 0;
+            if (that.isLoaded()) {
+                return clutils.encodeHTML(that.get(fieldname));
+            }
+            var id = "ll_" + That.type + "_" + (That.id_counter++);
+            that.onLoaded(function () {
+                var el = root.document.getElementById(id);
+                if (el) {
+                    el.outerHTML = that.getHtmlLazyLoad(fieldname);
+                }
+            });
+            return '<span class="lazyload" id="' + id + '"></span>';
+            
+        }
     }, {
     /* static members */
         NOT_LOADED: "not loaded",
@@ -808,9 +838,9 @@ if (typeof exports !== "undefined") {
 
         validate: function (attrs) {
             var that = this;
-            if (!that.party.isOwner(attrs.user_id)) {
-                return "only owner can do this";
-            }
+//            if (!that.party.isOwner(attrs.user_id)) {
+//                return "only owner can do this";
+//            }
             if (!_.isNumber(attrs.position)) {
                 return "position must be present";
             }
@@ -909,6 +939,31 @@ if (typeof exports !== "undefined") {
         },
     }, {
         type: "Play",
+    });
+
+    PM.models.PlayTrackAction = PM.models.Action.extend({
+        _fields: {
+            position: 1
+        },
+
+        validate: function (attrs) {
+            var that = this;
+            var track_in_playlist = that.party.get("playlist").at(attrs.position);
+            if (!track_in_playlist) {
+                return "Position to play doesn't exist";
+            }
+            if (track_in_playlist.isDeleted()) {
+                return "Position to play is a deleted track";
+            }
+            return that.constructor.__super__.validate.call(that, attrs);
+        },
+
+        applyActionToParty: function () {
+            var that = this;
+            that.party.trigger("playcommand", "play", that.get("position"));
+        },
+    }, {
+        type: "PlayTrack",
     });
 
     /* perhaps not really an action, but just nicer if it pretends to be one :) */

@@ -352,6 +352,7 @@ var partyconnection = exports;
             var that = this;
             partyconnection.Connection.prototype.initialize.apply(that, arguments);
             that.log("info", "New master connection from " + that.socket.handshake.address.address + ":" + that.socket.handshake.address.port + " user " + that.username + "(" + that.user_id + ")");
+            that.socket.emit("connection initialized");
         },
 
         onDisconnect: function () {
@@ -419,7 +420,12 @@ var partyconnection = exports;
 
         sendAction: function (action, callback) {
             var that = this;
-            that.socket.emit("new active party action", action.serialize(), function (result) {
+            return that.sendActionData(action.serialize(), callback);
+        },
+
+        sendActionData: function (action_data, callback) {
+            var that = this;
+            that.socket.emit("new active party action", action_data, function (result) {
                 if (callback) {
                     callback(result);
                 }
@@ -498,6 +504,7 @@ var partyconnection = exports;
             That.addToIndex(that);
             var parties = _.values(parties_per_user[that.user_id] || {});
             _.each(parties, function (party) {that.alertPlusActiveParty(party); });
+            that.socket.emit("connection initialized");
         },
 
         onDisconnect: function () {
@@ -514,6 +521,31 @@ var partyconnection = exports;
             that.setupListen("get my parties");
             that.setupListen("get my party");
             that.setupListen("activate party");
+            that.setupListen("propose action");
+        },
+
+        "propose action": function (action_data, callback) {
+            var that = this;
+            if (action_data.party_id !== that.active_party_id) {
+                throw "Action is not for the active party";
+            }
+            if (action_data.user_id !== that.user_id) {
+                throw "trying to send an action for another user";
+            }
+            // we could try to validate the action here, but why would we. Just send it to the master, and let it decide what to do with it
+            that.loadParty(that.active_party_id, function (party) {
+                var ownerConnection = party.ownerConnection;
+                ownerConnection.sendActionData(action_data, function (result) {
+                    callback(result);
+                });
+            });
+        },
+        "propose action constraints": {
+            _TYPE: {_isString: true},
+            created: {_isTimestamp: true},
+            user_id: {_isNumeric: true},
+            party_id: {_isUniqueId: true},
+            _strict: false,
         },
 
         "get my party": function (party_id, callback) {

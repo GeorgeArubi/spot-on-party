@@ -19,18 +19,19 @@ window.PM.app = window.PM.app || {};
     var createAndRenderViewLoggedin = function () {
         var createAndRenderViewArguments = arguments;
         if (PM.app.loggedin_user) {
-            createAndRenderView.apply(this, arguments);
+            createAndRenderView.apply(this, createAndRenderViewArguments);
         } else {
             PM.domain.FacebookDomain.isLoggedin(function (loggedin) {
                 if (loggedin) {
                     PM.domain.FacebookDomain.getLoggedinUserId(function (user_id) {
                         PM.app.loggedin_user = PM.models.User.getById(user_id); // will lazy-load, which is fine I think
                         PM.domain.FacebookDomain.getAccessToken(function (accessToken) {
-                            PM.domain.PartyNodeDomain.connect(accessToken, false);
-                            PM.domain.FacebookDomain.on("new token", function (token) {
-                                PM.domain.PartyNodeDomain.updateToken(token);
+                            PM.domain.PartyNodeDomain.connect(accessToken, false, function () {
+                                PM.domain.FacebookDomain.on("new token", function (token) {
+                                    PM.domain.PartyNodeDomain.updateToken(token);
+                                });
+                                createAndRenderView.apply(this, createAndRenderViewArguments);
                             });
-                            createAndRenderView.apply(this, createAndRenderViewArguments);
                         });
                     });
                 } else {
@@ -98,11 +99,21 @@ window.PM.app = window.PM.app || {};
         template: getTemplate('party-page'),
         className: 'party-page',
 
+        events: {
+            "click ul.tracks > li.track_in_playlist": "showControls",
+            "click .delete-button": "toggleDeleteTrack",
+            "click .play-button": "playTrack",
+        },
+
         close: function () {
+            var that = this;
             if (--partyactive_counter === 0) { //nice thing is: if we move to a page that also looks at this party, that page's render method is called before this page's close.
                 //tells the party that we left
                 PM.domain.PartyNodeDomain.activateParty(0, function () {console.log("unactivated"); });
             }
+            that.party.off("playcommand", that.onPlayCommand, that);
+            that.party.get("playlist").off(null, null, that);
+            that.party.off(null, null, that);
         },
 
         render: function () {
@@ -110,7 +121,8 @@ window.PM.app = window.PM.app || {};
             clutils.checkConstraints(that.options.party_id, {_isUniqueId: true});
             that.party = activeParties.get(that.options.party_id);
             if (!that.party) {
-                $.mobile.changePage("$partyoverview");
+                console.log("no party found with id " + that.options.party_id);
+                $.mobile.changePage("#partyoverview");
                 return;
             }
 
@@ -119,8 +131,128 @@ window.PM.app = window.PM.app || {};
                 PM.domain.PartyNodeDomain.activateParty(that.party.id);
             }
             that.$el.html(that.template({party: that.party}));
+            that.party.get("playlist").on("add", that.addPlaylistItem, that);
+            that.party.get("playlist").on("change:deleted_by_user_id", that.onChangePlaylistItem, that);
+            that.party.get("playlist").on("reset", that.onResetPlaylist, that);
+            that.party.on("change", that.onPlayStatusChange, that); // not all changed will be play status changes, but most will, so we'll just catch all...
+            that.onResetPlaylist();
             return that;
         },
+
+        playTrack: function (event) {
+            var that = this;
+            var $target = $(event.currentTarget);
+            var track_in_playlist = $($target.parents("li.track_in_playlist")).prop("track_in_playlist");
+            var index = that.party.get("playlist").indexOf(track_in_playlist);
+            var action = PM.models.Action.createAction(PM.app.loggedin_user, that.party, "PlayTrack", {position: index});
+            PM.domain.PartyNodeDomain.proposeAction(action.serialize(), function (result) {
+                console.log("the result is in: ", result);
+            });
+            console.log(action.serialize());
+        },
+
+        toggleDeleteTrack: function (event) {
+            var that = this;
+            var $target = $(event.currentTarget);
+            var track_in_playlist = $($target.parents("li.track_in_playlist")).prop("track_in_playlist");
+            var index = that.party.get("playlist").indexOf(track_in_playlist);
+            var type = track_in_playlist.isDeleted() ? "TrackUnRemove" : "TrackRemove";
+            var action = PM.models.Action.createAction(PM.app.loggedin_user, that.party, type, {position: index});
+            PM.domain.PartyNodeDomain.proposeAction(action.serialize(), function (result) {
+                console.log("the result is in: ", result);
+            });
+            console.log(action.serialize());
+        },
+
+        showControls: function (event) {
+            var that = this;
+            var target = event && event.currentTarget;
+
+            var track_els = that.$("ul.tracks > li.track_in_playlist");
+            _.each(track_els, function (element) {
+                var $el = $(element);
+                if (element === target) {
+                    $el.toggleClass("show-controls");
+                } else {
+                    $el.removeClass("show-controls");
+                }
+            });
+            that.hideControlsAfterTimeout();
+        },
+
+        hideControlsAfterTimeout: _.debounce(function () {
+            var that = this;
+            that.showControls();
+        }, 5000),
+
+        onPlayStatusChange: function () {
+            var that = this;
+            var current_index = that.party.get("current_playlist_index");
+            var track_els = that.$("ul.tracks > li.track_in_playlist");
+            _.each(track_els, function (element, index) {
+                var $el = $(element);
+                $el.toggleClass("now-playing", index === current_index);
+            });
+            that.$("ul.tracks").toggleClass("paused", that.party.get("play_status") === "pause");
+        },
+
+        getTrackInPlaylistElement: function (track_in_playlist) {
+            var track = track_in_playlist.getTrack();
+            var user = track_in_playlist.getUser();
+            var deleted_by_user = track_in_playlist.getDeletedByUser();
+            var el = $(getTemplate("playlist-item")({track: track, track_in_playlist: track_in_playlist, user: user, deleted_by_user: deleted_by_user}));
+            el.prop({track_in_playlist: track_in_playlist});
+            return el;
+        },
+
+        updateTrackInPlaylistElement: function (element) {
+            var $element = $(element);
+            var track_in_playlist = $element.prop("track_in_playlist");
+            $element.toggleClass("deleted", track_in_playlist.isDeleted());
+            $(".deleted-by", $element).html(track_in_playlist.isDeleted() ? track_in_playlist.getDeletedByUser().getHtmlLazyLoad("name") : "");
+        },
+
+        addPlaylistItem: function (track_in_playlist) {
+            var that = this;
+            var tracks_dom = that.$("ul.tracks");
+            var track_el = that.getTrackInPlaylistElement(track_in_playlist);
+            that.updateTrackInPlaylistElement(track_el);
+            tracks_dom.append(track_el);
+            that.$('ul.tracks.ui-listview').listview('refresh');
+        },
+
+        onChangePlaylistItem: function (track_in_playlist) {
+            var that = this;
+            var track_els = that.$("ul.tracks > li.track_in_playlist");
+            _.each(track_els, function (el) {
+                if ($(el).prop("track_in_playlist") === track_in_playlist) {
+                    that.updateTrackInPlaylistElement(el);
+                }
+            });
+        },
+
+        onResetPlaylist: function () {
+            var that = this;
+            var tracks_in_playlist = that.party.get("playlist").toArray();
+            var track_els = that.$("ul.tracks > li.track_in_playlist");
+            var i;
+            for (i = 0; i < tracks_in_playlist.length; i++) {
+                while (track_els[i] && track_els[i].track_in_playlist !== tracks_in_playlist[i]) {
+                    that.$(track_els).remove();
+                    track_els.splice(i, 1);
+                }
+                if (!track_els[i]) {
+                    break;
+                }
+                that.updateTrackInPlaylistElement(that.$(track_els[i]));
+            }
+            for (; i < tracks_in_playlist.length; i++) {
+                that.addPlaylistItem(tracks_in_playlist[i]);
+            }
+            that.onPlayStatusChange();
+        },
+
+        
     });
 
     PartyOverviewView = Backbone.View.extend({
@@ -215,6 +347,7 @@ window.PM.app = window.PM.app || {};
         "^#login(?:\\?(.*))?$": {
             events: "bs",
             handler: function (type, match, ui, page) {
+                console.log("login");
                 var params = (match[1] && match[1].length) ? router.getParams(match[1]) : {};
                 PM.domain.FacebookDomain.isLoggedin(function (loggedin) {
                     if (loggedin) {

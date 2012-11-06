@@ -17,3 +17,49 @@
        }
     }
 }
+
+.party-page {
+    ul.tracks {
+        li.playlist-empty-message:not(:nth-last-child(2)) {display: none;}
+        li#playlist-divider:last-child {display: none;}
+        li.track_in_playlist {
+            div.text {text-overflow: ellipsis; white-space: nowrap; overflow: hidden; margin-left: 0; -webkit-transition: margin-left 400ms;}
+            div.subtitle {font-weight: normal;}
+            div.icon {top: 25px; width: 0; height: 32px; position: absolute; background-image: url(../img/speakers.png); -webkit-transition: width 400ms;}
+            div.controls {
+                top: 25px; width: 0; height: 32px; position: absolute; -webkit-transition: width 400ms; white-space: nowrap; overflow: hidden;
+                > div {display: inline-block;}
+            }
+            &.deleted {
+                div.title, div.subtitle {opacity: .2;}
+                div.deleted-by {position: absolute; color: red; top: 25px; padding-left: 5px;}
+                div.deleted-by:before {content: "skipped by: ";}
+            }
+            &.now-playing {
+                background-image: -webkit-linear-gradient(top, #CCCCCC, #BEBEBE);
+                div.text {margin-left: 45px;}
+                div.icon {width: 32px;}
+            }
+            &.show-controls {
+                div.text {margin-left: 76px;}
+                div.controls {width: 64px;}
+            }
+            &.now-playing.show-controls {
+                div.text {margin-left: 108px;}
+                div.icon {width: 0;}
+                div.controls {width: 96px;}
+            }
+            &.deleted.show-controls {
+                div.text {margin-left: 45px;}
+                div.controls {width: 32px;}
+            }
+
+            .delete-button {width: 32px; height: 32px; background-color: red; }
+            &.deleted .delete-button {background-color: green; }
+            .play-button {width: 32px; height: 32px; background-color: blue; }
+            &.now-playing .play-button {background-color: silver; }
+            .pause-button {width: 32px; height: 32px; background-color: yellow; }
+        }
+        &.paused div.icon {background-position: -32px;}
+    }
+}

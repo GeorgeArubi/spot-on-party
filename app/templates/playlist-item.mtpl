@@ -1,0 +1,12 @@
+<li class="track_in_playlist">
+    <div class="icon"></div>
+    <div class="controls">
+        <div class="delete-button"></div>
+        <div class="play-button"></div>
+        <div class="pause-button"></div>
+    </div>
+    <div class="text title"><%= track.getHtmlLazyLoad("name") %></div>
+    <div class="text subtitle"><%= track.getHtmlLazyLoad("artist") %> &mdash; <%= track.getHtmlLazyLoad("album") %></div>
+    <div class="text subtitle"><%= user.getHtmlLazyLoad("name") %></div>
+    <div class="text deleted-by"></div>
+</li>

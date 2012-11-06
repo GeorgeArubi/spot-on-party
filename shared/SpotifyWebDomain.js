@@ -76,7 +76,6 @@ if (!PM) {
             }
             that.lastcallTime = now;
             var call = that.callQueue.splice(0, 1)[0]; // this pops one item off the callqueue top
-            console.log("Spotify call: " + call.url, call.params);
             $.getJSON(
                 call.url,
                 call.params,

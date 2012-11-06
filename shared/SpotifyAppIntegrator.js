@@ -275,7 +275,9 @@ window.PM.domain.SpotifyAppIntegrator = window.Toolbox.Base.extend({
 
     onPartyPlayStopped: function () {
         var that = this;
-        that.activeParty.applyPlayStatusFeedback("stop", -1, 0);
+        if (that.activeParty.get("current_playlist_index") !== -1 || that.activeParty.get("play_status") !== "stop") {
+            that.activeParty.applyPlayStatusFeedback("stop", -1, 0);
+        }
     },
 
     onPartyPlayStarted: function () {

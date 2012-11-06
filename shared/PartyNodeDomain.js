@@ -37,14 +37,13 @@ if (typeof exports !== "undefined") {
     }, {
         HOST: "http://tiggr.local:8081/", //TODO research HTTPS
 
-        connect: function (token, master) {
+        connect: function (token, master, callback) {
             var that = this;
             that.token = token;
             that.master = master;
             var url = that.HOST + '?' + that.buildQueryString();
             that.socket = io.connect(url);
             that.socket.on("connect", function () {
-                console.log("connected to backend");
                 if (that.activeParty) {
                     that.activateParty(that.activeParty.id);
                 }
@@ -59,6 +58,14 @@ if (typeof exports !== "undefined") {
             that.socket.on("new active party action", function (action_data, callback) {
                 that.trigger("new-active-party-action", action_data, callback); //TODO: fix callback issue. Now there is no guarantee that it's called ever, or more than once
             });
+            var call_callback = function () {
+                console.log("connected to backend");
+                that.socket.removeListener("connection initialized", call_callback);
+                if (callback) {
+                    callback();
+                }
+            };
+            that.socket.on("connection initialized", call_callback);
         },
 
         buildQueryString: function () {
@@ -138,6 +145,11 @@ if (typeof exports !== "undefined") {
         shareAction: function (action_data, callback) {
             var that = this;
             that.socket.emit("share action", action_data, that.callbackCatchError(callback));
+        },
+
+        proposeAction: function (action_data, callback) {
+            var that = this;
+            that.socket.emit("propose action", action_data, that.callbackCatchError(callback));
         },
     });
     _.extend(PM.domain.PartyNodeDomain, Backbone.Events);

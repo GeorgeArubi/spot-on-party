@@ -1,1 +1,15 @@
-PARTY_PAGE
+<div data-role="header">
+    <h1><%- party.get("name") %></h1>
+    <button class="back">back</button>
+    <button id="add-track">Add song</button>
+</div>
+
+<div data-role="content">
+    <ul class="tracks" data-role="listview">
+        <li class="playlist-empty-message">
+            <div>The playlist is empty, you can add songs with the button in the right top</div>
+        </li>
+        <li data-role="list-divider" id="playlist-divider">Playlist</li> 
+    </ul>
+</div>
+

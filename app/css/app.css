@@ -21,3 +21,80 @@
 .party-overview-page ul.parties.has-active-parties li.active-party.no-active-parties-message {
   height: 0px;
   border: none; }
+
+.party-page ul.tracks li.playlist-empty-message:not(:nth-last-child(2)) {
+  display: none; }
+.party-page ul.tracks li#playlist-divider:last-child {
+  display: none; }
+.party-page ul.tracks li.track_in_playlist div.text {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  margin-left: 0;
+  -webkit-transition: margin-left 400ms; }
+.party-page ul.tracks li.track_in_playlist div.subtitle {
+  font-weight: normal; }
+.party-page ul.tracks li.track_in_playlist div.icon {
+  top: 25px;
+  width: 0;
+  height: 32px;
+  position: absolute;
+  background-image: url(../img/speakers.png);
+  -webkit-transition: width 400ms; }
+.party-page ul.tracks li.track_in_playlist div.controls {
+  top: 25px;
+  width: 0;
+  height: 32px;
+  position: absolute;
+  -webkit-transition: width 400ms;
+  white-space: nowrap;
+  overflow: hidden; }
+  .party-page ul.tracks li.track_in_playlist div.controls > div {
+    display: inline-block; }
+.party-page ul.tracks li.track_in_playlist.deleted div.title, .party-page ul.tracks li.track_in_playlist.deleted div.subtitle {
+  opacity: .2; }
+.party-page ul.tracks li.track_in_playlist.deleted div.deleted-by {
+  position: absolute;
+  color: red;
+  top: 25px;
+  padding-left: 5px; }
+.party-page ul.tracks li.track_in_playlist.deleted div.deleted-by:before {
+  content: "skipped by: "; }
+.party-page ul.tracks li.track_in_playlist.now-playing {
+  background-image: -webkit-linear-gradient(top, #cccccc, #bebebe); }
+  .party-page ul.tracks li.track_in_playlist.now-playing div.text {
+    margin-left: 45px; }
+  .party-page ul.tracks li.track_in_playlist.now-playing div.icon {
+    width: 32px; }
+.party-page ul.tracks li.track_in_playlist.show-controls div.text {
+  margin-left: 76px; }
+.party-page ul.tracks li.track_in_playlist.show-controls div.controls {
+  width: 64px; }
+.party-page ul.tracks li.track_in_playlist.now-playing.show-controls div.text {
+  margin-left: 108px; }
+.party-page ul.tracks li.track_in_playlist.now-playing.show-controls div.icon {
+  width: 0; }
+.party-page ul.tracks li.track_in_playlist.now-playing.show-controls div.controls {
+  width: 96px; }
+.party-page ul.tracks li.track_in_playlist.deleted.show-controls div.text {
+  margin-left: 45px; }
+.party-page ul.tracks li.track_in_playlist.deleted.show-controls div.controls {
+  width: 32px; }
+.party-page ul.tracks li.track_in_playlist .delete-button {
+  width: 32px;
+  height: 32px;
+  background-color: red; }
+.party-page ul.tracks li.track_in_playlist.deleted .delete-button {
+  background-color: green; }
+.party-page ul.tracks li.track_in_playlist .play-button {
+  width: 32px;
+  height: 32px;
+  background-color: blue; }
+.party-page ul.tracks li.track_in_playlist.now-playing .play-button {
+  background-color: silver; }
+.party-page ul.tracks li.track_in_playlist .pause-button {
+  width: 32px;
+  height: 32px;
+  background-color: yellow; }
+.party-page ul.tracks.paused div.icon {
+  background-position: -32px; }

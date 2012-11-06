@@ -42,6 +42,13 @@ if (typeof exports !== "undefined") {
         return time_string;
     };
 
+    clutils.encodeHTML = function (string) {
+        //assumes a browser, not sure this will work in node (but easy to adapt in that case I guess...)
+        var el = root.document.createElement("span");
+        el.innerText = string;
+        return el.innerHTML;
+    };
+
     clutils.isUniqueIdOrZero = function (value) {
         return value === 0 || clutils.isUniqueId(value);
     };
