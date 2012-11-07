@@ -1,5 +1,5 @@
 /*jshint browser: true*/
-/*global clutils, _, $, Backbone */
+/*global clutils, _, $, Backbone, Toolbox */
 
 window.PM = window.PM || {};
 window.PM.app = window.PM.app || {};
@@ -93,7 +93,65 @@ window.PM.app = window.PM.app || {};
         },
     });
 
-    var partyactive_counter = 0; //when 0, there are no active parties.
+    var ActivePartyUtil = Toolbox.Base.extend({
+    }, {
+        party_id: null,
+        counter: 0,
+        currentpopup: null,
+        currentview: null,
+
+        init: function () {
+            var That = this;
+            activeParties.on("add remove reset", function () {
+                var current_party_active = !! activeParties.get(That.party_id);
+                if (!That.party_id || current_party_active) {
+                    if (That.currentpopup) {
+                        That.currentpopup.popup("close");
+                        //reregister as logged in
+                        PM.domain.PartyNodeDomain.activateParty(That.party_id);
+                    }
+                } else {
+                    if (!That.currentpopup) {
+                        That.currentpopup = $(getTemplate("party-inactive-message")()).popup().popup("open");
+                        That.currentpopup.one("popupafteropen", function () {
+                            $('.ui-popup-screen.in').on("click", function (event) {event.stopImmediatePropagation(); }); // removes overlay click-to-close
+                            $('.ui-popup-screen.in').on("touchstart", function (event) {event.stopImmediatePropagation(); }); // removes overlay click-to-close
+                        });
+                        That.currentpopup.one("popupafterclose", function () {
+                            That.currentpopup = null;
+                            console.log("detacked");
+                        });
+                        That.currentpopup.trigger("create");
+                    }
+                }
+            });
+        },
+
+        deactivate: function () {
+            var That = this;
+            if (That.counter < 1) {
+                throw "Trying to deactivate party, will result in negative party activations";
+            }
+            That.counter--;
+            if (That.counter === 0) {
+                PM.domain.PartyNodeDomain.activateParty(0);
+                That.party_id = null;
+            }
+        },
+
+        activate: function (party_id) {
+            var That = this;
+            if (That.party_id !== party_id) {
+                //we started a new party. Any old party will be auto-removed
+                That.party_id = party_id;
+                That.counter = 0;
+                PM.domain.PartyNodeDomain.activateParty(party_id);
+            }
+            That.counter++;
+        },
+    });
+
+    ActivePartyUtil.init();
 
     PartyView = Backbone.View.extend({
         template: getTemplate('party-page'),
@@ -103,14 +161,12 @@ window.PM.app = window.PM.app || {};
             "click ul.tracks > li.track_in_playlist": "showControls",
             "click .delete-button": "toggleDeleteTrack",
             "click .play-button": "playTrack",
+            "click .pause-button": "togglePausePlay",
         },
 
         close: function () {
             var that = this;
-            if (--partyactive_counter === 0) { //nice thing is: if we move to a page that also looks at this party, that page's render method is called before this page's close.
-                //tells the party that we left
-                PM.domain.PartyNodeDomain.activateParty(0, function () {console.log("unactivated"); });
-            }
+            ActivePartyUtil.deactivate();
             that.party.off("playcommand", that.onPlayCommand, that);
             that.party.get("playlist").off(null, null, that);
             that.party.off(null, null, that);
@@ -126,45 +182,47 @@ window.PM.app = window.PM.app || {};
                 return;
             }
 
-            if (partyactive_counter++ === 0) {
-                // it doesn't really do anything for us, it's just that I'm now officially "joined"
-                PM.domain.PartyNodeDomain.activateParty(that.party.id);
-            }
+            ActivePartyUtil.activate(that.party.id);
             that.$el.html(that.template({party: that.party}));
             that.party.get("playlist").on("add", that.addPlaylistItem, that);
             that.party.get("playlist").on("change:deleted_by_user_id", that.onChangePlaylistItem, that);
             that.party.get("playlist").on("reset", that.onResetPlaylist, that);
             that.party.on("change", that.onPlayStatusChange, that); // not all changed will be play status changes, but most will, so we'll just catch all...
             that.onResetPlaylist();
+            _.delay(function () {
+                //make popup modal
+                that.$('#party-not-active-message-screen').click(function (event) {event.stopImmediatePropagation(); });
+            }, 1);
             return that;
         },
 
-        playTrack: function (event) {
+        togglePausePlay: _.debounce(function () {
+            var that = this;
+            var type = that.party.get("play_status") === "play" ? "Pause" : "Play";
+            var action = PM.models.Action.createAction(PM.app.loggedin_user, that.party, type, {});
+            PM.domain.PartyNodeDomain.proposeAction(action.serialize());
+        }, 400, {immediate: true}),
+
+        playTrack: _.debounce(function (event) {
             var that = this;
             var $target = $(event.currentTarget);
             var track_in_playlist = $($target.parents("li.track_in_playlist")).prop("track_in_playlist");
             var index = that.party.get("playlist").indexOf(track_in_playlist);
             var action = PM.models.Action.createAction(PM.app.loggedin_user, that.party, "PlayTrack", {position: index});
-            PM.domain.PartyNodeDomain.proposeAction(action.serialize(), function (result) {
-                console.log("the result is in: ", result);
-            });
-            console.log(action.serialize());
-        },
+            PM.domain.PartyNodeDomain.proposeAction(action.serialize());
+        }, 400, {immediate: true}),
 
-        toggleDeleteTrack: function (event) {
+        toggleDeleteTrack: _.debounce(function (event) {
             var that = this;
             var $target = $(event.currentTarget);
             var track_in_playlist = $($target.parents("li.track_in_playlist")).prop("track_in_playlist");
             var index = that.party.get("playlist").indexOf(track_in_playlist);
             var type = track_in_playlist.isDeleted() ? "TrackUnRemove" : "TrackRemove";
             var action = PM.models.Action.createAction(PM.app.loggedin_user, that.party, type, {position: index});
-            PM.domain.PartyNodeDomain.proposeAction(action.serialize(), function (result) {
-                console.log("the result is in: ", result);
-            });
-            console.log(action.serialize());
-        },
+            PM.domain.PartyNodeDomain.proposeAction(action.serialize());
+        }, 400, {immediate: true}),
 
-        showControls: function (event) {
+        showControls: _.debounce(function (event) {
             var that = this;
             var target = event && event.currentTarget;
 
@@ -178,12 +236,12 @@ window.PM.app = window.PM.app || {};
                 }
             });
             that.hideControlsAfterTimeout();
-        },
+        }, 200, {immediate: true}),
 
         hideControlsAfterTimeout: _.debounce(function () {
             var that = this;
             that.showControls();
-        }, 5000),
+        }, 10000),
 
         onPlayStatusChange: function () {
             var that = this;
@@ -342,6 +400,17 @@ window.PM.app = window.PM.app || {};
             window.location = "https://m.facebook.com/dialog/oauth?redirect_uri=" + encodeURIComponent(window.location.toString()) + "&client_id=" + encodeURIComponent(PM.domain.FacebookDomain.FACEBOOK_APP_ID) + "&response_type=token";
         },
     });
+
+    window.onerror = function () {
+        _.delay(function () {
+            var popup = $(getTemplate("error-message")()).popup().popup("open");
+            popup.one("popupafteropen", function () {
+                $('.ui-popup-screen.in').on("click", function (event) {event.stopImmediatePropagation(); }); // removes overlay click-to-close
+                $('.ui-popup-screen.in').on("touchstart", function (event) {event.stopImmediatePropagation(); }); // removes overlay click-to-close
+            });
+            popup.trigger("create");
+        });
+    };
 
     var router = new $.mobile.Router({
         "^#login(?:\\?(.*))?$": {

@@ -1,0 +1,5 @@
+<div data-role="popup" class="pm-popup error-message-popup" data-history="false" data-overlay-theme="a">
+    <p>An error has occured. Please reload this page to continue</p>
+    <a href="javascript:document.location.reload();" data-role="button">reload</a>
+</div>
+

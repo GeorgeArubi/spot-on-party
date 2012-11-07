@@ -1,0 +1,4 @@
+<div data-role="popup" class="pm-popup party-inactive-popup" data-history="false" data-overlay-theme="a">
+    <p>The party you're looking at is not active at the moment. You can only visit parties that are active.</p>
+    <a href="#partyoverview" data-role="button">back to party overview</a>
+</div>

@@ -6,6 +6,10 @@
   background: url(../img/fb-login.png) no-repeat;
   display: inline-block; }
 
+.ui-popup-screen.in {
+  height: 10000px;
+  position: fixed; }
+
 .party-overview-page ul.parties li.active-party {
   height: 55px;
   -webkit-transition: height 500ms;
@@ -99,3 +103,14 @@
   background-color: yellow; }
 .party-page ul.tracks.paused div.icon {
   background-position: -32px; }
+
+.pm-popup {
+  max-width: 350px;
+  padding: 20px;
+  text-align: center; }
+  .pm-popup p {
+    text-align: left; }
+  .pm-popup a {
+    margin-top: 20px;
+    max-width: 250px;
+    display: inline-block; }

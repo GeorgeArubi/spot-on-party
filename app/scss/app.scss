@@ -3,6 +3,11 @@
 
 }
 
+.ui-popup-screen.in {
+    height: 10000px;
+    position: fixed;
+}
+
 .party-overview-page {
     ul.parties {
         li.active-party {
@@ -62,4 +67,10 @@
         }
         &.paused div.icon {background-position: -32px;}
     }
+}
+
+.pm-popup {
+    max-width: 350px; padding: 20px; text-align: center;
+    p {text-align: left;}
+    a {margin-top: 20px; max-width: 250px; display: inline-block;}
 }

@@ -44,6 +44,13 @@ __p+='\n\n\n';
 }
 return __p;
 };
+PM.templates["error-message"]=function(obj){
+var __t,__p='',__j=Array.prototype.join,print=function(){__p+=__j.call(arguments,'');};
+with(obj||{}){
+__p+='<div data-role="popup" class="pm-popup error-message-popup" data-history="false" data-overlay-theme="a">\n    <p>An error has occured. Please reload this page to continue</p>\n    <a href="javascript:document.location.reload();" data-role="button">reload</a>\n</div>\n\n';
+}
+return __p;
+};
 PM.templates["login-page"]=function(obj){
 var __t,__p='',__j=Array.prototype.join,print=function(){__p+=__j.call(arguments,'');};
 with(obj||{}){
@@ -87,6 +94,13 @@ __p+='\n        </ul>\n    </div>\n</div>\n';
 }
 return __p;
 };
+PM.templates["party-inactive-message"]=function(obj){
+var __t,__p='',__j=Array.prototype.join,print=function(){__p+=__j.call(arguments,'');};
+with(obj||{}){
+__p+='<div data-role="popup" class="pm-popup party-inactive-popup" data-history="false" data-overlay-theme="a">\n    <p>The party you\'re looking at is not active at the moment. You can only visit parties that are active.</p>\n    <a href="#partyoverview" data-role="button">back to party overview</a>\n</div>\n';
+}
+return __p;
+};
 PM.templates["party-overview-page"]=function(obj){
 var __t,__p='',__j=Array.prototype.join,print=function(){__p+=__j.call(arguments,'');};
 with(obj||{}){
@@ -99,7 +113,7 @@ var __t,__p='',__j=Array.prototype.join,print=function(){__p+=__j.call(arguments
 with(obj||{}){
 __p+='<div data-role="header">\n    <h1>'+
 ((__t=( party.get("name") ))==null?'':_.escape(__t))+
-'</h1>\n    <button class="back">back</button>\n    <button id="add-track">Add song</button>\n</div>\n\n<div data-role="content">\n    <ul class="tracks" data-role="listview">\n        <li class="playlist-empty-message">\n            <div>The playlist is empty, you can add songs with the button in the right top</div>\n        </li>\n        <li data-role="list-divider" id="playlist-divider">Playlist</li> \n    </ul>\n</div>\n\n';
+'</h1>\n    <a href="#partyoverview" data-rel="back" data-role="button" data-icon="arrow-l">back</a>\n    <button id="add-track">Add song</button>\n</div>\n\n<div data-role="content">\n    <ul class="tracks" data-role="listview">\n        <li class="playlist-empty-message">\n            <div>The playlist is empty, you can add songs with the button in the right top</div>\n        </li>\n        <li data-role="list-divider" id="playlist-divider">Playlist</li> \n    </ul>\n</div>\n\n';
 }
 return __p;
 };

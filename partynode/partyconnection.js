@@ -379,15 +379,19 @@ var partyconnection = exports;
                     throw "Not party's owner";
                 }
                 var action = PM.models.Action.unserializeFromTrusted(action_data, party);
-                try {
-                    action.applyValidatedAction();
-                    that.db_collections.actions.insert(action.serialize(), that.catchDatabaseError(function () {
-                        callback(true);
-                        that.db_collections.partyindex.save(party.indexableObject());
-                    }));
-                } catch (error) {
-                    throw "Error: party " + party.id + ", applying action " + action.get("number") + " failed: " + error.toString() + "\n" + error.stack;
-                }
+                //first set number manually, only apply action after it has been saved to the database... Note that this is dangerous: this may result in an action being saved that actually crashes in the "apply". It's better than the alternative though; which may result in an action not in the database, but applied locally
+                action.set("number", action.party.get("log").length + 1);
+                that.db_collections.actions.insert(action.serialize(), that.catchDatabaseError(function () {
+                    try {
+                        action.applyValidatedAction();
+                    } catch (error) {
+                        that.db_collections.actions.remove({party_id: action.party_id, number: action.number});
+                        //still may leave stuff in not-nice state, but at least there shouldn't be "holes" in the database... I hope....
+                        throw "Error: party " + party.id + ", applying action " + action.get("number") + " failed: " + error.toString() + "\n" + error.stack;
+                    }
+                    callback(true);
+                    that.db_collections.partyindex.save(party.indexableObject());
+                }));
             });
         },
         "share action constraints": {
@@ -585,6 +589,10 @@ var partyconnection = exports;
 
         alertMinusActiveParty: function (party) {
             var that = this;
+            if (party.id === that.active_party_id) {
+                //deactivating a party means deactivating all clients as well
+                that.active_party_id = null;
+            }
             that.socket.emit("minus active party", party.id);
         },
 
