@@ -257,6 +257,8 @@ h3 {
         overflow: hidden;
         padding: 2px;
         font-size: 10px; }
+    .party-page #users-bar > ul > li:not(.joined) {
+      opacity: .5; }
 .party-page #playlist-placeholder {
   margin-top: 25px; }
   .party-page #playlist-placeholder .expectedplaytime {

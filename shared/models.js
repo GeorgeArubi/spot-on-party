@@ -312,7 +312,7 @@ if (typeof exports !== "undefined") {
         
         defaults: function () {
             return {
-                joined: null,
+                joined: 0, //joined is a count of how many open connections someone has
                 deleted: null,
             };
         },
@@ -332,8 +332,11 @@ if (typeof exports !== "undefined") {
             if (!(clutils.isTimestamp(attrs.ts_last_action))) {
                 return "Active needs to be a date";
             }
-            if (!(clutils.isTimestamp(attrs.joined) || _.isNull(attrs.joined))) {
-                return "Joined needs to be a date or null";
+            if (! _.isNumber(attrs.joined)) {
+                return "Joined needs to be a number";
+            }
+            if (attrs.joined > PM.config.MAX_CONCURRENT_JOINS_PER_USER) {
+                return "We only allow " + PM.config.MAX_CONCURRENT_JOINS_PER_USER + " concurrent connections per user par party";
             }
         },
         
@@ -349,12 +352,22 @@ if (typeof exports !== "undefined") {
 
         isJoined: function () {
             var that = this;
-            return that.get("joined") !== null;
+            return !!that.get("joined");
+        },
+
+        join: function (when) {
+            var that = this;
+            that.set({joined: that.get("joined") + 1, ts_last_action: when});
         },
 
         unjoin: function () {
             var that = this;
-            that.set("joined", null);
+            that.set({joined: that.get("joined") - 1});
+        },
+
+        unjoinAll: function () {
+            var that = this;
+            that.set("joined", 0);
         },
     }, {
         type: "UserInParty",
@@ -707,8 +720,9 @@ if (typeof exports !== "undefined") {
     PM.models.JoinAction = PM.models.Action.extend({
         validate: function (attrs) {
             var that = this;
-            if (that.party.isJoined(attrs.user_id)) {
-                return "User is already joined";
+            var record = that.party.getMemberRecord(that.get("user_id")); //NOTE: validation guarantees that there is a record here
+            if (record.get("joined") >= PM.config.MAX_CONCURRENT_JOINS_PER_USER) {
+                return "User already joined to the max";
             }
             return that.constructor.__super__.validate.call(that, attrs);
         },
@@ -716,7 +730,7 @@ if (typeof exports !== "undefined") {
         applyActionToParty: function () {
             var that = this;
             var record = that.party.getMemberRecord(that.get("user_id")); //NOTE: validation guarantees that there is a record here
-            record.set({"joined": that.get("created"), ts_last_action: that.get("created")});
+            record.join(that.get("created"));
         },
     }, {
         type: "Join",
@@ -735,7 +749,7 @@ if (typeof exports !== "undefined") {
         applyActionToParty: function () {
             var that = this;
             var record = that.party.getMemberRecord(that.get("user_id")); //NOTE: validation guarantees that there is a record here
-            record.set("joined", null); //obviously not setting "ts_last_action"
+            record.unjoin();
         },
     }, {
         type: "Leave",
@@ -899,7 +913,7 @@ if (typeof exports !== "undefined") {
             });
             that.party.get("users").each(function (user_in_party) {
                 if (user_in_party.isJoined()) {
-                    user_in_party.unjoin();
+                    user_in_party.unjoinAll();
                 }
             });
         },
@@ -1131,7 +1145,7 @@ if (typeof exports !== "undefined") {
         isJoined: function (user_or_user_id) {
             var that = this;
             var user_in_party = that.getMemberRecord(user_or_user_id);
-            return (!!user_in_party) && !!user_in_party.get("joined");
+            return user_in_party && user_in_party.isJoined();
         },
 
         isOwner: function (user_or_user_id) {

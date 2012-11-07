@@ -57,7 +57,8 @@
   position: absolute;
   color: red;
   top: 25px;
-  padding-left: 5px; }
+  padding-left: 5px;
+  text-shadow: white 1px 1px 2px; }
 .party-page ul.tracks li.track_in_playlist.deleted div.deleted-by:before {
   content: "skipped by: "; }
 .party-page ul.tracks li.track_in_playlist.now-playing {

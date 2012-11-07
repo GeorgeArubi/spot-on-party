@@ -126,6 +126,7 @@ h3 {margin: 0px;}
                     position: absolute; left: 2px; bottom: 2px; height: 30px; right: 2px; overflow: hidden; padding: 2px; font-size: 10px;
                 }
             }
+            > li:not(.joined) {opacity: .5; }
         }    
     }
     #playlist-placeholder {

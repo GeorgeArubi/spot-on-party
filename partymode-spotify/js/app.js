@@ -658,6 +658,7 @@ var clutils = window.clutils;
                     nameel.text(user.get("name"));
                 });
                 el.toggleClass("owner", that.party.isOwner(user.id));
+                el.toggleClass("joined", user_in_party.isJoined());
                 if (user_in_party.get("ts_last_action") !== el[0].last_ts_last_action) {
                     el[0].last_ts_last_action = user_in_party.get("ts_last_action");
                     el.addClass("new");

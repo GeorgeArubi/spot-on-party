@@ -32,7 +32,7 @@
             }
             &.deleted {
                 div.title, div.subtitle {opacity: .2;}
-                div.deleted-by {position: absolute; color: red; top: 25px; padding-left: 5px;}
+                div.deleted-by {position: absolute; color: red; top: 25px; padding-left: 5px; text-shadow: white 1px 1px 2px;}
                 div.deleted-by:before {content: "skipped by: ";}
             }
             &.now-playing {
