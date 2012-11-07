@@ -120,7 +120,7 @@ return __p;
 PM.templates["playlist-item"]=function(obj){
 var __t,__p='',__j=Array.prototype.join,print=function(){__p+=__j.call(arguments,'');};
 with(obj||{}){
-__p+='<li class="track_in_playlist">\n    <div class="icon"></div>\n    <div class="controls">\n        <div class="delete-button"></div>\n        <div class="play-button"></div>\n        <div class="pause-button"></div>\n    </div>\n    <div class="text title">'+
+__p+='<li class="track_in_playlist">\n    <div class="icon"></div>\n    <div class="controls">\n        <div class="delete-button"></div><div class="play-button"></div><div class="pause-button"></div>\n    </div>\n    <div class="text title">'+
 ((__t=( track.getHtmlLazyLoad("name") ))==null?'':__t)+
 '</div>\n    <div class="text subtitle">'+
 ((__t=( track.getHtmlLazyLoad("artist") ))==null?'':__t)+

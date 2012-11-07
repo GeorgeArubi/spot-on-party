@@ -32,7 +32,7 @@
             div.subtitle {font-weight: normal;}
             div.icon {top: 25px; width: 0; height: 32px; position: absolute; background-image: url(../img/speakers.png); -webkit-transition: width 400ms;}
             div.controls {
-                top: 25px; width: 0; height: 32px; position: absolute; -webkit-transition: width 400ms; white-space: nowrap; overflow: hidden;
+                top: 20px; width: 0; height: 44px; position: absolute; -webkit-transition: width 400ms; white-space: nowrap; overflow: hidden;
                 > div {display: inline-block;}
             }
             &.deleted {
@@ -40,30 +40,44 @@
                 div.deleted-by {position: absolute; color: red; top: 25px; padding-left: 5px; text-shadow: white 1px 1px 2px;}
                 div.deleted-by:before {content: "skipped by: ";}
             }
+
+            $button-width: 44px;
+            $button-margin: 12px;
+
             &.now-playing {
                 background-image: -webkit-linear-gradient(top, #CCCCCC, #BEBEBE);
                 div.text {margin-left: 45px;}
                 div.icon {width: 32px;}
             }
             &.show-controls {
-                div.text {margin-left: 76px;}
-                div.controls {width: 64px;}
+                div.text {margin-left: 2 * $button-width + $button-margin;}
+                div.controls {width: 2 * $button-width;}
             }
             &.now-playing.show-controls {
-                div.text {margin-left: 108px;}
+                div.text {margin-left: 3 * $button-width + $button-margin;}
                 div.icon {width: 0;}
-                div.controls {width: 96px;}
+                div.controls {width: 3 * $button-width;}
             }
             &.deleted.show-controls {
-                div.text {margin-left: 45px;}
-                div.controls {width: 32px;}
+                div.text {margin-left: $button-width + $button-margin;}
+                div.controls {width: $button-width;}
             }
 
-            .delete-button {width: 32px; height: 32px; background-color: red; }
-            &.deleted .delete-button {background-color: green; }
-            .play-button {width: 32px; height: 32px; background-color: blue; }
-            &.now-playing .play-button {background-color: silver; }
-            .pause-button {width: 32px; height: 32px; background-color: yellow; }
+            @mixin icon-button-bg($name) {background-image: url(../img/#{$name}.png)}
+            @mixin icon-button($name) {@include icon-button-bg($name); width: $button-width; height: $button-width; background-size: $button-width $button-width;}
+
+            .delete-button  {@include icon-button(skip);}
+            &.deleted .delete-button {@include icon-button-bg(unskip); }
+            .play-button {@include icon-button(play);}
+            &.now-playing .play-button {@include icon-button-bg(restart); }
+            .pause-button {@include icon-button(pause); }
+            @media only screen and (-webkit-min-device-pixel-ratio: 2) {
+                .delete-button {@include icon-button-bg("skip@2x")}
+                &.deleted .delete-button {@include icon-button-bg("unskip@2x"); }
+                .play-button {@include icon-button-bg("play@2x");}
+                &.now-playing .play-button {@include icon-button-bg("restart@2x"); }
+                .pause-button {@include icon-button("pause@2x"); }
+            }
         }
         &.paused div.icon {background-position: -32px;}
     }

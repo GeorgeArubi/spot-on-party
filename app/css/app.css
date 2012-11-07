@@ -46,9 +46,9 @@
   background-image: url(../img/speakers.png);
   -webkit-transition: width 400ms; }
 .party-page ul.tracks li.track_in_playlist div.controls {
-  top: 25px;
+  top: 20px;
   width: 0;
-  height: 32px;
+  height: 44px;
   position: absolute;
   -webkit-transition: width 400ms;
   white-space: nowrap;
@@ -72,35 +72,52 @@
   .party-page ul.tracks li.track_in_playlist.now-playing div.icon {
     width: 32px; }
 .party-page ul.tracks li.track_in_playlist.show-controls div.text {
-  margin-left: 76px; }
+  margin-left: 100px; }
 .party-page ul.tracks li.track_in_playlist.show-controls div.controls {
-  width: 64px; }
+  width: 88px; }
 .party-page ul.tracks li.track_in_playlist.now-playing.show-controls div.text {
-  margin-left: 108px; }
+  margin-left: 144px; }
 .party-page ul.tracks li.track_in_playlist.now-playing.show-controls div.icon {
   width: 0; }
 .party-page ul.tracks li.track_in_playlist.now-playing.show-controls div.controls {
-  width: 96px; }
+  width: 132px; }
 .party-page ul.tracks li.track_in_playlist.deleted.show-controls div.text {
-  margin-left: 45px; }
+  margin-left: 56px; }
 .party-page ul.tracks li.track_in_playlist.deleted.show-controls div.controls {
-  width: 32px; }
+  width: 44px; }
 .party-page ul.tracks li.track_in_playlist .delete-button {
-  width: 32px;
-  height: 32px;
-  background-color: red; }
+  background-image: url(../img/skip.png);
+  width: 44px;
+  height: 44px;
+  background-size: 44px 44px; }
 .party-page ul.tracks li.track_in_playlist.deleted .delete-button {
-  background-color: green; }
+  background-image: url(../img/unskip.png); }
 .party-page ul.tracks li.track_in_playlist .play-button {
-  width: 32px;
-  height: 32px;
-  background-color: blue; }
+  background-image: url(../img/play.png);
+  width: 44px;
+  height: 44px;
+  background-size: 44px 44px; }
 .party-page ul.tracks li.track_in_playlist.now-playing .play-button {
-  background-color: silver; }
+  background-image: url(../img/restart.png); }
 .party-page ul.tracks li.track_in_playlist .pause-button {
-  width: 32px;
-  height: 32px;
-  background-color: yellow; }
+  background-image: url(../img/pause.png);
+  width: 44px;
+  height: 44px;
+  background-size: 44px 44px; }
+@media only screen and (-webkit-min-device-pixel-ratio: 2) {
+  .party-page ul.tracks li.track_in_playlist .delete-button {
+    background-image: url(../img/skip@2x.png); }
+  .party-page ul.tracks li.track_in_playlist.deleted .delete-button {
+    background-image: url(../img/unskip@2x.png); }
+  .party-page ul.tracks li.track_in_playlist .play-button {
+    background-image: url(../img/play@2x.png); }
+  .party-page ul.tracks li.track_in_playlist.now-playing .play-button {
+    background-image: url(../img/restart@2x.png); }
+  .party-page ul.tracks li.track_in_playlist .pause-button {
+    background-image: url(../img/pause@2x.png);
+    width: 44px;
+    height: 44px;
+    background-size: 44px 44px; } }
 .party-page ul.tracks.paused div.icon {
   background-position: -32px; }
 
