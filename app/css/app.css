@@ -1,3 +1,6 @@
+body {
+  min-height: 120%; }
+
 .login-page .fb-login-button {
   border: 0;
   outline: none;
@@ -120,6 +123,20 @@
     background-size: 44px 44px; } }
 .party-page ul.tracks.paused div.icon {
   background-position: -32px; }
+
+.add-song-page ul.search-results {
+  margin-top: 0; }
+  .add-song-page ul.search-results > li > div {
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden; }
+    .add-song-page ul.search-results > li > div.artist, .add-song-page ul.search-results > li > div.album {
+      font-weight: normal;
+      font-size: 12px;
+      color: 0x555555;
+      display: inline-block; }
+    .add-song-page ul.search-results > li > div.album:before {
+      content: "- "; }
 
 .pm-popup {
   max-width: 350px;

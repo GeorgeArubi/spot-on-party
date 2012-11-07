@@ -1,7 +1,7 @@
 <div data-role="header">
     <h1><%- party.get("name") %></h1>
     <a href="#partyoverview" data-rel="back" data-role="button" data-icon="arrow-l">back</a>
-    <button id="add-track">Add song</button>
+    <a href="#activeparty_<%- party.id %>_addsong" data-transition="slidedown" data-role="button">Add song</a>
 </div>
 
 <div data-role="content">

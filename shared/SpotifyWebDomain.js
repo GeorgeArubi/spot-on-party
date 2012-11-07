@@ -36,7 +36,9 @@ if (!PM) {
             var that = this;
             var params = {q: terms};
             that.counter++;
-            that.callQueue.push({url: that.SEARCH_URL, params: params, callback: function (result) {callback(result.tracks); }, counter: that.counter});
+            that.callQueue.push({url: that.SEARCH_URL, params: params, callback: function (result) {
+                callback(_.map(result.tracks, _.bind(that.copyUsefulTrackData, that)));
+            }, counter: that.counter});
             that.handleQueue();
             return that.counter;
         },

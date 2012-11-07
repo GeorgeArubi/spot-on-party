@@ -380,7 +380,7 @@ var partyconnection = exports;
                 }
                 var action = PM.models.Action.unserializeFromTrusted(action_data, party);
                 //first set number manually, only apply action after it has been saved to the database... Note that this is dangerous: this may result in an action being saved that actually crashes in the "apply". It's better than the alternative though; which may result in an action not in the database, but applied locally
-                action.set("number", action.party.get("log").length + 1);
+                action.set("number", action.party.get("log").length + 1, {silent: true});
                 that.db_collections.actions.insert(action.serialize(), that.catchDatabaseError(function () {
                     try {
                         action.applyValidatedAction();

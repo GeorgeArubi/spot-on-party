@@ -6,7 +6,7 @@ window.PM.app = window.PM.app || {};
 
 (function (PM) {
     "use strict";
-    var LoginView, PartyOverviewView, OldPartyView, PartyView;
+    var LoginView, PartyOverviewView, OldPartyView, PartyView, AddSongView;
 
     var getTemplate = function (id) {
         var template = PM.templates[id];
@@ -58,7 +58,6 @@ window.PM.app = window.PM.app || {};
             action.applyValidatedAction();
         }
     });
-
 
     var createAndRenderView = function (Viewclass, element, options) {
         var myoptions = _.extend(options || {}, {el: element});
@@ -153,6 +152,67 @@ window.PM.app = window.PM.app || {};
 
     ActivePartyUtil.init();
 
+    AddSongView = Backbone.View.extend({
+        template: getTemplate('add-song-page'),
+        className: 'add-song-page',
+
+        events: {
+            "submit #searchform": "search",
+            "click ul#searchdomain > li > a": "search",
+            "click ul.search-results > li": "addSong"
+        },
+
+        close: function () {
+            var that = this;
+            ActivePartyUtil.deactivate();
+            that.$('ul.search-results > li').removeClass("ui-btn-active");
+        },
+
+        render: function () {
+            var that = this;
+
+            clutils.checkConstraints(that.options.party_id, {_isUniqueId: true});
+            that.party = activeParties.get(that.options.party_id);
+            if (!that.party) {
+                console.log("no party found with id " + that.options.party_id);
+                $.mobile.changePage("#partyoverview");
+                return;
+            }
+            ActivePartyUtil.activate(that.party.id);
+
+            that.$el.html(that.template({party: that.party}));
+            return that;
+        },
+
+        search: function () {
+            var that = this;
+            var searchterms = $('#searchform input[name=search]').val();
+            PM.domain.SpotifyWebDomain.search(searchterms, function (trackdata) {
+                var tracks = _.map(trackdata, _.bind(PM.models.Track.getBySpotifyData, PM.models.Track));
+                var newsearchterms = $('#searchform input[name=search]').val();
+                if (newsearchterms === searchterms) {
+                    var html = getTemplate("searchresult-tracks")({tracks: tracks});
+                    that.$('ul.search-results').html(html);
+                    that.$('ul.search-results.ui-listview').listview('refresh');
+                }
+            });
+        },
+
+        addSong: _.debounce(function (event) {
+            var that = this;
+            var $target = $(event.currentTarget);
+            var track_id = $target.attr("track_id");
+            $target.addClass("ui-btn-active");
+            var action = PM.models.Action.createAction(PM.app.loggedin_user, that.party, "TrackAdd", {track_id: track_id});
+            PM.domain.PartyNodeDomain.proposeAction(action.serialize(), function (result) {
+                if (!result) {
+                    throw "help";
+                }
+                $.mobile.changePage("#activeparty_" + that.party.id);
+            });
+        }, 1000, {immediate: true, }),
+    });
+
     PartyView = Backbone.View.extend({
         template: getTemplate('party-page'),
         className: 'party-page',
@@ -189,10 +249,6 @@ window.PM.app = window.PM.app || {};
             that.party.get("playlist").on("reset", that.onResetPlaylist, that);
             that.party.on("change", that.onPlayStatusChange, that); // not all changed will be play status changes, but most will, so we'll just catch all...
             that.onResetPlaylist();
-            _.delay(function () {
-                //make popup modal
-                that.$('#party-not-active-message-screen').click(function (event) {event.stopImmediatePropagation(); });
-            }, 1);
             return that;
         },
 
@@ -437,14 +493,21 @@ window.PM.app = window.PM.app || {};
                 createAndRenderViewLoggedin(PartyOverviewView, page);
             },
         },
-        "^#activeparty_([A-Za-z0-9_\\-]*)": {
+        "^#activeparty_([A-Za-z0-9_\\-]{10})$": {
             events: "bs",
             handler: function (type, match, ui, page) {
                 var party_id = match[1];
                 createAndRenderViewLoggedin(PartyView, page, {party_id: party_id});
             },
         },
-        "^#oldparty_([A-Za-z0-9_\\-]*)": {
+        "^#activeparty_([A-Za-z0-9_\\-]{10})_addsong$": {
+            events: "bs",
+            handler: function (type, match, ui, page) {
+                var party_id = match[1];
+                createAndRenderViewLoggedin(AddSongView, page, {party_id: party_id});
+            },
+        },
+        "^#oldparty_([A-Za-z0-9_\\-]{10})$": {
             events: "bs",
             handler: function (type, match, ui, page) {
                 var party_id = match[1];
@@ -457,6 +520,7 @@ window.PM.app = window.PM.app || {};
                 var view = $(page).prop("view");
                 if (view && view.close) {
                     view.close();
+                    $(page).prop({view: null});
                 }
             },
         },

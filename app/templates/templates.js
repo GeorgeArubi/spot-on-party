@@ -15,6 +15,15 @@ __p+='<li class="party active-party">\n    <a href="#activeparty_'+
 }
 return __p;
 };
+PM.templates["add-song-page"]=function(obj){
+var __t,__p='',__j=Array.prototype.join,print=function(){__p+=__j.call(arguments,'');};
+with(obj||{}){
+__p+='<div data-role="header">\n    <h1>Add songs</h1>\n    <a href="#activeparty_'+
+((__t=( party.id ))==null?'':_.escape(__t))+
+'" data-rel="back" data-role="button" class="ui-btn-right">cancel</a>\n</div>\n\n<div data-role="content">\n    <form id="searchform" action="javascript:void(0)">\n        <input type="search" name="search" value="" />\n    </form>\n    <div data-role="navbar">\n        <ul id="searchdomain">\n            <li><a id="search-in-tracks" class="ui-btn-active ui-state-persist">Tracks</a></li>\n            <li><a id="search-in-albums">Albums</a></li>\n            <li><a id="search-in-artists">Artists</a></li>\n        </ul>\n    </div>\n    <ul class="search-results" data-role="listview">\n    </ul>\n</div>\n\n\n';
+}
+return __p;
+};
 PM.templates["all-parties-list"]=function(obj){
 var __t,__p='',__j=Array.prototype.join,print=function(){__p+=__j.call(arguments,'');};
 with(obj||{}){
@@ -113,7 +122,9 @@ var __t,__p='',__j=Array.prototype.join,print=function(){__p+=__j.call(arguments
 with(obj||{}){
 __p+='<div data-role="header">\n    <h1>'+
 ((__t=( party.get("name") ))==null?'':_.escape(__t))+
-'</h1>\n    <a href="#partyoverview" data-rel="back" data-role="button" data-icon="arrow-l">back</a>\n    <button id="add-track">Add song</button>\n</div>\n\n<div data-role="content">\n    <ul class="tracks" data-role="listview">\n        <li class="playlist-empty-message">\n            <div>The playlist is empty, you can add songs with the button in the right top</div>\n        </li>\n        <li data-role="list-divider" id="playlist-divider">Playlist</li> \n    </ul>\n</div>\n\n';
+'</h1>\n    <a href="#partyoverview" data-rel="back" data-role="button" data-icon="arrow-l">back</a>\n    <a href="#activeparty_'+
+((__t=( party.id ))==null?'':_.escape(__t))+
+'_addsong" data-transition="slidedown" data-role="button">Add song</a>\n</div>\n\n<div data-role="content">\n    <ul class="tracks" data-role="listview">\n        <li class="playlist-empty-message">\n            <div>The playlist is empty, you can add songs with the button in the right top</div>\n        </li>\n        <li data-role="list-divider" id="playlist-divider">Playlist</li> \n    </ul>\n</div>\n\n';
 }
 return __p;
 };
@@ -129,6 +140,25 @@ __p+='<li class="track_in_playlist">\n    <div class="icon"></div>\n    <div cla
 '</div>\n    <div class="text subtitle">'+
 ((__t=( user.getHtmlLazyLoad("name") ))==null?'':__t)+
 '</div>\n    <div class="text deleted-by"></div>\n</li>\n';
+}
+return __p;
+};
+PM.templates["searchresult-tracks"]=function(obj){
+var __t,__p='',__j=Array.prototype.join,print=function(){__p+=__j.call(arguments,'');};
+with(obj||{}){
+__p+='';
+ _.each(tracks, function (track) { 
+__p+='\n    <li track_id="'+
+((__t=( track.id ))==null?'':_.escape(__t))+
+'">\n        <div class="name">'+
+((__t=( track.get("name") ))==null?'':_.escape(__t))+
+'</div>\n        <div class="artist">'+
+((__t=( track.get("artist") ))==null?'':_.escape(__t))+
+'</div>\n        <div class="album">'+
+((__t=( track.get("album") ))==null?'':_.escape(__t))+
+'</div>\n    </li>\n';
+ }) 
+__p+='\n';
 }
 return __p;
 };

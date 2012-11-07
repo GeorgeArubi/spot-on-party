@@ -1,3 +1,7 @@
+body {
+    min-height: 120%;
+}
+
 .login-page {
     .fb-login-button {border: 0; outline: none; width: 152px; height: 22px; background: url(../img/fb-login.png) no-repeat; display: inline-block;}
 
@@ -80,6 +84,17 @@
             }
         }
         &.paused div.icon {background-position: -32px;}
+    }
+}
+
+.add-song-page {
+    ul.search-results {
+        margin-top: 0;
+        > li > div {
+            text-overflow: ellipsis; white-space: nowrap; overflow: hidden; 
+            &.artist, &.album {font-weight: normal; font-size: 12px; color: 0x555555; display: inline-block;}
+            &.album:before {content: "- ";}
+        }
     }
 }
 
