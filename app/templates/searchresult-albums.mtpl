@@ -1,0 +1,7 @@
+<% _.each(tracks, function (track) { %>
+    <li track_id="<%- track.id %>">
+        <div class="name"><%- track.get("name") %></div>
+        <div class="artist"><%- track.get("artist") %></div>
+        <div class="album"><%- track.get("album") %></div>
+    </li>
+<% }) %>

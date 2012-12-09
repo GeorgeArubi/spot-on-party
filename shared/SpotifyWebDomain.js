@@ -25,19 +25,36 @@ if (!PM) {
     }, {
         CALL_DELAY: 150, //nr of ms between calls to spotify API -- rate limited on 10/sec, so we do 7/sec just to be sure
         LOOKUP_URL: "http://ws.spotify.com/lookup/1/.json",
-        SEARCH_URL: "http://ws.spotify.com/search/1/track.json",
+        SEARCH_TRACK_URL: "http://ws.spotify.com/search/1/track.json",
+        SEARCH_ALBUM_URL: "http://ws.spotify.com/search/1/album.json",
+        SEARCH_ARTIST_URL: "http://ws.spotify.com/search/1/artist.json",
 
         lastcallTime: 0,
         callQueue: [],
         queueTimer: null,
         counter: 0,
-
+    
         search: function (terms, callback) {
+            var that = this;
+            return that.searchhelper(terms, that.SEARCH_TRACK_URL, "tracks", _.bind(that.copyUsefulTrackData, that), callback);
+        },
+
+        searchArtist: function (terms, callback) {
+            var that = this;
+            return that.searchhelper(terms, that.SEARCH_ARTIST_URL, "artists", _.bind(that.copyUsefulTrackData, that), callback);
+        },
+
+        searchAlbum: function (terms, callback) {
+            var that = this;
+            return that.searchhelper(terms, that.SEARCH_ALBUM_URL, "albums", _.bind(that.copyUsefulAlbumData, that), callback);
+        },
+
+        searchhelper: function (terms, url, key, resultformatter, callback) {
             var that = this;
             var params = {q: terms};
             that.counter++;
-            that.callQueue.push({url: that.SEARCH_URL, params: params, callback: function (result) {
-                callback(_.map(result.tracks, _.bind(that.copyUsefulTrackData, that)));
+            that.callQueue.push({url: url, params: params, callback: function (result) {
+                callback(_.map(result[key], resultformatter));
             }, counter: that.counter});
             that.handleQueue();
             return that.counter;
@@ -52,6 +69,13 @@ if (!PM) {
             return that.counter;
         },
 
+        copyUsefulAlbumData: function (spalbum) {
+            return {
+                _id: spalbum.id,
+                name: spalbum.name,
+                artists: _.map(spalbum.artists, function (artist) {return artist.name; })
+            };
+        },
 
         copyUsefulTrackData: function (sptrack) {
             return {

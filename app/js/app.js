@@ -157,7 +157,8 @@ window.PM.app = window.PM.app || {};
         className: 'add-song-page',
 
         events: {
-            "submit #searchform": "search",
+            "submit #searchform": function () {$('#searchfield').blur(); }, // will do the search per the next line
+            "blur #searchfield": "search",
             "click ul#searchdomain > li > a": "search",
             "click ul.search-results > li": "addSong"
         },
@@ -186,16 +187,34 @@ window.PM.app = window.PM.app || {};
 
         search: function () {
             var that = this;
-            var searchterms = $('#searchform input[name=search]').val();
-            PM.domain.SpotifyWebDomain.search(searchterms, function (trackdata) {
-                var tracks = _.map(trackdata, _.bind(PM.models.Track.getBySpotifyData, PM.models.Track));
-                var newsearchterms = $('#searchform input[name=search]').val();
-                if (newsearchterms === searchterms) {
-                    var html = getTemplate("searchresult-tracks")({tracks: tracks});
-                    that.$('ul.search-results').html(html);
-                    that.$('ul.search-results.ui-listview').listview('refresh');
-                }
-            });
+            var searchterms = $('#searchfield').val();
+            $('ul.search-results').empty().addClass("loading");
+            var searchdomain = $('ul#searchdomain > li > a.ui-btn-active').prop('id');
+            switch (searchdomain) {
+            case 'search-in-tracks':
+                PM.domain.SpotifyDomain.search(searchterms, function (trackdata) {
+                    var tracks = _.map(trackdata, _.bind(PM.models.Track.getBySpotifyData, PM.models.Track));
+                    var newsearchterms = $('#searchfield').val();
+                    if (newsearchterms === searchterms) {
+                        var html = getTemplate("searchresult-tracks")({tracks: tracks});
+                        that.$('ul.search-results').html(html).removeClass("loading");
+                        that.$('ul.search-results.ui-listview').listview('refresh');
+                    }
+                });
+                break;
+            case 'search-in-albums':
+                PM.domain.SpotifyDomain.searchAlbums(searchterms, function (albumsdata) {
+                    var newsearchterms = $('#searchfield').val();
+                    if (newsearchterms === searchterms) {
+                        var html = getTemplate("searchresult-albums")({albums: albumsdata});
+                        that.$('ul.search-results').html(html).removeClass("loading");
+                        that.$('ul.search-results.ui-listview').listview('refresh');
+                    }
+                });
+                break;
+            default:
+                throw "searchdomain unknown: " + searchdomain;
+            }
         },
 
         addSong: _.debounce(function (event) {

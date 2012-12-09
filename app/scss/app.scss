@@ -95,6 +95,7 @@ body {
             &.artist, &.album {font-weight: normal; font-size: 12px; color: 0x555555; display: inline-block;}
             &.album:before {content: "- ";}
         }
+        &.loading { background: url(../img/spinner.gif) no-repeat center; height: 100px; }
     }
 }
 

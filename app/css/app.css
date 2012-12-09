@@ -137,6 +137,9 @@ body {
       display: inline-block; }
     .add-song-page ul.search-results > li > div.album:before {
       content: "- "; }
+  .add-song-page ul.search-results.loading {
+    background: url(../img/spinner.gif) no-repeat center;
+    height: 100px; }
 
 .pm-popup {
   max-width: 350px;
