@@ -15,7 +15,6 @@ if (typeof exports !== "undefined") {
 
 (function (config) {
     "use strict";
-    config.is_master = true;
     config.master_name = "Party Owner";
     config.MAX_CONCURRENT_JOINS_PER_USER = 5;
 }(config));

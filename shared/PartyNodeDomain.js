@@ -35,7 +35,7 @@ if (typeof exports !== "undefined") {
     PM.domain.PartyNodeDomain = Toolbox.Base.extend({
         /* instance */
     }, {
-        HOST: "http://tiggr.local:8081/",
+        HOST: (root.location.hostname === "tiggr.local" ? "http://tiggr.local:8081/" : "http://partymode.jit.su/"),
 
         connect: function (token, master, callback) {
             var that = this;

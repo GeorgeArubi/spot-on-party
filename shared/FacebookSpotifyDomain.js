@@ -13,6 +13,7 @@ if (!window.PM.domain) {
 window.PM.domain.FacebookSpotifyDomain = window.PM.domain.AbstractFacebookDomain.extend({
     /* instance members */
 }, {
+    FACEBOOK_APP_ID: "312921805471592", //spotify fb has own id
     /* static members */
     init: function () {
         var that = this;
