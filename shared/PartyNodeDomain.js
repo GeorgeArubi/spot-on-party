@@ -36,6 +36,7 @@ if (typeof exports !== "undefined") {
         /* instance */
     }, {
         HOST: (root.location.hostname === "tiggr.local" ? "http://tiggr.local:8081/" : "http://partymode.jit.su/"),
+        //HOST: "http://tiggr.local:8081/",
 
         connect: function (token, master, callback) {
             var that = this;
