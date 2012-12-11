@@ -1,0 +1,20 @@
+{
+  "name": "partymode",
+  "subdomain": "partymode",
+  "scripts": {
+    "start": "partynode/run.js"
+  },
+  "version": "0.0.0-7",
+  "engines": {
+    "node": "0.8.x"
+  },
+  "bundleDependencies": [
+    "express",
+    "http",
+    "domain",
+    "winston",
+    "mongodb",
+    "request",
+    "socket.io"
+  ]
+}

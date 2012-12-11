@@ -6,10 +6,10 @@ var partyconnection = exports;
 (function () {
     "use strict";
 
-    var _ = require("./includes/underscore");
-    var Toolbox = require("./includes/toolbox");
-    var PM = require("./includes/models");
-    var clutils = require("./includes/clutils");
+    var _ = require("../shared/underscore");
+    var Toolbox = require("../shared/toolbox");
+    var PM = require("../shared/models");
+    var clutils = require("../shared/clutils");
     var domain = require('domain');
     var request = require("request");
     var winston = require("winston");
