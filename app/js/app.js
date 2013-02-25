@@ -411,43 +411,68 @@ window.PM.app = window.PM.app || {};
 
         activePartyChange: function (party) {
             var that = this;
-            var el = that.$('ul.parties li.active-party.party_' + party.id);
-            var new_el = $(getTemplate("active-party-in-list")({party: party}));
+            var el = that.$('ul.parties li.party_' + party.id);
+            var new_el = $(getTemplate("party-in-list")({party: party, active: !!activeParties.get(party.id)}));
+            $("a", el).attr("href", $("a", new_el).attr("href"));
             $("h2", el).html($("h2", new_el).html());
-            $("a > span", el).html($("a > span", new_el).html());
+            $("h3", el).html($("h3", new_el).html());
+            $(".number-of-users > span", el).html($("span.number-of-users > span", new_el).html());
+            $(".number-of-tracks > span", el).html($("span.number-of-tracks > span", new_el).html());
             that.$('ul.parties.ui-listview').listview('refresh');
         },
 
         resetActiveParties: function () {
             var that = this;
-            that.$('ul.parties li.active-party.party').remove();
             activeParties.each(_.bind(that.addActiveParty, that));
-            that.$('ul.parties').toggleClass("has-active-parties", activeParties.length > 0);
         },
 
         removeActiveParty: function (party) {
             var that = this;
-            that.$('ul.parties li.active-party.party_' + party.id).addClass("invisible");
-            that.$('ul.parties').toggleClass("has-active-parties", activeParties.length > 0);
+            var el = that.$('ul.parties li.party_' + party.id);
+            el.removeClass("activeparty");
+            var new_el = $(getTemplate("party-in-list")({party: party, active: !!activeParties.get(party.id)}));
+            $("a", el).attr("href", $("a", new_el).attr("href"));
+            if (that.$('li.party.activeparty'.length > 0)) {
+                //else it's already at the right place
+                that.$('li.party.activeparty:last').after(el); //move it below the last active party
+            }
+            that.$('ul.parties.ui-listview').listview('refresh');
         },
 
         addActiveParty: function (party) {
             var that = this;
-            var li = $(getTemplate("active-party-in-list")({party: party}));
-            li.addClass("invisible party_" + party.id);
-            _.delay(function () {li.removeClass("invisible"); }, 0);
-            that.$('#all-parties-divider').before(li);
-            that.$('ul.parties').toggleClass("has-active-parties", activeParties.length > 0);
+            var el = that.$('ul.parties li.party_' + party.id);
+            if (el) {
+                var new_el = $(getTemplate("party-in-list")({party: party, active: !!activeParties.get(party.id)}));
+                $("a", el).attr("href", $("a", new_el).attr("href"));
+            } else {
+                el = $(getTemplate("party-in-list")({party: party, active: true}));
+                el.addClass("invisible");
+                _.delay(function () {el.removeClass("invisible"); }, 0);
+            }
+            if (that.$('li.party.activeparty').length === 0) {
+                el.parent().prepend(el); //move it to the top;
+            } else {
+                that.$('li.party.activeparty:last').after(el); //move it below the last active party
+            }
+            el.addClass("activeparty");
             that.$('ul.parties.ui-listview').listview('refresh');
         },
 
         loadAndRenderAllParties: function (callback) {
             var that = this;
-            PM.domain.PartyNodeDomain.getMyParties(/*limit*/ 50, /*before_timestamp*/ null, function (parties_data, parties_left) {
-                var parties = _.map(parties_data, function (party_data) {return PM.models.Party.unserialize(party_data); });
-                var template = getTemplate("all-parties-list");
-                var html = template({parties: parties, parties_left: parties_left});
-                that.$('#all-parties-divider').after(html);
+            PM.domain.PartyNodeDomain.getMyParties(/*limit*/ 50, /*before_timestamp*/ null, function (parties_data) {
+                var el = that.$('ul.parties');
+                el.empty();
+                activeParties.each(function (party) {
+                    el.append(getTemplate("party-in-list")({party: party, active: true}));
+                });
+                _.each(parties_data, function (party_data) {
+                    var party = PM.models.Party.unserialize(party_data);
+                    if (!activeParties.get(party.id)) {
+                        el.append(getTemplate("party-in-list")({party: party, active: false}));
+                    }
+                });
                 that.$('ul.parties.ui-listview').listview('refresh');
                 if (callback) {
                     callback();

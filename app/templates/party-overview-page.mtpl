@@ -5,10 +5,5 @@
 
 <div data-role="content">
     <ul class="parties" data-role="listview">
-        <li data-role="list-divider" id="active-parties-divider">Active parties</li> 
-        <li class="no-active-parties-message active-party">
-            <div>You are not invited to any parties at the moment</div>
-        </li>
-        <li data-role="list-divider" id="all-parties-divider">All parties</li> 
     </ul>
 </div>

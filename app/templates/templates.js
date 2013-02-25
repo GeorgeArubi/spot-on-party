@@ -3,7 +3,7 @@ PM.templates = PM.templates || {};
 PM.templates["active-party-in-list"]=function(obj){
 var __t,__p='',__j=Array.prototype.join,print=function(){__p+=__j.call(arguments,'');};
 with(obj||{}){
-__p+='<li class="party active-party">\n    <a href="#activeparty_'+
+__p+='<li class="party active-party" data-icon="arrow-r ui-icon-alt">\n    <a href="#activeparty_'+
 ((__t=( encodeURIComponent(party.id) ))==null?'':_.escape(__t))+
 '">\n        <h2 class="party-name">'+
 ((__t=( party.get("name") ))==null?'':_.escape(__t))+
@@ -21,35 +21,6 @@ with(obj||{}){
 __p+='<div data-role="header">\n    <h1>Add songs</h1>\n    <a href="#activeparty_'+
 ((__t=( party.id ))==null?'':_.escape(__t))+
 '" data-rel="back" data-role="button" class="ui-btn-right">cancel</a>\n</div>\n\n<div data-role="content">\n    <form id="searchform" action="javascript:void(0)">\n        <input type="search" id="searchfield" name="search" value="" />\n    </form>\n    <div data-role="navbar">\n        <ul id="searchdomain">\n            <li><a id="search-in-tracks" class="ui-btn-active ui-state-persist">Tracks</a></li>\n            <li><a id="search-in-albums">Albums</a></li>\n            <li><a id="search-in-artists">Artists</a></li>\n        </ul>\n    </div>\n    <ul class="search-results" data-role="listview">\n    </ul>\n</div>\n\n\n';
-}
-return __p;
-};
-PM.templates["all-parties-list"]=function(obj){
-var __t,__p='',__j=Array.prototype.join,print=function(){__p+=__j.call(arguments,'');};
-with(obj||{}){
-__p+='';
- if (parties.length > 0) { 
-__p+='\n    ';
- _.each(parties, function (party) { 
-__p+='\n    <li class="all-party">\n        <a href="#oldparty_'+
-((__t=( encodeURIComponent(party.id) ))==null?'':_.escape(__t))+
-'">\n            <h2 class="party-name">'+
-((__t=( party.get("name") ))==null?'':_.escape(__t))+
-'</h2>\n            <div class="party-when">'+
-((__t=( clutils.pastDateText(party.get("last_updated")) ))==null?'':_.escape(__t))+
-'</div>\n            <span class="ui-li-aside">u: '+
-((__t=( party.getMembersInPartyOrderedByActive().length ))==null?'':_.escape(__t))+
-' t: '+
-((__t=( party.getNotDeletedTracksInPlaylist().length ))==null?'':_.escape(__t))+
-'</span>\n        </a>\n    </li>\n    ';
- }); 
-__p+='\n';
- } 
-__p+='\n';
- if (parties_left > 0 ) { 
-__p+='\n<li>This should be a load-more button (or unlimited scrolling) but this is not implemented yet</li>\n';
- } 
-__p+='\n\n\n';
 }
 return __p;
 };
@@ -103,6 +74,35 @@ __p+='\n        </ul>\n    </div>\n</div>\n';
 }
 return __p;
 };
+PM.templates["party-in-list"]=function(obj){
+var __t,__p='',__j=Array.prototype.join,print=function(){__p+=__j.call(arguments,'');};
+with(obj||{}){
+__p+='<li class="party';
+ if (active) { 
+__p+=' activeparty';
+ } 
+__p+=' party_'+
+((__t=( party.id ))==null?'':_.escape(__t))+
+'" data-icon="arrow-r ui-icon-alt">\n    <a href="#';
+ if (active) {
+__p+='active';
+} else {
+__p+='old';
+ } 
+__p+='party_'+
+((__t=( encodeURIComponent(party.id) ))==null?'':_.escape(__t))+
+'">\n        <h2 class="party-name">'+
+((__t=( party.get("name") ))==null?'':_.escape(__t))+
+'</h2>\n        <h3 class="party-when">'+
+((__t=( clutils.pastDateText(party.get("last_updated")) ))==null?'':_.escape(__t))+
+'</h3>\n        <span class="ui-li-aside">\n            <span class="number-of-users"><span>'+
+((__t=( party.getMembersInPartyOrderedByActive().length ))==null?'':_.escape(__t))+
+'</span></span>\n            <span class="number-of-tracks"><span>'+
+((__t=( party.getNotDeletedTracksInPlaylist().length ))==null?'':_.escape(__t))+
+'</span></span>\n        </span>\n    </a>\n</li>\n';
+}
+return __p;
+};
 PM.templates["party-inactive-message"]=function(obj){
 var __t,__p='',__j=Array.prototype.join,print=function(){__p+=__j.call(arguments,'');};
 with(obj||{}){
@@ -113,7 +113,7 @@ return __p;
 PM.templates["party-overview-page"]=function(obj){
 var __t,__p='',__j=Array.prototype.join,print=function(){__p+=__j.call(arguments,'');};
 with(obj||{}){
-__p+='<div data-role="header">\n    <h1>Parties</h1>\n    <button id="logout">logout</button>\n</div>\n\n<div data-role="content">\n    <ul class="parties" data-role="listview">\n        <li data-role="list-divider" id="active-parties-divider">Active parties</li> \n        <li class="no-active-parties-message active-party">\n            <div>You are not invited to any parties at the moment</div>\n        </li>\n        <li data-role="list-divider" id="all-parties-divider">All parties</li> \n    </ul>\n</div>\n';
+__p+='<div data-role="header">\n    <h1>Parties</h1>\n    <button id="logout">logout</button>\n</div>\n\n<div data-role="content">\n    <ul class="parties" data-role="listview">\n    </ul>\n</div>\n';
 }
 return __p;
 };

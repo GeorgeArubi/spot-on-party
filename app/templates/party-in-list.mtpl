@@ -1,6 +1,7 @@
-<li class="party active-party">
-    <a href="#activeparty_<%- encodeURIComponent(party.id) %>">
+<li class="party<% if (active) { %> activeparty<% } %> party_<%- party.id %>" data-icon="arrow-r ui-icon-alt">
+    <a href="#<% if (active) {%>active<%} else {%>old<% } %>party_<%- encodeURIComponent(party.id) %>">
         <h2 class="party-name"><%- party.get("name") %></h2>
+        <h3 class="party-when"><%- clutils.pastDateText(party.get("last_updated")) %></h3>
         <span class="ui-li-aside">
             <span class="number-of-users"><span><%- party.getMembersInPartyOrderedByActive().length %></span></span>
             <span class="number-of-tracks"><span><%- party.getNotDeletedTracksInPlaylist().length %></span></span>

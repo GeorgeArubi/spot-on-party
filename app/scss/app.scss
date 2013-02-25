@@ -12,30 +12,40 @@ body {
     position: fixed;
 }
 
+body .ui-li {
+    height: 49px;
+    background-color: #ECEBE8;
+    border: 0 0 1px solid #D2D2D2;
+    .ui-btn-inner a.ui-link-inherit {
+        padding-top: 5px;
+        h2 {margin: 0px inherit; color: black; text-shadow: none;}
+        h3 {margin: 0 inherit; color: #858585; text-shadow: none; font-weight: normal; text-shadow: none; font-size: 14px;}
+    }
+    .ui-icon {background-color: transparent; box-shadow: none;}
+}
+
 .party-overview-page {
     ul.parties {
-        li.active-party {
-            color: black;
-            height: 55px; -webkit-transition: height 500ms; overflow: hidden;
+        li.party {
+            -webkit-transition: height 500ms; overflow: hidden;
             &.invisible {height: 1; border: none;}
+            &.activeparty h3 {display: none; }
+        }
+        li.party .ui-li-aside {
+            width: 70px;
             .number-of-users, .number-of-tracks {
-                display: inline-block; width: 35px; height: 35px; background-size: cover;
-                position: relative; top: 0px; overflow: hidden;
+                display: inline-block; width: 24px; height: 24px; background-size: cover;
+                position: relative; top: 0px;
                 span {
-                    position: absolute; bottom: -7px; text-align: center; left: 0; right: 0;
-                    font-size: 1.5em; text-shadow: 1px 1px 4px #FFFFFF, -1px -1px 4px #FFFFFF;
+                    position: absolute; top: -8px; right: -8px; display: block; min-width: 6px;
+                    border: 1px solid #FFFFFF; border-radius: 9px; background-color: #000000; padding: 0 3px;
+                    font-size: 10px; text-shadow: none; color: #FFFFFF; text-align: center;
                 }
-                
+
             }
             .number-of-users {background-image: url(../img/friends.svg);}
             .number-of-tracks {background-image: url(../img/note.svg);}
         }
-        li.active-party.no-active-parties-message { padding: 0;
-            div { text-align: center; padding-top: 10px; }
-         }
-        &.has-active-parties li.active-party.no-active-parties-message {
-            height: 0px; border: none;
-       }
     }
 }
 
