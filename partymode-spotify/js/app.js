@@ -500,7 +500,7 @@ var clutils = window.clutils;
             var that = this;
             that.closeOverlayView();
             that.party.get("users").off("add", that.updateUserBar, that);
-            that.party.get("users").off("change", that.updateUserBar, that);
+            that.party.get("users").off("remove", that.updateUserBar, that);
             that.party.get("users").off("reset", that.updateUserBar, that);
             that.party.off("change:current_playlist_index", that.setCoverPhoto, that);
             that.$('img.coverphoto').off("load.photopage");
@@ -609,7 +609,7 @@ var clutils = window.clutils;
                 }
                 that.updateUserBar();
                 that.party.get("users").on("add", that.updateUserBar, that);
-                that.party.get("users").on("change", that.updateUserBar, that);
+                that.party.get("users").on("remove", that.updateUserBar, that);
                 that.party.get("users").on("reset", that.updateUserBar, that);
                 that.party.on("change:current_playlist_index", that.setCoverPhoto, that);
                 that.$('img.coverphoto').on("load.photopage", _.bind(that.resizeCoverPhoto, that));
