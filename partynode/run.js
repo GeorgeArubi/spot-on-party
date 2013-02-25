@@ -28,6 +28,7 @@
     });
 
     app.use('/app', express.static(__dirname + '/../app'));
+    app.use('/app/shared', express.static(__dirname + '/../shared'));
 
     var mongoServer = new mongodb.Server(config.db.host, config.db.port, config.db.serverOptions);
     var db = new mongodb.Db(config.db.database, mongoServer, config.db.dbOptions);
