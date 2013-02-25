@@ -389,8 +389,7 @@ var partyconnection = exports;
                         //still may leave stuff in not-nice state, but at least there shouldn't be "holes" in the database... I hope....
                         throw "Error: party " + party.id + ", applying action " + action.get("number") + " failed: " + error.toString() + "\n" + error.stack;
                     }
-                    callback(true);
-                    that.db_collections.partyindex.save(party.indexableObject());
+                    that.db_collections.partyindex.save(party.indexableObject(), function () { callback(true); });
                 }));
             });
         },
