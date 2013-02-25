@@ -7,11 +7,11 @@ __p+='<li class="party active-party">\n    <a href="#activeparty_'+
 ((__t=( encodeURIComponent(party.id) ))==null?'':_.escape(__t))+
 '">\n        <h2 class="party-name">'+
 ((__t=( party.get("name") ))==null?'':_.escape(__t))+
-'</h2>\n        <span class="ui-li-aside">u: '+
+'</h2>\n        <span class="ui-li-aside">\n            <span class="number-of-users"><span>'+
 ((__t=( party.getMembersInPartyOrderedByActive().length ))==null?'':_.escape(__t))+
-' t: '+
+'</span></span>\n            <span class="number-of-tracks"><span>'+
 ((__t=( party.getNotDeletedTracksInPlaylist().length ))==null?'':_.escape(__t))+
-'</span>\n    </a>\n</li>\n';
+'</span></span>\n        </span>\n    </a>\n</li>\n';
 }
 return __p;
 };
