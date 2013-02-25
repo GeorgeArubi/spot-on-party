@@ -1027,7 +1027,7 @@ if (typeof exports !== "undefined") {
 
     PM.collections.Playlist = Backbone.Collection.extend({model: PM.models.TrackInPlaylist});
     PM.collections.UsersInParty = Backbone.Collection.extend({model: PM.models.UserInParty});
-    PM.collections.PartyLog = Backbone.Collection.extend({model: PM.models.Actions});
+    PM.collections.PartyLog = Backbone.Collection.extend({model: PM.models.Action});
 
 
     PM.models.Party = PM.models.BaseModel.extend({
