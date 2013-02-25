@@ -4,7 +4,7 @@
 (function () {
     "use strict";
     var fs = require('fs');
-    var _ = require('../shared/underscore');
+    var _ = require('../../shared/underscore');
 
     var output = "PM = window.PM || {};\nPM.templates = PM.templates || {};\n";
 
