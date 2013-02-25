@@ -19,17 +19,21 @@ body .ui-li {
     .ui-btn-inner a.ui-link-inherit {
         padding-top: 5px;
         h2 {margin: 0px inherit; color: black; text-shadow: none;}
-        h3 {margin: 0 inherit; color: #858585; text-shadow: none; font-weight: normal; text-shadow: none; font-size: 14px;}
+        h3 {
+            margin: 0 inherit; color: #858585; text-shadow: none; font-weight: normal; text-shadow: none; font-size: 14px;
+            &:before {content: "Ended: ";}
+        }
     }
     .ui-icon {background-color: transparent; box-shadow: none;}
 }
+li.ui-li.ui-btn-active div.ui-li {background-color: #618CDD;}
 
 .party-overview-page {
     ul.parties {
         li.party {
             -webkit-transition: height 500ms; overflow: hidden;
             &.invisible {height: 1; border: none;}
-            &.activeparty h3 {display: none; }
+            &.activeparty h3 {display: none;}
         }
         li.party .ui-li-aside {
             width: 70px;

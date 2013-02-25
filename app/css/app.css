@@ -30,9 +30,14 @@ body .ui-li {
       font-weight: normal;
       text-shadow: none;
       font-size: 14px; }
+      body .ui-li .ui-btn-inner a.ui-link-inherit h3:before {
+        content: "Ended: "; }
   body .ui-li .ui-icon {
     background-color: transparent;
     box-shadow: none; }
+
+li.ui-li.ui-btn-active div.ui-li {
+  background-color: #618CDD; }
 
 .party-overview-page ul.parties li.party {
   -webkit-transition: height 500ms;

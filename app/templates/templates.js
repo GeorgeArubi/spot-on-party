@@ -1,20 +1,5 @@
 PM = window.PM || {};
 PM.templates = PM.templates || {};
-PM.templates["active-party-in-list"]=function(obj){
-var __t,__p='',__j=Array.prototype.join,print=function(){__p+=__j.call(arguments,'');};
-with(obj||{}){
-__p+='<li class="party active-party" data-icon="arrow-r ui-icon-alt">\n    <a href="#activeparty_'+
-((__t=( encodeURIComponent(party.id) ))==null?'':_.escape(__t))+
-'">\n        <h2 class="party-name">'+
-((__t=( party.get("name") ))==null?'':_.escape(__t))+
-'</h2>\n        <span class="ui-li-aside">\n            <span class="number-of-users"><span>'+
-((__t=( party.getMembersInPartyOrderedByActive().length ))==null?'':_.escape(__t))+
-'</span></span>\n            <span class="number-of-tracks"><span>'+
-((__t=( party.getNotDeletedTracksInPlaylist().length ))==null?'':_.escape(__t))+
-'</span></span>\n        </span>\n    </a>\n</li>\n';
-}
-return __p;
-};
 PM.templates["add-song-page"]=function(obj){
 var __t,__p='',__j=Array.prototype.join,print=function(){__p+=__j.call(arguments,'');};
 with(obj||{}){
@@ -113,7 +98,7 @@ return __p;
 PM.templates["party-overview-page"]=function(obj){
 var __t,__p='',__j=Array.prototype.join,print=function(){__p+=__j.call(arguments,'');};
 with(obj||{}){
-__p+='<div data-role="header">\n    <h1>Parties</h1>\n    <button id="logout">logout</button>\n</div>\n\n<div data-role="content">\n    <ul class="parties" data-role="listview">\n    </ul>\n</div>\n';
+__p+='<div data-role="header">\n    <h1>All parties</h1>\n    <button id="logout">logout</button>\n</div>\n\n<div data-role="content">\n    <ul class="parties" data-role="listview">\n    </ul>\n</div>\n';
 }
 return __p;
 };
@@ -122,7 +107,7 @@ var __t,__p='',__j=Array.prototype.join,print=function(){__p+=__j.call(arguments
 with(obj||{}){
 __p+='<div data-role="header">\n    <h1>'+
 ((__t=( party.get("name") ))==null?'':_.escape(__t))+
-'</h1>\n    <a href="#partyoverview" data-rel="back" data-role="button" data-icon="arrow-l">back</a>\n    <a href="#activeparty_'+
+'</h1>\n    <a href="#partyoverview" data-role="button" data-icon="arrow-l" data-direction="reverse">All parties</a>\n    <a href="#activeparty_'+
 ((__t=( party.id ))==null?'':_.escape(__t))+
 '_addsong" data-transition="slidedown" data-role="button">Add song</a>\n</div>\n\n<div data-role="content">\n    <ul class="tracks" data-role="listview">\n        <li class="playlist-empty-message">\n            <div>The playlist is empty, you can add songs with the button in the right top</div>\n        </li>\n        <li data-role="list-divider" id="playlist-divider">Playlist</li> \n    </ul>\n</div>\n\n';
 }
