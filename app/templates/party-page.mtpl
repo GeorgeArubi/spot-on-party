@@ -1,7 +1,7 @@
 <div data-role="header">
     <h1><%- party.get("name") %></h1>
-    <a href="#partyoverview" data-role="button" data-icon="arrow-l" data-direction="reverse">All parties</a>
-    <a href="#activeparty_<%- party.id %>_addsong" data-transition="slidedown" data-role="button">Add song</a>
+    <a href="#partyoverview" data-role="button" data-icon="arrow-l" data-direction="reverse">parties</a>
+    <a href="#activeparty_<%- party.id %>_addsong" data-transition="slidedown" data-role="button" data-icon="plus" data-iconpos="notext">Add song</a>
 </div>
 
 <div data-role="content">
@@ -9,7 +9,6 @@
         <li class="playlist-empty-message">
             <div>The playlist is empty, you can add songs with the button in the right top</div>
         </li>
-        <li data-role="list-divider" id="playlist-divider">Playlist</li> 
     </ul>
 </div>
 

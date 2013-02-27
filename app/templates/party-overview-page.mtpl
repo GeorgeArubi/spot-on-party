@@ -1,5 +1,5 @@
 <div data-role="header">
-    <h1>All parties</h1>
+    <h1>Parties</h1>
     <button id="logout">logout</button>
 </div>
 

@@ -1,132 +1,141 @@
-body {
+#partymode {
+    $icon-width: 24px;
+    $icon-height: 24px;
     min-height: 120%;
-}
 
-.login-page {
-    .fb-login-button {border: 0; outline: none; width: 152px; height: 22px; background: url(../img/fb-login.png) no-repeat; display: inline-block;}
+    .login-page {
+        .fb-login-button {border: 0; outline: none; width: 152px; height: 22px; background: url(../img/fb-login.png) no-repeat; display: inline-block;}
 
-}
+    }
 
-.ui-popup-screen.in {
-    height: 10000px;
-    position: fixed;
-}
+    .ui-popup-screen.in {
+        height: 10000px;
+        position: fixed;
+    }
 
-body .ui-li {
-    height: 49px;
-    background-color: #ECEBE8;
-    border: 0 0 1px solid #D2D2D2;
-    .ui-btn-inner a.ui-link-inherit {
-        padding-top: 5px;
-        h2 {margin: 0px inherit; color: black; text-shadow: none;}
-        h3 {
-            margin: 0 inherit; color: #858585; text-shadow: none; font-weight: normal; text-shadow: none; font-size: 14px;
-            &:before {content: "Ended: ";}
+    .ui-li {
+        height: 49px;
+        background-color: #ECEBE8;
+        border: 0 0 1px solid #D2D2D2;
+        a.ui-link-inherit {
+            padding-top: 5px;
+            h2 {margin-top: 0; margin-bottom: 0; color: black; text-shadow: none;}
+            h3 {
+                margin-top: 1px; color: #858585; text-shadow: none; font-weight: normal; text-shadow: none; font-size: 14px;
+            }
+        }
+        .ui-icon {background-color: transparent; box-shadow: none;}
+    }
+    li.ui-li.ui-btn-active div.ui-li {background-color: #618CDD;}
+
+    .party-overview-page {
+        ul.parties {
+            li.party {
+                -webkit-transition: height 500ms; overflow: hidden;
+                &.invisible {height: 1; border: none;}
+                &.activeparty h3 {display: none;}
+                .party-when:before {content: "Ended: ";}
+            }
+            li.party .ui-li-aside {
+                width: 70px;
+                .number-of-users, .number-of-tracks {
+                    display: inline-block; width: $icon-width; height: $icon-height; background-size: cover;
+                    position: relative; top: 0px;
+                    span {
+                        position: absolute; top: -8px; right: -8px; display: block; min-width: 6px;
+                        border: 1px solid #FFFFFF; border-radius: 9px; background-color: #000000; padding: 0 3px;
+                        font-size: 10px; text-shadow: none; color: #FFFFFF; text-align: center;
+                    }
+
+                }
+                .number-of-users {background-image: url(../img/friends.svg);}
+                .number-of-tracks {background-image: url(../img/note.svg);}
+            }
         }
     }
-    .ui-icon {background-color: transparent; box-shadow: none;}
-}
-li.ui-li.ui-btn-active div.ui-li {background-color: #618CDD;}
 
-.party-overview-page {
-    ul.parties {
-        li.party {
-            -webkit-transition: height 500ms; overflow: hidden;
-            &.invisible {height: 1; border: none;}
-            &.activeparty h3 {display: none;}
-        }
-        li.party .ui-li-aside {
-            width: 70px;
-            .number-of-users, .number-of-tracks {
-                display: inline-block; width: 24px; height: 24px; background-size: cover;
-                position: relative; top: 0px;
-                span {
-                    position: absolute; top: -8px; right: -8px; display: block; min-width: 6px;
-                    border: 1px solid #FFFFFF; border-radius: 9px; background-color: #000000; padding: 0 3px;
-                    font-size: 10px; text-shadow: none; color: #FFFFFF; text-align: center;
+    .party-page {
+        ul.tracks {
+            li.playlist-empty-message { /* this can be done in 1 rule, but this offers better gradual deterioration */
+                display: none;
+                &:last-child {display: block;}
+            }
+            li.track_in_playlist {
+                div.controls {
+                    top: 20px; width: 0; height: 44px; position: absolute; -webkit-transition: width 400ms; white-space: nowrap; overflow: hidden;
+                    > div {display: inline-block;}
+                }
+                .deleted-by {display: none; }
+                &.deleted {
+                    .title, .subtitle {opacity: .2;}
+                    .artist-added {display: none;}
+                    .deleted-by {display: block;}
+                    .deleted-by:before {content: "skipped by: ";}
+                }
+                
+                .playing.icon {
+                    width: 0; height: $icon-height; position: absolute; top: 11px; right: 9px; -webkit-transition: width 200ms;
+                    background-image: url(../img/speaker-on.svg); background-size: $icon-width $icon-height;
                 }
 
+                a.ui-link-inherit {margin-right: 0; -webkit-transition: margin-right 200ms;}
+                &.now-playing {
+                    a.ui-link-inherit {margin-right: $icon-width;}
+                    .playing.icon {width: $icon-width;}
+                }
+
+                $button-width: 44px;
+                $button-margin: 12px;
+
+                &.show-controls {
+                    div.text {margin-left: 2 * $button-width + $button-margin;}
+                    div.controls {width: 2 * $button-width;}
+                }
+                &.now-playing.show-controls {
+                    div.text {margin-left: 3 * $button-width + $button-margin;}
+                    div.icon {width: 0;}
+                    div.controls {width: 3 * $button-width;}
+                }
+                &.deleted.show-controls {
+                    div.text {margin-left: $button-width + $button-margin;}
+                    div.controls {width: $button-width;}
+                }
+
+                @mixin icon-button-bg($name) {background-image: url(../img/#{$name}.png)}
+                @mixin icon-button($name) {@include icon-button-bg($name); width: $button-width; height: $button-width; background-size: $button-width $button-width;}
+
+                .delete-button  {@include icon-button(skip);}
+                &.deleted .delete-button {@include icon-button-bg(unskip); }
+                .play-button {@include icon-button(play);}
+                &.now-playing .play-button {@include icon-button-bg(restart); }
+                .pause-button {@include icon-button(pause); }
+                @media only screen and (-webkit-min-device-pixel-ratio: 2) {
+                    .delete-button {@include icon-button-bg("skip@2x")}
+                    &.deleted .delete-button {@include icon-button-bg("unskip@2x"); }
+                    .play-button {@include icon-button-bg("play@2x");}
+                    &.now-playing .play-button {@include icon-button-bg("restart@2x"); }
+                    .pause-button {@include icon-button("pause@2x"); }
+                }
             }
-            .number-of-users {background-image: url(../img/friends.svg);}
-            .number-of-tracks {background-image: url(../img/note.svg);}
+            &.paused li.track_in_playlist .playing.icon {background-image: url(../img/speaker-off.svg);}
         }
     }
-}
 
-.party-page {
-    ul.tracks {
-        li.playlist-empty-message:not(:nth-last-child(2)) {display: none;}
-        li#playlist-divider:last-child {display: none;}
-        li.track_in_playlist {
-            div.text {text-overflow: ellipsis; white-space: nowrap; overflow: hidden; margin-left: 0; -webkit-transition: margin-left 400ms;}
-            div.subtitle {font-weight: normal;}
-            div.icon {top: 25px; width: 0; height: 32px; position: absolute; background-image: url(../img/speakers.png); -webkit-transition: width 400ms;}
-            div.controls {
-                top: 20px; width: 0; height: 44px; position: absolute; -webkit-transition: width 400ms; white-space: nowrap; overflow: hidden;
-                > div {display: inline-block;}
+    .add-song-page {
+        ul.search-results {
+            margin-top: 0;
+            > li > div {
+                text-overflow: ellipsis; white-space: nowrap; overflow: hidden; 
+                &.artist, &.album {font-weight: normal; font-size: 12px; color: 0x555555; display: inline-block;}
+                &.album:before {content: "- ";}
             }
-            &.deleted {
-                div.title, div.subtitle {opacity: .2;}
-                div.deleted-by {position: absolute; color: red; top: 25px; padding-left: 5px; text-shadow: white 1px 1px 2px;}
-                div.deleted-by:before {content: "skipped by: ";}
-            }
-
-            $button-width: 44px;
-            $button-margin: 12px;
-
-            &.now-playing {
-                background-image: -webkit-linear-gradient(top, #CCCCCC, #BEBEBE);
-                div.text {margin-left: 45px;}
-                div.icon {width: 32px;}
-            }
-            &.show-controls {
-                div.text {margin-left: 2 * $button-width + $button-margin;}
-                div.controls {width: 2 * $button-width;}
-            }
-            &.now-playing.show-controls {
-                div.text {margin-left: 3 * $button-width + $button-margin;}
-                div.icon {width: 0;}
-                div.controls {width: 3 * $button-width;}
-            }
-            &.deleted.show-controls {
-                div.text {margin-left: $button-width + $button-margin;}
-                div.controls {width: $button-width;}
-            }
-
-            @mixin icon-button-bg($name) {background-image: url(../img/#{$name}.png)}
-            @mixin icon-button($name) {@include icon-button-bg($name); width: $button-width; height: $button-width; background-size: $button-width $button-width;}
-
-            .delete-button  {@include icon-button(skip);}
-            &.deleted .delete-button {@include icon-button-bg(unskip); }
-            .play-button {@include icon-button(play);}
-            &.now-playing .play-button {@include icon-button-bg(restart); }
-            .pause-button {@include icon-button(pause); }
-            @media only screen and (-webkit-min-device-pixel-ratio: 2) {
-                .delete-button {@include icon-button-bg("skip@2x")}
-                &.deleted .delete-button {@include icon-button-bg("unskip@2x"); }
-                .play-button {@include icon-button-bg("play@2x");}
-                &.now-playing .play-button {@include icon-button-bg("restart@2x"); }
-                .pause-button {@include icon-button("pause@2x"); }
-            }
+            &.loading { background: url(../img/spinner.gif) no-repeat center; height: 100px; }
         }
-        &.paused div.icon {background-position: -32px;}
     }
-}
 
-.add-song-page {
-    ul.search-results {
-        margin-top: 0;
-        > li > div {
-            text-overflow: ellipsis; white-space: nowrap; overflow: hidden; 
-            &.artist, &.album {font-weight: normal; font-size: 12px; color: 0x555555; display: inline-block;}
-            &.album:before {content: "- ";}
-        }
-        &.loading { background: url(../img/spinner.gif) no-repeat center; height: 100px; }
+    .pm-popup {
+        max-width: 350px; padding: 20px; text-align: center;
+        p {text-align: left;}
+        a {margin-top: 20px; max-width: 250px; display: inline-block;}
     }
-}
-
-.pm-popup {
-    max-width: 350px; padding: 20px; text-align: center;
-    p {text-align: left;}
-    a {margin-top: 20px; max-width: 250px; display: inline-block;}
 }

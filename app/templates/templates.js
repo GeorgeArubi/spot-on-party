@@ -98,7 +98,7 @@ return __p;
 PM.templates["party-overview-page"]=function(obj){
 var __t,__p='',__j=Array.prototype.join,print=function(){__p+=__j.call(arguments,'');};
 with(obj||{}){
-__p+='<div data-role="header">\n    <h1>All parties</h1>\n    <button id="logout">logout</button>\n</div>\n\n<div data-role="content">\n    <ul class="parties" data-role="listview">\n    </ul>\n</div>\n';
+__p+='<div data-role="header">\n    <h1>Parties</h1>\n    <button id="logout">logout</button>\n</div>\n\n<div data-role="content">\n    <ul class="parties" data-role="listview">\n    </ul>\n</div>\n';
 }
 return __p;
 };
@@ -107,24 +107,22 @@ var __t,__p='',__j=Array.prototype.join,print=function(){__p+=__j.call(arguments
 with(obj||{}){
 __p+='<div data-role="header">\n    <h1>'+
 ((__t=( party.get("name") ))==null?'':_.escape(__t))+
-'</h1>\n    <a href="#partyoverview" data-role="button" data-icon="arrow-l" data-direction="reverse">All parties</a>\n    <a href="#activeparty_'+
+'</h1>\n    <a href="#partyoverview" data-role="button" data-icon="arrow-l" data-direction="reverse">parties</a>\n    <a href="#activeparty_'+
 ((__t=( party.id ))==null?'':_.escape(__t))+
-'_addsong" data-transition="slidedown" data-role="button">Add song</a>\n</div>\n\n<div data-role="content">\n    <ul class="tracks" data-role="listview">\n        <li class="playlist-empty-message">\n            <div>The playlist is empty, you can add songs with the button in the right top</div>\n        </li>\n        <li data-role="list-divider" id="playlist-divider">Playlist</li> \n    </ul>\n</div>\n\n';
+'_addsong" data-transition="slidedown" data-role="button" data-icon="plus" data-iconpos="notext">Add song</a>\n</div>\n\n<div data-role="content">\n    <ul class="tracks" data-role="listview">\n        <li class="playlist-empty-message">\n            <div>The playlist is empty, you can add songs with the button in the right top</div>\n        </li>\n    </ul>\n</div>\n\n';
 }
 return __p;
 };
 PM.templates["playlist-item"]=function(obj){
 var __t,__p='',__j=Array.prototype.join,print=function(){__p+=__j.call(arguments,'');};
 with(obj||{}){
-__p+='<li class="track_in_playlist">\n    <div class="icon"></div>\n    <div class="controls">\n        <div class="delete-button"></div><div class="play-button"></div><div class="pause-button"></div>\n    </div>\n    <div class="text title">'+
+__p+='<li class="track_in_playlist" data-icon="false">\n    <div class="controls">\n        <div class="delete-button"></div><div class="play-button"></div><div class="pause-button"></div>\n    </div>\n    <a> <!-- needs to be "a" because else jqm applies different borders etc -->\n        <h2 class="title">'+
 ((__t=( track.getHtmlLazyLoad("name") ))==null?'':__t)+
-'</div>\n    <div class="text subtitle">'+
+'</h2>\n        <h3 class="subtitle artist-added">'+
 ((__t=( track.getHtmlLazyLoad("artist") ))==null?'':__t)+
 ' &mdash; '+
-((__t=( track.getHtmlLazyLoad("album") ))==null?'':__t)+
-'</div>\n    <div class="text subtitle">'+
 ((__t=( user.getHtmlLazyLoad("name") ))==null?'':__t)+
-'</div>\n    <div class="text deleted-by"></div>\n</li>\n';
+'</h3>\n        <h2 class="subtitle deleted-by"></h2>\n    </a>\n    <div class="playing icon"></div>\n</li>\n';
 }
 return __p;
 };
