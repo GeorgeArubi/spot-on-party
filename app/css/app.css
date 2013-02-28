@@ -110,20 +110,23 @@
       /* W3C */ }
       #partymode .party-page ul.tracks li.track-in-playlist div.controls > div {
         display: inline-block;
-        margin-top: 12px;
+        margin-top: 2px;
+        padding: 10px;
         width: 24px;
         height: 24px;
         background-image: url(../img/sprite@2x.png);
         background-size: 48px 48px;
         background-position-y: 24px;
-        margin-left: 36px; }
+        background-origin: content-box;
+        background-clip: content-box;
+        margin-left: 24px; }
         #partymode .party-page ul.tracks li.track-in-playlist div.controls > div:not(:active) {
-          -webkit-transition: background-position-y 0 linear 300ms;
+          -webkit-transition: background-position-y 0 linear 600ms;
           background-position-y: 0; }
         #partymode .party-page ul.tracks li.track-in-playlist div.controls > div.pause-button {
           background-position-x: -24px;
           display: none;
-          webkit-transition: background-position-x 200ms ease 300ms; }
+          webkit-transition: background-position-x 200ms ease 600ms; }
     #partymode .party-page ul.tracks li.track-in-playlist .entry {
       position: absolute;
       left: 0;

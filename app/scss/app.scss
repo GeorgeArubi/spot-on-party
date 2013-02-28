@@ -81,14 +81,14 @@
                     background: linear-gradient(to bottom, #646464 0%,#717171 10%,#313131 100%); /* W3C */
 
                     > div {
-                        display: inline-block; margin-top: 12px;
+                        display: inline-block; margin-top: 2px; padding: 10px;
                         width: $icon-width; height: $icon-height;
                         background-image: url(../img/sprite@2x.png); background-size: $icon-width * 2 $icon-height * 2;
-                        background-position-y: $icon-height;
-                        margin-left: 1.5 * $icon-width;
-                        &:not(:active) { -webkit-transition: background-position-y 0 linear $entry-slide-time; background-position-y: 0;}
+                        background-position-y: $icon-height; background-origin: content-box; background-clip: content-box;
+                        margin-left: $icon-width;
+                        &:not(:active) { -webkit-transition: background-position-y 0 linear 2 * $entry-slide-time; background-position-y: 0;}
                         &.play-button {}
-                        &.pause-button {background-position-x: -$icon-width; display: none; webkit-transition: background-position-x 200ms ease $entry-slide-time;}
+                        &.pause-button {background-position-x: -$icon-width; display: none; webkit-transition: background-position-x 200ms ease 2 * $entry-slide-time;}
                     }
                 }
                 .entry {
