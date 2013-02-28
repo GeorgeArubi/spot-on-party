@@ -1,11 +1,13 @@
-<li class="track_in_playlist" data-icon="false">
+<li class="track-in-playlist" data-icon="false">
     <div class="controls">
         <div class="delete-button"></div><div class="play-button"></div><div class="pause-button"></div>
     </div>
-    <a> <!-- needs to be "a" because else jqm applies different borders etc -->
-        <h2 class="title"><%= track.getHtmlLazyLoad("name") %></h2>
-        <h3 class="subtitle artist-added"><%= track.getHtmlLazyLoad("artist") %> &mdash; <%= user.getHtmlLazyLoad("name") %></h3>
-        <h2 class="subtitle deleted-by"></h2>
+    <a class="entry"> <!-- needs to be "a" because else jqm applies different borders etc -->
+        <div class="entry-container">
+            <h2 class="title"><%= track.getHtmlLazyLoad("name") %></h2>
+            <h3 class="subtitle artist-added"><%= track.getHtmlLazyLoad("artist") %> &mdash; <%= user.getHtmlLazyLoad("name") %></h3>
+            <h2 class="subtitle deleted-by"></h2>
+        </div>
+        <div class="playing icon"></div>
     </a>
-    <div class="playing icon"></div>
 </li>

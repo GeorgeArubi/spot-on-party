@@ -10,29 +10,41 @@
   #partymode .ui-popup-screen.in {
     height: 10000px;
     position: fixed; }
-  #partymode .ui-li {
-    height: 49px;
-    background-color: #ECEBE8;
-    border: 0 0 1px solid #D2D2D2; }
-    #partymode .ui-li a.ui-link-inherit {
-      padding-top: 5px; }
-      #partymode .ui-li a.ui-link-inherit h2 {
+  #partymode li.ui-li {
+    border: none; }
+    #partymode li.ui-li .entry {
+      background-color: #ECEBE8;
+      width: 100%;
+      height: 100%; }
+    #partymode li.ui-li .entry-container {
+      padding: 6px 15px 0 15px; }
+      #partymode li.ui-li .entry-container h2 {
         margin-top: 0;
         margin-bottom: 0;
         color: black;
         text-shadow: none; }
-      #partymode .ui-li a.ui-link-inherit h3 {
+      #partymode li.ui-li .entry-container h3 {
         margin-top: 1px;
         color: #858585;
         text-shadow: none;
         font-weight: normal;
         text-shadow: none;
         font-size: 14px; }
-    #partymode .ui-li .ui-icon {
+    #partymode li.ui-li .ui-icon {
       background-color: transparent;
       box-shadow: none; }
-  #partymode li.ui-li.ui-btn-active div.ui-li {
-    background-color: #618CDD; }
+    #partymode li.ui-li div.ui-li {
+      height: 49px;
+      border-width: 0 0 1px;
+      border-style: solid;
+      border-color: #D2D2D2;
+      overflow: hidden; }
+      #partymode li.ui-li div.ui-li .ui-btn-text {
+        height: 100%; }
+    #partymode li.ui-li.ui-btn-active div.ui-li {
+      background-color: #618CDD; }
+    #partymode li.ui-li a.ui-link-inherit {
+      padding: 0; }
   #partymode .party-overview-page ul.parties li.party {
     -webkit-transition: height 500ms;
     overflow: hidden; }
@@ -75,91 +87,82 @@
     display: none; }
     #partymode .party-page ul.tracks li.playlist-empty-message:last-child {
       display: block; }
-  #partymode .party-page ul.tracks li.track_in_playlist div.controls {
-    top: 20px;
-    width: 0;
-    height: 44px;
-    position: absolute;
-    -webkit-transition: width 400ms;
-    white-space: nowrap;
-    overflow: hidden; }
-    #partymode .party-page ul.tracks li.track_in_playlist div.controls > div {
+  #partymode .party-page ul.tracks li.track-in-playlist {
+    position: relative;
+    top: 0; }
+    #partymode .party-page ul.tracks li.track-in-playlist div.controls {
+      height: 47px;
+      width: 100%;
+      border-width: 1px;
+      border-style: solid none;
+      border-color: #424242 black #020202;
+      background: #646464;
+      /* Old browsers */
+      background: -moz-linear-gradient(top, #646464 0%, #717171 10%, #313131 100%);
+      /* FF3.6+ */
+      background: -webkit-linear-gradient(top, #646464 0%, #717171 10%, #313131 100%);
+      /* Chrome10+,Safari5.1+ */
+      background: -o-linear-gradient(top, #646464 0%, #717171 10%, #313131 100%);
+      /* Opera 11.10+ */
+      background: -ms-linear-gradient(top, #646464 0%, #717171 10%, #313131 100%);
+      /* IE10+ */
+      background: linear-gradient(to bottom, #646464 0%, #717171 10%, #313131 100%);
+      /* W3C */ }
+      #partymode .party-page ul.tracks li.track-in-playlist div.controls > div {
+        display: inline-block;
+        margin-top: 12px;
+        width: 24px;
+        height: 24px;
+        background-image: url(../img/sprite@2x.png);
+        background-size: 48px 48px;
+        background-position-y: 24px;
+        margin-left: 36px; }
+        #partymode .party-page ul.tracks li.track-in-playlist div.controls > div:not(:active) {
+          -webkit-transition: background-position-y 0 linear 300ms;
+          background-position-y: 0; }
+        #partymode .party-page ul.tracks li.track-in-playlist div.controls > div.pause-button {
+          background-position-x: -24px;
+          display: none;
+          webkit-transition: background-position-x 200ms ease 300ms; }
+    #partymode .party-page ul.tracks li.track-in-playlist .entry {
+      position: absolute;
+      left: 0;
+      top: 0;
+      -webkit-transition: left 300ms; }
+    #partymode .party-page ul.tracks li.track-in-playlist.show-controls .entry {
+      left: 100%; }
+    #partymode .party-page ul.tracks li.track-in-playlist .deleted-by {
+      display: none; }
+    #partymode .party-page ul.tracks li.track-in-playlist.deleted .title, #partymode .party-page ul.tracks li.track-in-playlist.deleted .subtitle {
+      opacity: .2; }
+    #partymode .party-page ul.tracks li.track-in-playlist.deleted .artist-added {
+      display: none; }
+    #partymode .party-page ul.tracks li.track-in-playlist.deleted .deleted-by {
+      display: block; }
+    #partymode .party-page ul.tracks li.track-in-playlist.deleted .deleted-by:before {
+      content: "skipped by: "; }
+    #partymode .party-page ul.tracks li.track-in-playlist .playing.icon {
+      width: 0;
+      height: 24px;
+      position: absolute;
+      top: 11px;
+      right: 9px;
+      -webkit-transition: width 200ms;
+      background-image: url(../img/speaker-on.svg);
+      background-size: 24px 24px; }
+    #partymode .party-page ul.tracks li.track-in-playlist .entry-container {
+      margin-right: 0;
+      -webkit-transition: margin-right 200ms; }
+    #partymode .party-page ul.tracks li.track-in-playlist.now-playing .entry-container {
+      margin-right: 24px; }
+    #partymode .party-page ul.tracks li.track-in-playlist.now-playing .playing.icon {
+      width: 24px; }
+    #partymode .party-page ul.tracks li.track-in-playlist.now-playing div.controls > div.pause-button {
       display: inline-block; }
-  #partymode .party-page ul.tracks li.track_in_playlist .deleted-by {
-    display: none; }
-  #partymode .party-page ul.tracks li.track_in_playlist.deleted .title, #partymode .party-page ul.tracks li.track_in_playlist.deleted .subtitle {
-    opacity: .2; }
-  #partymode .party-page ul.tracks li.track_in_playlist.deleted .artist-added {
-    display: none; }
-  #partymode .party-page ul.tracks li.track_in_playlist.deleted .deleted-by {
-    display: block; }
-  #partymode .party-page ul.tracks li.track_in_playlist.deleted .deleted-by:before {
-    content: "skipped by: "; }
-  #partymode .party-page ul.tracks li.track_in_playlist .playing.icon {
-    width: 0;
-    height: 24px;
-    position: absolute;
-    top: 11px;
-    right: 9px;
-    -webkit-transition: width 200ms;
-    background-image: url(../img/speaker-on.svg);
-    background-size: 24px 24px; }
-  #partymode .party-page ul.tracks li.track_in_playlist a.ui-link-inherit {
-    margin-right: 0;
-    -webkit-transition: margin-right 200ms; }
-  #partymode .party-page ul.tracks li.track_in_playlist.now-playing a.ui-link-inherit {
-    margin-right: 24px; }
-  #partymode .party-page ul.tracks li.track_in_playlist.now-playing .playing.icon {
-    width: 24px; }
-  #partymode .party-page ul.tracks li.track_in_playlist.show-controls div.text {
-    margin-left: 100px; }
-  #partymode .party-page ul.tracks li.track_in_playlist.show-controls div.controls {
-    width: 88px; }
-  #partymode .party-page ul.tracks li.track_in_playlist.now-playing.show-controls div.text {
-    margin-left: 144px; }
-  #partymode .party-page ul.tracks li.track_in_playlist.now-playing.show-controls div.icon {
-    width: 0; }
-  #partymode .party-page ul.tracks li.track_in_playlist.now-playing.show-controls div.controls {
-    width: 132px; }
-  #partymode .party-page ul.tracks li.track_in_playlist.deleted.show-controls div.text {
-    margin-left: 56px; }
-  #partymode .party-page ul.tracks li.track_in_playlist.deleted.show-controls div.controls {
-    width: 44px; }
-  #partymode .party-page ul.tracks li.track_in_playlist .delete-button {
-    background-image: url(../img/skip.png);
-    width: 44px;
-    height: 44px;
-    background-size: 44px 44px; }
-  #partymode .party-page ul.tracks li.track_in_playlist.deleted .delete-button {
-    background-image: url(../img/unskip.png); }
-  #partymode .party-page ul.tracks li.track_in_playlist .play-button {
-    background-image: url(../img/play.png);
-    width: 44px;
-    height: 44px;
-    background-size: 44px 44px; }
-  #partymode .party-page ul.tracks li.track_in_playlist.now-playing .play-button {
-    background-image: url(../img/restart.png); }
-  #partymode .party-page ul.tracks li.track_in_playlist .pause-button {
-    background-image: url(../img/pause.png);
-    width: 44px;
-    height: 44px;
-    background-size: 44px 44px; }
-  @media only screen and (-webkit-min-device-pixel-ratio: 2) {
-    #partymode .party-page ul.tracks li.track_in_playlist .delete-button {
-      background-image: url(../img/skip@2x.png); }
-    #partymode .party-page ul.tracks li.track_in_playlist.deleted .delete-button {
-      background-image: url(../img/unskip@2x.png); }
-    #partymode .party-page ul.tracks li.track_in_playlist .play-button {
-      background-image: url(../img/play@2x.png); }
-    #partymode .party-page ul.tracks li.track_in_playlist.now-playing .play-button {
-      background-image: url(../img/restart@2x.png); }
-    #partymode .party-page ul.tracks li.track_in_playlist .pause-button {
-      background-image: url(../img/pause@2x.png);
-      width: 44px;
-      height: 44px;
-      background-size: 44px 44px; } }
-  #partymode .party-page ul.tracks.paused li.track_in_playlist .playing.icon {
+  #partymode .party-page ul.tracks.paused li.track-in-playlist .playing.icon {
     background-image: url(../img/speaker-off.svg); }
+  #partymode .party-page ul.tracks.paused li.track-in-playlist div.controls div.pause-button {
+    background-position-x: 0; }
   #partymode .add-song-page ul.search-results {
     margin-top: 0; }
     #partymode .add-song-page ul.search-results > li > div {

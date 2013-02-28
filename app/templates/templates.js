@@ -68,7 +68,7 @@ __p+=' activeparty';
  } 
 __p+=' party_'+
 ((__t=( party.id ))==null?'':_.escape(__t))+
-'" data-icon="arrow-r ui-icon-alt">\n    <a href="#';
+'" data-icon="arrow-r ui-icon-alt">\n    <a class="entry" href="#';
  if (active) {
 __p+='active';
 } else {
@@ -76,15 +76,15 @@ __p+='old';
  } 
 __p+='party_'+
 ((__t=( encodeURIComponent(party.id) ))==null?'':_.escape(__t))+
-'">\n        <h2 class="party-name">'+
+'">\n        <div class="entry-container">\n            <h2 class="party-name">'+
 ((__t=( party.get("name") ))==null?'':_.escape(__t))+
-'</h2>\n        <h3 class="party-when">'+
+'</h2>\n            <h3 class="party-when">'+
 ((__t=( clutils.pastDateText(party.get("last_updated")) ))==null?'':_.escape(__t))+
-'</h3>\n        <span class="ui-li-aside">\n            <span class="number-of-users"><span>'+
+'</h3>\n            <span class="ui-li-aside">\n                <span class="number-of-users"><span>'+
 ((__t=( party.getMembersInPartyOrderedByActive().length ))==null?'':_.escape(__t))+
-'</span></span>\n            <span class="number-of-tracks"><span>'+
+'</span></span>\n                <span class="number-of-tracks"><span>'+
 ((__t=( party.getNotDeletedTracksInPlaylist().length ))==null?'':_.escape(__t))+
-'</span></span>\n        </span>\n    </a>\n</li>\n';
+'</span></span>\n            </span>\n        </div>\n    </a>\n</li>\n';
 }
 return __p;
 };
@@ -116,13 +116,13 @@ return __p;
 PM.templates["playlist-item"]=function(obj){
 var __t,__p='',__j=Array.prototype.join,print=function(){__p+=__j.call(arguments,'');};
 with(obj||{}){
-__p+='<li class="track_in_playlist" data-icon="false">\n    <div class="controls">\n        <div class="delete-button"></div><div class="play-button"></div><div class="pause-button"></div>\n    </div>\n    <a> <!-- needs to be "a" because else jqm applies different borders etc -->\n        <h2 class="title">'+
+__p+='<li class="track-in-playlist" data-icon="false">\n    <div class="controls">\n        <div class="delete-button"></div><div class="play-button"></div><div class="pause-button"></div>\n    </div>\n    <a class="entry"> <!-- needs to be "a" because else jqm applies different borders etc -->\n        <div class="entry-container">\n            <h2 class="title">'+
 ((__t=( track.getHtmlLazyLoad("name") ))==null?'':__t)+
-'</h2>\n        <h3 class="subtitle artist-added">'+
+'</h2>\n            <h3 class="subtitle artist-added">'+
 ((__t=( track.getHtmlLazyLoad("artist") ))==null?'':__t)+
 ' &mdash; '+
 ((__t=( user.getHtmlLazyLoad("name") ))==null?'':__t)+
-'</h3>\n        <h2 class="subtitle deleted-by"></h2>\n    </a>\n    <div class="playing icon"></div>\n</li>\n';
+'</h3>\n            <h2 class="subtitle deleted-by"></h2>\n        </div>\n        <div class="playing icon"></div>\n    </a>\n</li>\n';
 }
 return __p;
 };

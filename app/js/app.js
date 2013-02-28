@@ -237,7 +237,7 @@ window.PM.app = window.PM.app || {};
         className: 'party-page',
 
         events: {
-            "click ul.tracks > li.track_in_playlist": "showControls",
+            "click ul.tracks > li.track-in-playlist": "showControls",
             "click .delete-button": "toggleDeleteTrack",
             "click .play-button": "playTrack",
             "click .pause-button": "togglePausePlay",
@@ -281,7 +281,7 @@ window.PM.app = window.PM.app || {};
         playTrack: _.debounce(function (event) {
             var that = this;
             var $target = $(event.currentTarget);
-            var track_in_playlist = $($target.parents("li.track_in_playlist")).prop("track_in_playlist");
+            var track_in_playlist = $($target.parents("li.track-in-playlist")).prop("track-in-playlist");
             var index = that.party.get("playlist").indexOf(track_in_playlist);
             var action = PM.models.Action.createAction(PM.app.loggedin_user, that.party, "PlayTrack", {position: index});
             PM.domain.PartyNodeDomain.proposeAction(action.serialize());
@@ -290,7 +290,7 @@ window.PM.app = window.PM.app || {};
         toggleDeleteTrack: _.debounce(function (event) {
             var that = this;
             var $target = $(event.currentTarget);
-            var track_in_playlist = $($target.parents("li.track_in_playlist")).prop("track_in_playlist");
+            var track_in_playlist = $($target.parents("li.track-in-playlist")).prop("track-in-playlist");
             var index = that.party.get("playlist").indexOf(track_in_playlist);
             var type = track_in_playlist.isDeleted() ? "TrackUnRemove" : "TrackRemove";
             var action = PM.models.Action.createAction(PM.app.loggedin_user, that.party, type, {position: index});
@@ -301,7 +301,7 @@ window.PM.app = window.PM.app || {};
             var that = this;
             var target = event && event.currentTarget;
 
-            var track_els = that.$("ul.tracks > li.track_in_playlist");
+            var track_els = that.$("ul.tracks > li.track-in-playlist");
             _.each(track_els, function (element) {
                 var $el = $(element);
                 if (element === target) {
@@ -321,7 +321,7 @@ window.PM.app = window.PM.app || {};
         onPlayStatusChange: function () {
             var that = this;
             var current_index = that.party.get("current_playlist_index");
-            var track_els = that.$("ul.tracks > li.track_in_playlist");
+            var track_els = that.$("ul.tracks > li.track-in-playlist");
             _.each(track_els, function (element, index) {
                 var $el = $(element);
                 $el.toggleClass("now-playing", index === current_index);
@@ -334,13 +334,13 @@ window.PM.app = window.PM.app || {};
             var user = track_in_playlist.getUser();
             var deleted_by_user = track_in_playlist.getDeletedByUser();
             var el = $(getTemplate("playlist-item")({track: track, track_in_playlist: track_in_playlist, user: user, deleted_by_user: deleted_by_user}));
-            el.prop({track_in_playlist: track_in_playlist});
+            el.prop({"track-in-playlist": track_in_playlist});
             return el;
         },
 
         updateTrackInPlaylistElement: function (element) {
             var $element = $(element);
-            var track_in_playlist = $element.prop("track_in_playlist");
+            var track_in_playlist = $element.prop("track-in-playlist");
             $element.toggleClass("deleted", track_in_playlist.isDeleted());
             $(".deleted-by", $element).html(track_in_playlist.isDeleted() ? track_in_playlist.getDeletedByUser().getHtmlLazyLoad("name") : "");
         },
@@ -356,9 +356,9 @@ window.PM.app = window.PM.app || {};
 
         onChangePlaylistItem: function (track_in_playlist) {
             var that = this;
-            var track_els = that.$("ul.tracks > li.track_in_playlist");
+            var track_els = that.$("ul.tracks > li.track-in-playlist");
             _.each(track_els, function (el) {
-                if ($(el).prop("track_in_playlist") === track_in_playlist) {
+                if ($(el).prop("track-in-playlist") === track_in_playlist) {
                     that.updateTrackInPlaylistElement(el);
                 }
             });
@@ -367,7 +367,7 @@ window.PM.app = window.PM.app || {};
         onResetPlaylist: function () {
             var that = this;
             var tracks_in_playlist = that.party.get("playlist").toArray();
-            var track_els = that.$("ul.tracks > li.track_in_playlist");
+            var track_els = that.$("ul.tracks > li.track-in-playlist");
             var i;
             for (i = 0; i < tracks_in_playlist.length; i++) {
                 while (track_els[i] && track_els[i].track_in_playlist !== tracks_in_playlist[i]) {
