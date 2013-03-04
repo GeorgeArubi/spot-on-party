@@ -10,6 +10,9 @@
   #partymode .ui-popup-screen.in {
     height: 10000px;
     position: fixed; }
+  #partymode .ui-header .ui-title {
+    margin-left: 6em;
+    margin-right: 2em; }
   #partymode li.ui-li {
     border: none; }
     #partymode li.ui-li .entry {
@@ -65,9 +68,10 @@
       position: relative;
       top: 0px; }
       #partymode .party-overview-page ul.parties li.party .ui-li-aside .number-of-users span, #partymode .party-overview-page ul.parties li.party .ui-li-aside .number-of-tracks span {
+        margin-right: -50%;
         position: absolute;
-        top: -8px;
-        right: -8px;
+        top: -7px;
+        right: 7px;
         display: block;
         min-width: 6px;
         border: 1px solid #FFFFFF;
@@ -115,25 +119,31 @@
         width: 24px;
         height: 24px;
         background-image: url(../img/sprite@2x.png);
-        background-size: 48px 48px;
+        background-size: 120px 48px;
         background-position-y: 24px;
         background-origin: content-box;
         background-clip: content-box;
-        margin-left: 24px; }
+        margin-left: 24px;
+        -webkit-transition: background-position-x 0 ease 600ms;
+        /* add a delay when the button changes, so that it will change when the slider is closed (so this is no transition, only delay) */
+        /* delay when active button is released, so that it stays "pressed" a bit longer */ }
         #partymode .party-page ul.tracks li.track-in-playlist div.controls > div:not(:active) {
           -webkit-transition: background-position-y 0 linear 600ms;
           background-position-y: 0; }
+        #partymode .party-page ul.tracks li.track-in-playlist div.controls > div.play-button {
+          background-position-x: 0; }
         #partymode .party-page ul.tracks li.track-in-playlist div.controls > div.pause-button {
           background-position-x: -24px;
-          display: none;
-          webkit-transition: background-position-x 200ms ease 600ms; }
+          display: none; }
+        #partymode .party-page ul.tracks li.track-in-playlist div.controls > div.delete-button {
+          background-position-x: -72px; }
     #partymode .party-page ul.tracks li.track-in-playlist .entry {
       position: absolute;
       left: 0;
       top: 0;
       -webkit-transition: left 300ms; }
     #partymode .party-page ul.tracks li.track-in-playlist.show-controls .entry {
-      left: 100%; }
+      left: 80%; }
     #partymode .party-page ul.tracks li.track-in-playlist .deleted-by {
       display: none; }
     #partymode .party-page ul.tracks li.track-in-playlist.deleted .title, #partymode .party-page ul.tracks li.track-in-playlist.deleted .subtitle {
@@ -144,6 +154,11 @@
       display: block; }
     #partymode .party-page ul.tracks li.track-in-playlist.deleted .deleted-by:before {
       content: "skipped by: "; }
+    #partymode .party-page ul.tracks li.track-in-playlist.deleted div.controls > div {
+      display: none; }
+      #partymode .party-page ul.tracks li.track-in-playlist.deleted div.controls > div.delete-button {
+        display: inline-block;
+        background-position-x: -96px; }
     #partymode .party-page ul.tracks li.track-in-playlist .playing.icon {
       width: 0;
       height: 24px;
@@ -160,6 +175,8 @@
       margin-right: 24px; }
     #partymode .party-page ul.tracks li.track-in-playlist.now-playing .playing.icon {
       width: 24px; }
+    #partymode .party-page ul.tracks li.track-in-playlist.now-playing div.controls > div.play-button {
+      background-position-x: -48px; }
     #partymode .party-page ul.tracks li.track-in-playlist.now-playing div.controls > div.pause-button {
       display: inline-block; }
   #partymode .party-page ul.tracks.paused li.track-in-playlist .playing.icon {

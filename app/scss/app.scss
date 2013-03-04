@@ -1,6 +1,11 @@
 #partymode {
     $icon-width: 24px;
     $icon-height: 24px;
+    $sprite-play-offset: 0;
+    $sprite-pause-offset: -$icon-width;
+    $sprite-restart-offset: 2 * -$icon-width;
+    $sprite-delete-offset: 3 * -$icon-width;
+    $sprite-undelete-offset: 4 * -$icon-width;
     min-height: 120%;
 
     .login-page {
@@ -11,6 +16,10 @@
     .ui-popup-screen.in {
         height: 10000px;
         position: fixed;
+    }
+
+    .ui-header .ui-title {
+        margin-left: 6em; margin-right: 2em;
     }
 
     li.ui-li {
@@ -49,7 +58,8 @@
                     display: inline-block; width: $icon-width; height: $icon-height; background-size: cover;
                     position: relative; top: 0px;
                     span {
-                        position: absolute; top: -8px; right: -8px; display: block; min-width: 6px;
+                        margin-right: -50%;
+                        position: absolute; top: -7px; right: 7px; display: block; min-width: 6px;
                         border: 1px solid #FFFFFF; border-radius: 9px; background-color: #000000; padding: 0 3px;
                         font-size: 10px; text-shadow: none; color: #FFFFFF; text-align: center;
                     }
@@ -83,12 +93,14 @@
                     > div {
                         display: inline-block; margin-top: 2px; padding: 10px;
                         width: $icon-width; height: $icon-height;
-                        background-image: url(../img/sprite@2x.png); background-size: $icon-width * 2 $icon-height * 2;
+                        background-image: url(../img/sprite@2x.png); background-size: $icon-width * 5 $icon-height * 2;
                         background-position-y: $icon-height; background-origin: content-box; background-clip: content-box;
                         margin-left: $icon-width;
-                        &:not(:active) { -webkit-transition: background-position-y 0 linear 2 * $entry-slide-time; background-position-y: 0;}
-                        &.play-button {}
-                        &.pause-button {background-position-x: -$icon-width; display: none; webkit-transition: background-position-x 200ms ease 2 * $entry-slide-time;}
+                        -webkit-transition: background-position-x 0 ease 2 * $entry-slide-time; /* add a delay when the button changes, so that it will change when the slider is closed (so this is no transition, only delay) */
+                        &:not(:active) { -webkit-transition: background-position-y 0 linear 2 * $entry-slide-time; background-position-y: 0;} /* delay when active button is released, so that it stays "pressed" a bit longer */
+                        &.play-button {background-position-x: $sprite-play-offset;}
+                        &.pause-button {background-position-x: $sprite-pause-offset; display: none; }
+                        &.delete-button {background-position-x: $sprite-delete-offset; }
                     }
                 }
                 .entry {
@@ -96,7 +108,7 @@
                     left: 0; top: 0;
                     -webkit-transition: left $entry-slide-time;
                 }
-                &.show-controls .entry {left: 100%;}
+                &.show-controls .entry {left: 80%;}
 
 
                 .deleted-by {display: none; }
@@ -105,6 +117,10 @@
                     .artist-added {display: none;}
                     .deleted-by {display: block;}
                     .deleted-by:before {content: "skipped by: ";}
+                    div.controls > div {
+                        display: none;
+                        &.delete-button {display:inline-block; background-position-x: $sprite-undelete-offset;}
+                    }
                 }
                 
                 .playing.icon {
@@ -116,12 +132,13 @@
                 &.now-playing {
                     .entry-container {margin-right: $icon-width;}
                     .playing.icon {width: $icon-width;}
+                    div.controls > div.play-button {background-position-x: $sprite-restart-offset;}
                     div.controls > div.pause-button {display: inline-block;}
                 }
             }
             &.paused li.track-in-playlist {
                  .playing.icon {background-image: url(../img/speaker-off.svg);}
-                 div.controls div.pause-button {background-position-x: 0;}
+                 div.controls div.pause-button {background-position-x: $sprite-play-offset;}
             }
         }
     }
