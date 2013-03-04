@@ -24,15 +24,13 @@
 
     <body id="partymode">
         <div id="fb-root"></div>
+        <div id="partyoverview" data-role="page">partyoverview</div>
         <script>
             var firsttarget = document.location.hash;
             if (/^#[a-z0-9_]+$/i.test(firsttarget)) {
                 firsttarget = firsttarget.substr(1);
-            } else {
-                /* both for setting the default and security */
-                firsttarget = "partyoverview";
+                document.write('<div id="' + firsttarget + '" data-role="page">' + firsttarget + '_default<\/div>');
             }
-            document.write('<div id="' + firsttarget + '" data-role="page">' + firsttarget + '_default<\/div>');
         </script>
         <script src="shared/config.js"></script>
         <script src="shared/AbstractFacebookDomain.js"></script>
