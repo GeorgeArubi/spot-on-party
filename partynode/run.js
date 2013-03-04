@@ -23,6 +23,10 @@
 
     server.listen(8081);
 
+    server.on('connection', function () {
+        console.log("new connection");
+    });
+
     app.get('/', function (req, res) {
         res.sendfile(__dirname + '/index.html');
     });
