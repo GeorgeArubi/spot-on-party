@@ -10,9 +10,19 @@
   #partymode .ui-popup-screen.in {
     height: 10000px;
     position: fixed; }
-  #partymode .ui-header .ui-title {
-    margin-left: 6em;
-    margin-right: 2em; }
+  #partymode .ui-btn-active {
+    background: #646464;
+    /* Old browsers */
+    background: -moz-linear-gradient(top, #505050 0%, #313131 100%);
+    /* FF3.6+ */
+    background: -webkit-linear-gradient(top, #505050 0%, #313131 100%);
+    /* Chrome10+,Safari5.1+ */
+    background: -o-linear-gradient(top, #505050 0%, #313131 100%);
+    /* Opera 11.10+ */
+    background: -ms-linear-gradient(top, #505050 0%, #313131 100%);
+    /* IE10+ */
+    background: linear-gradient(to bottom, #505050 0%, #313131 100%);
+    /* W3C */ }
   #partymode li.ui-li {
     border: none; }
     #partymode li.ui-li .entry {
@@ -86,6 +96,9 @@
       background-image: url(../img/friends.svg); }
     #partymode .party-overview-page ul.parties li.party .ui-li-aside .number-of-tracks {
       background-image: url(../img/note.svg); }
+  #partymode .party-page .ui-header .ui-title {
+    margin-left: 6em;
+    margin-right: 2em; }
   #partymode .party-page ul.tracks li.playlist-empty-message {
     /* this can be done in 1 rule, but this offers better gradual deterioration */
     display: none; }
@@ -185,17 +198,8 @@
     background-position-x: 0; }
   #partymode .add-song-page ul.search-results {
     margin-top: 0; }
-    #partymode .add-song-page ul.search-results > li > div {
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      overflow: hidden; }
-      #partymode .add-song-page ul.search-results > li > div.artist, #partymode .add-song-page ul.search-results > li > div.album {
-        font-weight: normal;
-        font-size: 12px;
-        color: 0x555555;
-        display: inline-block; }
-      #partymode .add-song-page ul.search-results > li > div.album:before {
-        content: "- "; }
+    #partymode .add-song-page ul.search-results > li h3 .album:before {
+      content: "- "; }
     #partymode .add-song-page ul.search-results.loading {
       background: url(../img/spinner.gif) no-repeat center;
       height: 100px; }

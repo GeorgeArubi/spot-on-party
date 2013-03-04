@@ -5,7 +5,7 @@ var __t,__p='',__j=Array.prototype.join,print=function(){__p+=__j.call(arguments
 with(obj||{}){
 __p+='<div data-role="header">\n    <h1>Add songs</h1>\n    <a href="#activeparty_'+
 ((__t=( party.id ))==null?'':_.escape(__t))+
-'" data-rel="back" data-role="button" class="ui-btn-right">cancel</a>\n</div>\n\n<div data-role="content">\n    <form id="searchform" action="javascript:void(0)">\n        <input type="search" id="searchfield" name="search" value="" />\n    </form>\n    <div data-role="navbar">\n        <ul id="searchdomain">\n            <li><a id="search-in-tracks" class="ui-btn-active ui-state-persist">Tracks</a></li>\n            <li><a id="search-in-albums">Albums</a></li>\n            <li><a id="search-in-artists">Artists</a></li>\n        </ul>\n    </div>\n    <ul class="search-results" data-role="listview">\n    </ul>\n</div>\n\n\n';
+'" data-rel="back" data-role="button" class="ui-btn-right">cancel</a>\n</div>\n\n<div data-role="content">\n    <form id="searchform" action="javascript:void(0)">\n        <input type="search" id="searchfield" name="search" value="" placeholder="search for a track"/>\n    </form>\n    <div data-role="navbar">\n        <ul id="searchdomain">\n            <li><a id="search-in-tracks" class="ui-btn-active ui-state-persist">Tracks</a></li>\n            <li><a id="search-in-albums">Albums</a></li>\n            <li><a id="search-in-artists">Artists</a></li>\n        </ul>\n    </div>\n    <ul class="search-results" data-role="listview">\n    </ul>\n</div>\n\n\n';
 }
 return __p;
 };
@@ -152,13 +152,13 @@ __p+='';
  _.each(tracks, function (track) { 
 __p+='\n    <li track_id="'+
 ((__t=( track.id ))==null?'':_.escape(__t))+
-'">\n        <div class="name">'+
+'">\n        <a class="entry"> <!-- needs to be "a" because else jqm applies different borders etc -->\n            <div class="entry-container">\n                <h2>'+
 ((__t=( track.get("name") ))==null?'':_.escape(__t))+
-'</div>\n        <div class="artist">'+
+'</h2>\n                <h3>'+
 ((__t=( track.get("artist") ))==null?'':_.escape(__t))+
-'</div>\n        <div class="album">'+
+'<span class="album">'+
 ((__t=( track.get("album") ))==null?'':_.escape(__t))+
-'</div>\n    </li>\n';
+'</span></h3>\n            </div>\n        </a>\n    </li>\n';
  }) 
 __p+='\n';
 }

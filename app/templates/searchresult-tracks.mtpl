@@ -1,7 +1,10 @@
 <% _.each(tracks, function (track) { %>
     <li track_id="<%- track.id %>">
-        <div class="name"><%- track.get("name") %></div>
-        <div class="artist"><%- track.get("artist") %></div>
-        <div class="album"><%- track.get("album") %></div>
+        <a class="entry"> <!-- needs to be "a" because else jqm applies different borders etc -->
+            <div class="entry-container">
+                <h2><%- track.get("name") %></h2>
+                <h3><%- track.get("artist") %><span class="album"><%- track.get("album") %></span></h3>
+            </div>
+        </a>
     </li>
 <% }) %>
