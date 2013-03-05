@@ -6,7 +6,7 @@ window.PM.app = window.PM.app || {};
 
 (function (PM) {
     "use strict";
-    var LoginView, PartyOverviewView, OldPartyView, PartyView, BaseAddSongView, AddSongSearchView, AddSongRecentView;
+    var LoginView, PartyOverviewView, OldPartyView, PartyView, BaseAddSongView, AddSongSearchView, AddSongRecentView, AddSongPlaylistView;
 
     var getTemplate = function (id) {
         var template = PM.templates[id];
@@ -168,12 +168,86 @@ window.PM.app = window.PM.app || {};
         }, 1000, {immediate: true, }),
     });
 
+    AddSongPlaylistView = BaseAddSongView.extend({
+        template: getTemplate('add-song-playlist-page'),
+        className: 'add-song-playlist-page add-song-page',
+
+        events: {
+            "click ul.search-results > li.playlist": "showPlaylist",
+            "click ul.search-results > li.track": "addSong",
+            "click #back-to-playlists": "loadPlaylists",
+        },
+
+        close: function () {
+            var that = this;
+            ActivePartyUtil.deactivate();
+            that.$('ul.search-results > li').removeClass("ui-btn-active");
+        },
+
+        render: function () {
+            var that = this;
+
+            clutils.checkConstraints(that.options.party_id, {_isUniqueId: true});
+            that.party = activeParties.get(that.options.party_id);
+            if (!that.party) {
+                console.log("no party found with id " + that.options.party_id);
+                $.mobile.changePage("#partyoverview");
+                return;
+            }
+            ActivePartyUtil.activate(that.party.id);
+
+            that.$el.html(that.template({party: that.party}));
+            that.loadPlaylists();
+            return that;
+        },
+
+        loadPlaylists: function () {
+            var that = this;
+            $('ul.search-results').addClass("loading");
+            that.$el.removeClass("tracks").removeClass("playlists");
+            $('ul.search-results .track').remove();
+            $('ul.search-results .playlist').remove();
+
+            PM.domain.FacebookDomain.getSpotifyPlaylists(function (playlistdata) {
+                var playlists = _.map(playlistdata, function (data) {return {id: data.data.playlist.id, name: data.data.playlist.title, _id: "spotify:playlist:" + data.data.playlist.url.substr(-22)}; });
+                var html = getTemplate("searchresult-playlists")({playlists: playlists});
+                that.$('ul.search-results').append(html).removeClass("loading");
+                that.$el.addClass("playlists");
+                that.$('ul.search-results.ui-listview').listview('refresh');
+            });
+        },
+
+        showPlaylist: _.debounce(function (event) {
+            var that = this;
+            var $target = $(event.currentTarget);
+            var facebook_playlist_id = $target.attr("playlist_id");
+            that.loadPlaylist(facebook_playlist_id);
+        }, 1000, {immediate: true, }),
+ 
+        loadPlaylist: function (facebook_playlist_id) {
+            var that = this;
+            $('ul.search-results').addClass("loading");
+            that.$el.removeClass("tracks").removeClass("playlists");
+            $('ul.search-results .track').remove();
+            $('ul.search-results .playlist').remove();
+
+            PM.domain.FacebookDomain.getPlaylistTracks(facebook_playlist_id, function (trackdata) {
+                var tracks = _.map(trackdata, _.bind(PM.models.Track.getByFacebookData, PM.models.Track));
+                var html = getTemplate("searchresult-tracks")({tracks: tracks});
+                that.$('ul.search-results').append(html).removeClass("loading");
+                that.$el.addClass("tracks");
+                that.$('ul.search-results.ui-listview').listview('refresh');
+            });
+        },
+    });
+
+
     AddSongRecentView = BaseAddSongView.extend({
         template: getTemplate('add-song-recent-page'),
         className: 'add-song-recent-page add-song-page',
 
         events: {
-            "click ul.search-results > li": "addSong"
+            "click ul.search-results > li.track": "addSong"
         },
 
         close: function () {
@@ -604,6 +678,13 @@ window.PM.app = window.PM.app || {};
             handler: function (type, match, ui, page) {
                 var party_id = match[1];
                 createAndRenderViewLoggedin(AddSongRecentView, page, {party_id: party_id});
+            },
+        },
+        "^#activeparty_([A-Za-z0-9_\\-]{10})_addsong_playlist$": {
+            events: "bs",
+            handler: function (type, match, ui, page) {
+                var party_id = match[1];
+                createAndRenderViewLoggedin(AddSongPlaylistView, page, {party_id: party_id});
             },
         },
         "^#oldparty_([A-Za-z0-9_\\-]{10})$": {

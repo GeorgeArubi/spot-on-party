@@ -1,5 +1,14 @@
 PM = window.PM || {};
 PM.templates = PM.templates || {};
+PM.templates["add-song-playlist-page"]=function(obj){
+var __t,__p='',__j=Array.prototype.join,print=function(){__p+=__j.call(arguments,'');};
+with(obj||{}){
+__p+='<div data-role="header">\n    <a id="back-to-playlists" data-role="button" data-icon="back" data-iconpos="notext">back</a>\n    <h1>Add songs</h1>\n    <a href="#activeparty_'+
+((__t=( party.id ))==null?'':_.escape(__t))+
+'" data-rel="back" data-role="button" class="ui-btn-right">cancel</a>\n</div>\n\n<div data-role="content">\n    <ul class="search-results" data-role="listview">\n        <li class="explain">Only playlists shared on Facebook appear here</li>\n        <li class="noresults">\n            <h2>No playlists found</h2>\n            <p>Partylists uses Facebook to check your Spotify playlists. If you don\'t have your Spotify and Facebook account connected, or you don\'t share your Spotify playlists on Facebook, we can\'t retrieve them.</p>\n        </li>\n    </ul>\n</div>\n\n\n';
+}
+return __p;
+};
 PM.templates["add-song-recent-page"]=function(obj){
 var __t,__p='',__j=Array.prototype.join,print=function(){__p+=__j.call(arguments,'');};
 with(obj||{}){
@@ -153,6 +162,21 @@ __p+='\n    <li track_id="'+
 '</div>\n        <div class="album">'+
 ((__t=( track.get("album") ))==null?'':_.escape(__t))+
 '</div>\n    </li>\n';
+ }) 
+__p+='\n';
+}
+return __p;
+};
+PM.templates["searchresult-playlists"]=function(obj){
+var __t,__p='',__j=Array.prototype.join,print=function(){__p+=__j.call(arguments,'');};
+with(obj||{}){
+__p+='';
+ _.each(playlists, function (playlist) { 
+__p+='\n    <li class="playlist" playlist_id="'+
+((__t=( playlist.id ))==null?'':_.escape(__t))+
+'">\n        <a class="entry"> <!-- needs to be "a" because else jqm applies different borders etc -->\n            <div class="entry-container">\n                <h2>'+
+((__t=( playlist.name ))==null?'':_.escape(__t))+
+'</h2>\n            </div>\n        </a>\n    </li>\n';
  }) 
 __p+='\n';
 }

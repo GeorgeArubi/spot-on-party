@@ -1,0 +1,9 @@
+<% _.each(playlists, function (playlist) { %>
+    <li class="playlist" playlist_id="<%- playlist.id %>">
+        <a class="entry"> <!-- needs to be "a" because else jqm applies different borders etc -->
+            <div class="entry-container">
+                <h2><%- playlist.name %></h2>
+            </div>
+        </a>
+    </li>
+<% }) %>

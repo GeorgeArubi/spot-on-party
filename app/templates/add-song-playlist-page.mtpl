@@ -1,0 +1,17 @@
+<div data-role="header">
+    <a id="back-to-playlists" data-role="button" data-icon="back" data-iconpos="notext">back</a>
+    <h1>Add songs</h1>
+    <a href="#activeparty_<%- party.id %>" data-rel="back" data-role="button" class="ui-btn-right">cancel</a>
+</div>
+
+<div data-role="content">
+    <ul class="search-results" data-role="listview">
+        <li class="explain">Only playlists shared on Facebook appear here</li>
+        <li class="noresults">
+            <h2>No playlists found</h2>
+            <p>Partylists uses Facebook to check your Spotify playlists. If you don't have your Spotify and Facebook account connected, or you don't share your Spotify playlists on Facebook, we can't retrieve them.</p>
+        </li>
+    </ul>
+</div>
+
+

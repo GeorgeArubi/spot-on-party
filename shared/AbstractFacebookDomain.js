@@ -136,6 +136,23 @@ window.PM.domain.AbstractFacebookDomain = window.Toolbox.Base.extend({
         });
     },
 
+    getPlaylistTracks: function (facebook_playlist_id, callback) {
+        var that = this;
+        that.getAccessToken(function (accessToken) {
+            var params = {access_token: accessToken};
+            window.$.ajax({
+                url: that.FACEBOOK_GRAPH_URL + facebook_playlist_id,
+                data: params,
+                dataType: "jsonp",
+                success: function (result, /* textStatus */ undefined) {
+                    //not that this makes the format any easier to parse, it's just that it looks the same now as the other one
+                    var tracksdata = window._.map(result.data.song, function (song) {return {data: {song: song.url}}; });
+                    callback(tracksdata);
+                }
+            });
+        });
+    },
+
     getProfilePictureUrl: function (user_id) {
         var that = this;
         return that.FACEBOOK_GRAPH_URL + user_id + "/picture";

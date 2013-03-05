@@ -36,6 +36,8 @@
         margin-bottom: 0;
         color: black;
         text-shadow: none; }
+        #partymode li.ui-li .entry-container h2:last-child {
+          margin-top: 10px; }
       #partymode li.ui-li .entry-container h3 {
         margin-top: 1px;
         color: #858585;
@@ -164,7 +166,8 @@
     #partymode .party-page ul.tracks li.track-in-playlist.deleted .artist-added {
       display: none; }
     #partymode .party-page ul.tracks li.track-in-playlist.deleted .deleted-by {
-      display: block; }
+      display: block;
+      margin-top: 3px; }
     #partymode .party-page ul.tracks li.track-in-playlist.deleted .deleted-by:before {
       content: "deleted by: "; }
     #partymode .party-page ul.tracks li.track-in-playlist.deleted div.controls > div {
@@ -196,6 +199,10 @@
     background-image: url(../img/speaker-off.svg); }
   #partymode .party-page ul.tracks.paused li.track-in-playlist div.controls div.pause-button {
     background-position-x: 0; }
+  #partymode .add-song-page:not(.tracks) #back-to-playlists {
+    display: none; }
+  #partymode .add-song-page:not(.playlists) .explain {
+    display: none; }
   #partymode .add-song-page #searchform {
     margin-bottom: 25px; }
   #partymode .add-song-page ul.search-results > li h3 .album:before {
@@ -205,8 +212,20 @@
     height: 100px; }
     #partymode .add-song-page ul.search-results.loading .noresults {
       display: none; }
-  #partymode .add-song-page ul.search-results .noresults:not(:only-child) {
+  #partymode .add-song-page ul.search-results .noresults:not(:last-child) {
     display: none; }
+  #partymode .add-song-page ul.search-results .explain {
+    font-weight: normal;
+    text-shadow: none;
+    font-size: 12px;
+    height: 35px;
+    text-align: center;
+    padding: 17px 50px 0;
+    background-image: url(../img/alert@2x.png);
+    background-size: 9px 35px;
+    background-repeat: no-repeat;
+    background-position: -20px -7px;
+    background-origin: content-box; }
   #partymode .pm-popup {
     max-width: 350px;
     padding: 20px;
