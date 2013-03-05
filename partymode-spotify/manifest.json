@@ -2,7 +2,7 @@
     "BundleType": "Application",
     "BundleIdentifier": "partymode",
     "AppIcon": {
-	"36x18": "partymode.png"
+	"36x18": "img/appicon-36x18.png"
     },
     "AppName": {
 	"en": "Partymode"
