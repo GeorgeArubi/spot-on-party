@@ -22,6 +22,7 @@
 
     <body>
         <div id="main-content"></div>
+        <a href="javascript:void(function()%7Bvar%20i,a,s%3Ba%3Ddocument.getElementsByTagName(%27link%27)%3Bfor(i%3D0%3Bi%3Ca.length%3Bi%2B%2B)%7Bs%3Da%5Bi%5D%3Bif(s.rel.toLowerCase().indexOf(%27stylesheet%27)%3E%3D0%26%26s.href)%20%7Bvar%20h%3Ds.href.replace(/(%26%7C%5C%3F)forceReload%3D%5Cd%2B/,%27%27)%3Bs.href%3Dh%2B(h.indexOf(%27%3F%27)%3E%3D0%3F%27%26%27:%27%3F%27)%2B%27forceReload%3D%27%2B(new%20Date().valueOf())%7D%7D%7D)()%3B" style="position: fixed; bottom: 10px; right: 10px; background-color: white; z-index: 1000;">refresh css</a>
 
         <script src="js/includes/config.js"></script>
         <script src="js/includes/AbstractFacebookDomain.js"></script>

@@ -1,5 +1,5 @@
 <div class="logo-small">
-<svg xmlns="http://www.w6.org/2000/svg" version="1.1" viewBox="0 0 250 100">
+<svg xmlns="http://www.w6.org/2000/svg" version="1.1" viewBox="0 0 250 100" width="150" height="60">
     <defs>
         <linearGradient id="textfill" x1="0%" x2="0%" y1="0%" y2="100%" gradientUnits="userSpaceOnUse">
             <stop offset="0%" style="stop-color:#101010" />
@@ -18,12 +18,15 @@
 </div>
 <form action="javascript:void(0);" id="new-party-form">
     <div class="text welcome">Welcome to partymode. Go on and launch your party</div>
-    <span class="text">&mdash;&gt;</span>
     <input type="text" id="new-party-name" placeholder="<%- default_party_name  %>">
     <input type="submit" class="sp-button" value="start new party" id="new-party-submit">
 </form>
     
-<div id="parties"><div class="or text">&mdash;&gt; or check your previous parties</div></div>
+<div id="parties">
+    <div class="or text">
+        or check your previous parties
+    </div>
+</div>
 <div class="throbber"><div></div></div>
 <div class="footer">
     <button class="sp-button" id="logout">log out</button>

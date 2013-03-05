@@ -27,8 +27,8 @@ h3 {
 
 .logo-small svg {
   float: right;
-  width: 250px;
-  height: 100px; }
+  margin-top: -40px;
+  margin-right: 5px; }
   .logo-small svg text {
     font: 50px Helvetica black, Arial black, Helvetica, Arial, sans-serif; }
   .logo-small svg #beam1 {
@@ -294,13 +294,19 @@ h3 {
       position: absolute;
       top: 5px;
       width: 100%; }
-  .party-page #playlist-placeholder a.sp-track.deleted hr.strike {
-    display: block; }
-  .party-page #playlist-placeholder a.sp-track.deleted .delete-button > span {
-    background-position-x: -16px; }
+  .party-page #playlist-placeholder a.sp-track .deletemarker {
+    width: 100%;
+    position: absolute;
+    top: 9px;
+    left: 0;
+    height: 1px; }
+  .party-page #playlist-placeholder a.sp-track.deleted .deletemarker {
+    border-top: 2px solid #605757; }
+  .party-page #playlist-placeholder a.sp-track.deleted > span:not(.addedby):not(.expectedplaytime) {
+    opacity: .15; }
   .party-page #playlist-placeholder a.sp-track.deleted .expectedplaytime, .party-page #playlist-placeholder a.sp-track.deleted .addedby {
-    background-color: silver;
-    color: red; }
+    background-color: #605757;
+    color: black; }
 
 #overlay-backdrop {
   display: none;
@@ -320,23 +326,37 @@ h3 {
   width: 800px;
   height: 600px;
   top: 75px;
-  margin-left: -425px;
+  margin-left: -402px;
   left: 50%;
   background-color: #363636;
-  border: 25px solid #101010;
+  border: 2px solid #101010;
   border-radius: 30px; }
   #overlay-placeholder > div h3 {
-    background-color: skyblue;
+    background: #999999;
+    /* Old browsers */
+    background: -moz-linear-gradient(top, #b0b0b0 0%, #909090 100%);
+    /* FF3.6+ */
+    background: -webkit-linear-gradient(top, #b0b0b0 0%, #909090 100%);
+    /* Chrome10+,Safari5.1+ */
+    background: -o-linear-gradient(top, #b0b0b0 0%, #909090 100%);
+    /* Opera 11.10+ */
+    background: -ms-linear-gradient(top, #b0b0b0 0%, #909090 100%);
+    /* IE10+ */
+    background: linear-gradient(to bottom, #b0b0b0 0%, #909090 100%);
+    /* W3C */
+    text-shadow: 0 0 3px #C0C0C0;
     height: 25px;
-    padding: 7px;
-    color: #000080;
+    padding: 8px 0px 5px;
+    color: #000000;
     font-weight: bold;
-    font-size: 18px; }
+    font-size: 18px;
+    border-radius: 30px 30px 0 0;
+    text-align: center; }
   #overlay-placeholder > div .search-box {
     height: 30px;
-    width: 500px;
+    width: 96%;
     font-size: 16px;
-    margin: 10px; }
+    margin: 10px 2%; }
   #overlay-placeholder > div .search-results {
     overflow-x: hidden;
     overflow-y: auto;

@@ -19,7 +19,7 @@ h3 {margin: 0px;}
 
 .logo-small {
     svg {
-       float: right; width: 250px; height: 100px;
+       float: right; margin-top: -40px; margin-right: 5px;
        text {font: 50px Helvetica Black, Arial Black, Helvetica, Arial, sans-serif;}
 
        #beam1 {fill:#991A1A;}
@@ -151,11 +151,14 @@ h3 {margin: 0px;}
             hr.strike {display: none; border-style: none none solid; position: absolute; top: 5px; width: 100%; }
         }
 
-        a.sp-track.deleted {
-            hr.strike {display: block}
+        a.sp-track .deletemarker {
+            width: 100%; position: absolute; top: 9px; left: 0; height: 1px;
+        }
 
-            .delete-button > span {background-position-x: -16px; } 
-            .expectedplaytime, .addedby {background-color: silver; color: red; }
+        a.sp-track.deleted {
+            .deletemarker {border-top: 2px solid #605757;}
+            > span:not(.addedby):not(.expectedplaytime) {opacity: .15;}
+            .expectedplaytime, .addedby {background-color: #605757; color: black; }
         }
     }
 }
@@ -169,12 +172,21 @@ h3 {margin: 0px;}
 #overlay-placeholder > div {
     $overlay-width: 800px;
     $overlay-height: 600px;
-    $overlay-border-width: 25px;
+    $overlay-border-width: 2px;
     position: absolute; z-index: 100;
     width: $overlay-width; height: $overlay-height; top: 75px; margin-left: - $overlay-width / 2 - $overlay-border-width; left: 50%;
     background-color: $spotify-dark-background-color; border: $overlay-border-width solid #101010; border-radius: 30px;
-    h3 {background-color: $partymode-logo-color; height: 25px; padding: 7px; color: #000080; font-weight: bold; font-size: 18px;}
-    .search-box {height: 30px; width: 500px; font-size: 16px; margin: 10px;}
+    h3 {
+        background: #999999; /* Old browsers */
+        background: -moz-linear-gradient(top, #B0B0B0 0%, #909090 100%); /* FF3.6+ */
+        background: -webkit-linear-gradient(top, #B0B0B0 0%, #909090 100%); /* Chrome10+,Safari5.1+ */
+        background: -o-linear-gradient(top, #B0B0B0 0%, #909090 100%); /* Opera 11.10+ */
+        background: -ms-linear-gradient(top, #B0B0B0 0%, #909090 100%); /* IE10+ */
+        background: linear-gradient(to bottom, #B0B0B0 0%, #909090 100%); /* W3C */
+        text-shadow: 0 0 3px #C0C0C0;
+        height: 25px; padding: 8px 0px 5px; color: #000000; font-weight: bold; font-size: 18px; border-radius: 30px 30px 0 0; text-align: center;
+   }
+    .search-box {height: 30px; width: 96%; font-size: 16px; margin: 10px 2%;}
     .search-results {
         overflow-x: hidden; overflow-y: auto; position: relative; top: 0px; margin: 7px;
         .throbber {display: none;}
