@@ -11,7 +11,7 @@
     height: 10000px;
     position: fixed; }
   #partymode .ui-btn-active {
-    background: #646464;
+    background: #404040;
     /* Old browsers */
     background: -moz-linear-gradient(top, #505050 0%, #313131 100%);
     /* FF3.6+ */
