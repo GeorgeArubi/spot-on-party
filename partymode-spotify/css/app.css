@@ -25,13 +25,16 @@ h3 {
   .logo img {
     width: 100%; }
 
-.logo-small {
-  background-image: url(../img/logo-small-center.png);
-  margin: 10px 20px 0; }
-  .logo-small:before {
-    content: url(../img/logo-small-left.png); }
-  .logo-small:after {
-    content: url(../img/logo-small-right.png); }
+.logo-small svg {
+  float: right;
+  width: 250px;
+  height: 100px; }
+  .logo-small svg text {
+    font: 50px Helvetica black, Arial black, Helvetica, Arial, sans-serif; }
+  .logo-small svg #beam1 {
+    fill: #991A1A; }
+  .logo-small svg #beam2 {
+    fill: #99991A; }
 
 .on-off-slider {
   width: 55px;

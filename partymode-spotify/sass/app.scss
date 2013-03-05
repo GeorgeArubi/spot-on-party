@@ -18,9 +18,13 @@ h3 {margin: 0px;}
 }
 
 .logo-small {
-    background-image: url(../img/logo-small-center.png); margin: 10px 20px 0;
-    &:before {content: url(../img/logo-small-left.png);}
-    &:after {content: url(../img/logo-small-right.png);}
+    svg {
+       float: right; width: 250px; height: 100px;
+       text {font: 50px Helvetica Black, Arial Black, Helvetica, Arial, sans-serif;}
+
+       #beam1 {fill:#991A1A;}
+       #beam2 {fill:#99991A;}
+   }
 }
 
 .on-off-slider {
@@ -34,7 +38,7 @@ h3 {margin: 0px;}
     .facebook-login {
         text-align: center;
         .disclaimer {margin: 50px; max-width: 730px; text-align: left; display: inline-block;}
-        .disclaimer:after {content: \0A ;}    
+        .disclaimer:after {content: \0A ;}
         .fb-login-button {border: 0; outline: none; width: 152px; height: 22px; background: url(../img/fb-login.png) no-repeat; display: inline-block;}
     }
 }  
