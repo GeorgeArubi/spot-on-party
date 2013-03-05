@@ -1,9 +1,9 @@
 <% _.each(tracks, function (track) { %>
-    <li track_id="<%- track.id %>">
+    <li class="track" track_id="<%- track.id %>">
         <a class="entry"> <!-- needs to be "a" because else jqm applies different borders etc -->
             <div class="entry-container">
-                <h2><%- track.get("name") %></h2>
-                <h3><%- track.get("artist") %><span class="album"><%- track.get("album") %></span></h3>
+                <h2><%= track.getHtmlLazyLoad("name") %></h2>
+                <h3><%= track.getHtmlLazyLoad("artist") %><span class="album"><%= track.getHtmlLazyLoad("album") %></span></h3>
             </div>
         </a>
     </li>

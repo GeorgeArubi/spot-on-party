@@ -6,7 +6,7 @@ window.PM.app = window.PM.app || {};
 
 (function (PM) {
     "use strict";
-    var LoginView, PartyOverviewView, OldPartyView, PartyView, AddSongView;
+    var LoginView, PartyOverviewView, OldPartyView, PartyView, BaseAddSongView, AddSongSearchView, AddSongRecentView;
 
     var getTemplate = function (id) {
         var template = PM.templates[id];
@@ -152,9 +152,70 @@ window.PM.app = window.PM.app || {};
 
     ActivePartyUtil.init();
 
-    AddSongView = Backbone.View.extend({
-        template: getTemplate('add-song-page'),
-        className: 'add-song-page',
+    BaseAddSongView = Backbone.View.extend({
+        addSong: _.debounce(function (event) {
+            var that = this;
+            var $target = $(event.currentTarget);
+            var track_id = $target.attr("track_id");
+            $target.addClass("ui-btn-active");
+            var action = PM.models.Action.createAction(PM.app.loggedin_user, that.party, "TrackAdd", {track_id: track_id});
+            PM.domain.PartyNodeDomain.proposeAction(action.serialize(), function (result) {
+                if (!result) {
+                    throw "help";
+                }
+                $.mobile.changePage("#activeparty_" + that.party.id);
+            });
+        }, 1000, {immediate: true, }),
+    });
+
+    AddSongRecentView = BaseAddSongView.extend({
+        template: getTemplate('add-song-recent-page'),
+        className: 'add-song-recent-page add-song-page',
+
+        events: {
+            "click ul.search-results > li": "addSong"
+        },
+
+        close: function () {
+            var that = this;
+            ActivePartyUtil.deactivate();
+            that.$('ul.search-results > li').removeClass("ui-btn-active");
+        },
+
+        render: function () {
+            var that = this;
+
+            clutils.checkConstraints(that.options.party_id, {_isUniqueId: true});
+            that.party = activeParties.get(that.options.party_id);
+            if (!that.party) {
+                console.log("no party found with id " + that.options.party_id);
+                $.mobile.changePage("#partyoverview");
+                return;
+            }
+            ActivePartyUtil.activate(that.party.id);
+
+            that.$el.html(that.template({party: that.party}));
+            that.loadRecentTracks();
+            return that;
+        },
+
+        loadRecentTracks: function () {
+            var that = this;
+            $('ul.search-results').addClass("loading");
+            $('ul.search-results .track').remove();
+
+            PM.domain.FacebookDomain.getRecentSpotifyPlays(function (trackdata) {
+                var tracks = _.map(trackdata, _.bind(PM.models.Track.getByFacebookData, PM.models.Track));
+                var html = getTemplate("searchresult-tracks")({tracks: tracks});
+                that.$('ul.search-results').append(html).removeClass("loading");
+                that.$('ul.search-results.ui-listview').listview('refresh');
+            });
+        },
+    });
+
+    AddSongSearchView = BaseAddSongView.extend({
+        template: getTemplate('add-song-search-page'),
+        className: 'add-song-search-page add-song-page',
 
         events: {
             "submit #searchform": function () {$('#searchfield').blur(); }, // will do the search per the next line
@@ -188,7 +249,8 @@ window.PM.app = window.PM.app || {};
         search: function () {
             var that = this;
             var searchterms = $('#searchfield').val();
-            $('ul.search-results').empty().addClass("loading");
+            $('ul.search-results').addClass("loading");
+            $('ul.search-results .track').remove();
             var searchdomain = $('ul#searchdomain > li > a.ui-btn-active').prop('id');
             switch (searchdomain) {
             case 'search-in-tracks':
@@ -216,20 +278,6 @@ window.PM.app = window.PM.app || {};
                 throw "searchdomain unknown: " + searchdomain;
             }
         },
-
-        addSong: _.debounce(function (event) {
-            var that = this;
-            var $target = $(event.currentTarget);
-            var track_id = $target.attr("track_id");
-            $target.addClass("ui-btn-active");
-            var action = PM.models.Action.createAction(PM.app.loggedin_user, that.party, "TrackAdd", {track_id: track_id});
-            PM.domain.PartyNodeDomain.proposeAction(action.serialize(), function (result) {
-                if (!result) {
-                    throw "help";
-                }
-                $.mobile.changePage("#activeparty_" + that.party.id);
-            });
-        }, 1000, {immediate: true, }),
     });
 
     PartyView = Backbone.View.extend({
@@ -497,7 +545,7 @@ window.PM.app = window.PM.app || {};
         },
 
         facebookLogin: function () {
-            window.location = "https://m.facebook.com/dialog/oauth?redirect_uri=" + encodeURIComponent(window.location.toString()) + "&client_id=" + encodeURIComponent(PM.domain.FacebookDomain.FACEBOOK_APP_ID) + "&response_type=token";
+            window.location = "https://m.facebook.com/dialog/oauth?redirect_uri=" + encodeURIComponent(window.location.toString()) + "&client_id=" + encodeURIComponent(PM.domain.FacebookDomain.FACEBOOK_APP_ID) + "&response_type=token&scope=user_actions.music";
         },
     });
 
@@ -544,11 +592,18 @@ window.PM.app = window.PM.app || {};
                 createAndRenderViewLoggedin(PartyView, page, {party_id: party_id});
             },
         },
-        "^#activeparty_([A-Za-z0-9_\\-]{10})_addsong$": {
+        "^#activeparty_([A-Za-z0-9_\\-]{10})_addsong_search$": {
             events: "bs",
             handler: function (type, match, ui, page) {
                 var party_id = match[1];
-                createAndRenderViewLoggedin(AddSongView, page, {party_id: party_id});
+                createAndRenderViewLoggedin(AddSongSearchView, page, {party_id: party_id});
+            },
+        },
+        "^#activeparty_([A-Za-z0-9_\\-]{10})_addsong_recent$": {
+            events: "bs",
+            handler: function (type, match, ui, page) {
+                var party_id = match[1];
+                createAndRenderViewLoggedin(AddSongRecentView, page, {party_id: party_id});
             },
         },
         "^#oldparty_([A-Za-z0-9_\\-]{10})$": {

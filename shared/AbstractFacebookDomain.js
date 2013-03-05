@@ -15,6 +15,7 @@ window.PM.domain.AbstractFacebookDomain = window.Toolbox.Base.extend({
     FACEBOOK_APP_ID: (window.location.hostname === "tiggr.local" ? "233580756759588" : "243749445754435"), //for dev and live
     FACEBOOK_GRAPH_URL: (window.location.protocol === "http" ? "http:" : "https:") + "//graph.facebook.com/",
     ALMOST_EXPIRES_THRESHOLD: 10 * 60 * 1000, // 10 minutes
+    SPOTIFY_FACEBOOK_APP_ID: "174829003346",
 
     initStarted: false,
     inited: false,
@@ -100,6 +101,36 @@ window.PM.domain.AbstractFacebookDomain = window.Toolbox.Base.extend({
                 dataType: "jsonp",
                 success: function (result, /* textStatus */ undefined) {
                     callback(result);
+                }
+            });
+        });
+    },
+
+    getRecentSpotifyPlays: function (callback) {
+        var that = this;
+        that.getAccessToken(function (accessToken) {
+            var params = {fields: "data", access_token: accessToken, limit: 100, app_id_filter: that.SPOTIFY_FACEBOOK_APP_ID};
+            window.$.ajax({
+                url: that.FACEBOOK_GRAPH_URL + "me/music.listens",
+                data: params,
+                dataType: "jsonp",
+                success: function (result, /* textStatus */ undefined) {
+                    callback(result.data);
+                }
+            });
+        });
+    },
+
+    getSpotifyPlaylists: function (callback) {
+        var that = this;
+        that.getAccessToken(function (accessToken) {
+            var params = {fields: "data", access_token: accessToken, limit: 100, app_id_filter: that.SPOTIFY_FACEBOOK_APP_ID};
+            window.$.ajax({
+                url: that.FACEBOOK_GRAPH_URL + "me/music.playlists",
+                data: params,
+                dataType: "jsonp",
+                success: function (result, /* textStatus */ undefined) {
+                    callback(result.data);
                 }
             });
         });

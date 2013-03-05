@@ -166,7 +166,7 @@
     #partymode .party-page ul.tracks li.track-in-playlist.deleted .deleted-by {
       display: block; }
     #partymode .party-page ul.tracks li.track-in-playlist.deleted .deleted-by:before {
-      content: "skipped by: "; }
+      content: "deleted by: "; }
     #partymode .party-page ul.tracks li.track-in-playlist.deleted div.controls > div {
       display: none; }
       #partymode .party-page ul.tracks li.track-in-playlist.deleted div.controls > div.delete-button {
@@ -196,13 +196,17 @@
     background-image: url(../img/speaker-off.svg); }
   #partymode .party-page ul.tracks.paused li.track-in-playlist div.controls div.pause-button {
     background-position-x: 0; }
-  #partymode .add-song-page ul.search-results {
-    margin-top: 0; }
-    #partymode .add-song-page ul.search-results > li h3 .album:before {
-      content: "- "; }
-    #partymode .add-song-page ul.search-results.loading {
-      background: url(../img/spinner.gif) no-repeat center;
-      height: 100px; }
+  #partymode .add-song-page #searchform {
+    margin-bottom: 25px; }
+  #partymode .add-song-page ul.search-results > li h3 .album:before {
+    content: "\2014 "; }
+  #partymode .add-song-page ul.search-results.loading {
+    background: url(../img/spinner.gif) no-repeat center;
+    height: 100px; }
+    #partymode .add-song-page ul.search-results.loading .noresults {
+      display: none; }
+  #partymode .add-song-page ul.search-results .noresults:not(:only-child) {
+    display: none; }
   #partymode .pm-popup {
     max-width: 350px;
     padding: 20px;

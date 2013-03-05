@@ -34,13 +34,15 @@ window.PM.domain.SpotifyAppIntegrator = window.Toolbox.Base.extend({
 
             /*jshint bitwise:true */
 
+            var deletemarker = $("<div>");
+            deletemarker.addClass("deletemarker");
+            this.node.appendChild(deletemarker[0]);
             var addedby = $("<span>");
             addedby.addClass("addedby");
             this.node.appendChild(addedby[0]);
-            var willplayat = $('<span><span class="play-time"></span><span class="delete-button"><span class="delete">skip song</span><span class="undelete">don\'t skip</span></span></span>');
+            var willplayat = $('<span><span class="play-time"></span><span class="delete-button"><span class="delete">delete</span><span class="undelete">undelete</span></span></span>');
             willplayat.addClass("expectedplaytime");
             this.node.appendChild(willplayat[0]);
-            $(_.toArray(this.node.childNodes).slice(0, 4)).append('<hr class="strike">');
             _.delay(_.bind(function () {
                 var index = $(this.node).prevAll().length;
                 var playlist = that.activeParty.get("playlist");
@@ -49,7 +51,7 @@ window.PM.domain.SpotifyAppIntegrator = window.Toolbox.Base.extend({
                     $(addedby.parent()).addClass("deleted");
                     $(addedby.parent()).removeClass("sp-track-selected");
                     track_in_playlist.getDeletedByUser().onLoaded(function (user) {
-                        addedby.text("song skipped by: " + user.get("name"));
+                        addedby.text("deleted by: " + user.get("name"));
                     });
                 } else {
                     track_in_playlist.getUser().onLoaded(function (user) {

@@ -171,7 +171,7 @@ if (typeof exports !== "undefined") {
                     el.outerHTML = that.getHtmlLazyLoad(fieldname);
                 }
             });
-            return '<span class="lazyload" id="' + id + '"></span>';
+            return '<span class="lazyload" id="' + id + '">' + clutils.encodeHTML(that.get(fieldname) || "") + '</span>';
             
         }
     }, {
@@ -408,6 +408,14 @@ if (typeof exports !== "undefined") {
             var That = this;
             var track = new That(_.extend({_status: That.LOADED, artist: track_data.artists.join(", ")}, _.omit(track_data, "artists")));
             That.setToCache(track);
+            return track;
+        },
+
+        getByFacebookData: function (track_data) {
+            var That = this;
+            var id = "spotify:track:" + track_data.data.song.url.substr(-22);
+            var track = That.getById(id);
+            track.set("name", track_data.data.song.title);
             return track;
         },
     });

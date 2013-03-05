@@ -310,7 +310,13 @@ var partyconnection = exports;
                 clutils.checkConstraints(handshakeData.query, constraint);
                 var token = handshakeData.query.token;
                 var url = "https://graph.facebook.com/me?fields=id%2Cname&access_token=" + encodeURIComponent(token);
+                if (!root.counter) {
+                    root.counter = 0;
+                }
+                var localcounter = root.counter++;
+                console.log("start request " + localcounter + ": " + url);
                 request.get(url, function (error, undefined /*response*/, json) {
+                    console.log("done request " + localcounter + ": " + url);
                     if (error) {
                         throw error;
                     }

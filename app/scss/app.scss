@@ -125,7 +125,7 @@
                     .title, .subtitle {opacity: .2;}
                     .artist-added {display: none;}
                     .deleted-by {display: block;}
-                    .deleted-by:before {content: "skipped by: ";}
+                    .deleted-by:before {content: "deleted by: ";}
                     div.controls > div {
                         display: none;
                         &.delete-button {display:inline-block; background-position-x: $sprite-undelete-offset;}
@@ -153,10 +153,15 @@
     }
 
     .add-song-page {
+        #searchform {
+            margin-bottom: 25px;
+        }
         ul.search-results {
-            margin-top: 0;
-            > li h3 .album:before {content: "- ";}
-            &.loading { background: url(../img/spinner.gif) no-repeat center; height: 100px; }
+            > li h3 .album:before {content: "\2014 ";}
+            &.loading { background: url(../img/spinner.gif) no-repeat center; height: 100px;
+                .noresults {display: none;}
+            }
+            .noresults:not(:only-child) {display: none; }
         }
     }
 
