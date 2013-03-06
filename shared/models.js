@@ -472,6 +472,17 @@ if (typeof exports !== "undefined") {
             return PM.models.User.getById(that.get("deleted_by_user_id"));
         },
 
+        canBeDeletedBy: function (user_id, party) {
+            var that = this;
+            if (that.get("user_id") === user_id) {
+                return true;
+            }
+            if (party.isOwner(user_id)) {
+                return true;
+            }
+            return false;
+        },
+
         validate: function (attrs) {
             if (!_.isString(attrs.track_id)) {
                 return "Need to provide a track_id";
@@ -849,6 +860,9 @@ if (typeof exports !== "undefined") {
             if (!_.isObject(track_in_playlist) || track_in_playlist.isDeleted()) {
                 return "no track in the playlist at that position";
             }
+            if (!track_in_playlist.canBeDeletedBy(attrs.user_id, that.party)) {
+                return "songs can only be deleted by the one who added them (or the party owner)";
+            }
             return that.constructor.__super__.validate.call(that, attrs);
         },
 
@@ -880,6 +894,9 @@ if (typeof exports !== "undefined") {
             var track_in_playlist = that.party.get("playlist").at(attrs.position);
             if (!_.isObject(track_in_playlist) || !track_in_playlist.isDeleted()) {
                 return "no track in the playlist at that position, or not deleted";
+            }
+            if (!track_in_playlist.canBeDeletedBy(attrs.user_id, that.party)) {
+                return "songs can only be undeleted by the one who added them (or the party owner)";
             }
             return that.constructor.__super__.validate.call(that, attrs);
         },

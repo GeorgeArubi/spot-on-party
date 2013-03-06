@@ -128,9 +128,10 @@
       background: linear-gradient(to bottom, #646464 0%, #717171 10%, #313131 100%);
       /* W3C */ }
       #partymode .party-page ul.tracks li.track-in-playlist div.controls > div {
-        display: inline-block;
+        display: block;
         margin-top: 2px;
         padding: 10px;
+        position: absolute;
         width: 24px;
         height: 24px;
         background-image: url(../img/sprite@2x.png);
@@ -138,7 +139,6 @@
         background-position-y: 24px;
         background-origin: content-box;
         background-clip: content-box;
-        margin-left: 24px;
         -webkit-transition: background-position-x 0 ease 600ms;
         /* add a delay when the button changes, so that it will change when the slider is closed (so this is no transition, only delay) */
         /* delay when active button is released, so that it stays "pressed" a bit longer */ }
@@ -146,12 +146,15 @@
           -webkit-transition: background-position-y 0 linear 600ms;
           background-position-y: 0; }
         #partymode .party-page ul.tracks li.track-in-playlist div.controls > div.play-button {
-          background-position-x: 0; }
+          background-position-x: 0;
+          left: 0; }
         #partymode .party-page ul.tracks li.track-in-playlist div.controls > div.pause-button {
           background-position-x: -24px;
-          display: none; }
+          display: none;
+          left: 48px; }
         #partymode .party-page ul.tracks li.track-in-playlist div.controls > div.delete-button {
-          background-position-x: -72px; }
+          background-position-x: -72px;
+          left: 96px; }
     #partymode .party-page ul.tracks li.track-in-playlist .entry {
       position: absolute;
       left: 0;

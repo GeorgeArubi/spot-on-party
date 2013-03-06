@@ -452,10 +452,11 @@ window.PM.app = window.PM.app || {};
         },
 
         getTrackInPlaylistElement: function (track_in_playlist) {
+            var that = this;
             var track = track_in_playlist.getTrack();
             var user = track_in_playlist.getUser();
             var deleted_by_user = track_in_playlist.getDeletedByUser();
-            var el = $(getTemplate("playlist-item")({track: track, track_in_playlist: track_in_playlist, user: user, deleted_by_user: deleted_by_user}));
+            var el = $(getTemplate("playlist-item")({track: track, track_in_playlist: track_in_playlist, user: user, deleted_by_user: deleted_by_user, deletable: track_in_playlist.canBeDeletedBy(PM.app.loggedin_user.id, that.party)}));
             el.prop({"track-in-playlist": track_in_playlist});
             return el;
         },

@@ -1,6 +1,6 @@
 <li class="track-in-playlist" data-icon="false">
     <div class="controls">
-        <div class="delete-button"></div><div class="play-button"></div><div class="pause-button"></div>
+        <% if (deletable) { %><div class="delete-button"></div><% } %><div class="play-button"></div><div class="pause-button"></div>
     </div>
     <a class="entry"> <!-- needs to be "a" because else jqm applies different borders etc -->
         <div class="entry-container">

@@ -102,16 +102,15 @@
                     background: linear-gradient(to bottom, #646464 0%,#717171 10%,#313131 100%); /* W3C */
 
                     > div {
-                        display: inline-block; margin-top: 2px; padding: 10px;
+                        display: block; margin-top: 2px; padding: 10px; position: absolute;
                         width: $icon-width; height: $icon-height;
                         background-image: url(../img/sprite@2x.png); background-size: $icon-width * 5 $icon-height * 2;
                         background-position-y: $icon-height; background-origin: content-box; background-clip: content-box;
-                        margin-left: $icon-width;
                         -webkit-transition: background-position-x 0 ease 2 * $entry-slide-time; /* add a delay when the button changes, so that it will change when the slider is closed (so this is no transition, only delay) */
                         &:not(:active) { -webkit-transition: background-position-y 0 linear 2 * $entry-slide-time; background-position-y: 0;} /* delay when active button is released, so that it stays "pressed" a bit longer */
-                        &.play-button {background-position-x: $sprite-play-offset;}
-                        &.pause-button {background-position-x: $sprite-pause-offset; display: none; }
-                        &.delete-button {background-position-x: $sprite-delete-offset; }
+                        &.play-button {background-position-x: $sprite-play-offset; left: 0}
+                        &.pause-button {background-position-x: $sprite-pause-offset; display: none; left: 2 * $icon-width; }
+                        &.delete-button {background-position-x: $sprite-delete-offset; left: 4 * $icon-width; }
                     }
                 }
                 .entry {
