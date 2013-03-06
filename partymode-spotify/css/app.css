@@ -155,6 +155,40 @@ h3 {
 .parties-overview-page #parties.loading ~ .throbber {
   display: block; }
 
+.player-warning {
+  text-align: center;
+  height: 0;
+  -webkit-transition: height 500ms;
+  overflow: hidden;
+  position: relative; }
+  .player-warning > div {
+    margin: 25px;
+    padding: 15px 50px;
+    background-color: #E4E4CF;
+    background-image: url(../img/alert@2x.png);
+    background-repeat: no-repeat;
+    background-size: 9px 35px;
+    background-position: 25px 17px;
+    height: 40px;
+    outline: 1px solid #999;
+    outline-offset: -3px;
+    box-shadow: 2px 2px 4px #222;
+    color: #444; }
+  .player-warning .close {
+    width: 16px;
+    height: 16px;
+    background-image: url(../img/close16@2x.png);
+    background-size: 16px 16px;
+    position: absolute;
+    top: 29px;
+    right: 29px;
+    display: none; }
+  .player-warning:hover .close {
+    display: block; }
+
+body.player-repeat #player-repeat-warning, body.player-shuffle #player-shuffle-warning {
+  height: 120px; }
+
 .party-page .coverphoto-container {
   position: relative;
   overflow: hidden; }
@@ -262,6 +296,22 @@ h3 {
         font-size: 10px; }
     .party-page #users-bar > ul > li:not(.joined) {
       opacity: .5; }
+.party-page #bubbleholder {
+  position: relative; }
+  .party-page #bubbleholder #bubble {
+    opacity: 0;
+    z-index: 100;
+    -webkit-transition: opacity 200ms;
+    position: absolute;
+    left: 75px;
+    color: #444;
+    border-width: 7px 12px 22px 20px;
+    border-image: url(../img/bubble@2x.png) 14 24 44 40 fill stretch; }
+    .party-page #bubbleholder #bubble > div {
+      margin-left: -7px;
+      margin-bottom: -5px; }
+    .party-page #bubbleholder #bubble.show {
+      opacity: .95; }
 .party-page #playlist-placeholder {
   margin-top: 25px; }
   .party-page #playlist-placeholder .expectedplaytime {

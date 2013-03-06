@@ -16,5 +16,11 @@
 
 </div>
 <div id="users-bar"><div class="arrow arrow-left"></div><div class="arrow arrow-right"></div><ul></ul></div>
+<div id="player-repeat-warning" class="player-warning"><div>Spotify is currently in repeat mode. This means that after the party list is done, it will not wait for new tracks to be added, but start again at the beginning. This may or may not be what you want.</div><span class="close" onclick="$('body').removeClass('player-repeat')"></span></div>
+<div id="player-shuffle-warning" class="player-warning"><div>Spotify is currently in shuffle mode. This means that the tracks in this party list will be played in random order.</div><span class="close" onclick="$('body').removeClass('player-shuffle')"></span></div>
+
+<div id="bubbleholder">
+    <div id="bubble"><div>Reinoud Elhorst started playback of Another one bites the dust</div></div>
+</div>
 <div id="playlist-placeholder"></div>
 

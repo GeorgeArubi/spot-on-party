@@ -354,7 +354,7 @@ var clutils = window.clutils;
             userDom.toggleClass("on-off-slider-on",
                                 !!((that.parent.party.isMember(user.id) && !that.usersToKick.get(user.id)) ||
                                    that.usersToInvite.get(user.id)));
-            var name = user.get('name');
+            var name = user.getName(that.parent.party);
             //TODO: create a better search algorithm
             userDom.toggleClass("filtered", name.toLowerCase().indexOf(that.filterText) !== 0);
             $("img.icon", userDom).attr("src", user.getProfilePictureUrl());
@@ -503,6 +503,7 @@ var clutils = window.clutils;
             that.party.get("users").off("remove", that.updateUserBar, that);
             that.party.get("users").off("reset", that.updateUserBar, that);
             that.party.off("change:current_playlist_index", that.setCoverPhoto, that);
+            that.party.get("log").off("add", that.handleNewAction, that);
             that.$('img.coverphoto').off("load.photopage");
             $(window).off("resize.photopage");
             deactivateParty(that.party);
@@ -576,7 +577,7 @@ var clutils = window.clutils;
                     }
                     if (that.party.get("current_playlist_index") !== -1) {
                         var user_id = that.party.get("playlist").at(that.party.get("current_playlist_index")).get("user_id");
-                        that.$('.coverphoto-container .currentsong > .requested-by').text(PM.models.User.getById(user_id).get("name")); //note: don't use "user" here because if master user, we want the name for the master user; master user will be loaded always so no need to wait...
+                        that.$('.coverphoto-container .currentsong > .requested-by').text(PM.models.User.getById(user_id).getName(that.party)); //note: don't use "user" here because the master user gets switched to normal user, and we want the master user here; master user will be loaded always so no need to wait...
                     }
                 }
             });
@@ -598,6 +599,50 @@ var clutils = window.clutils;
             }
         },
 
+        showBubble: function (playlistitem_number, name, actionhtml) {
+            var that = this;
+            var bottom = playlistitem_number * -20 - 39;
+            var bubble = that.$('#bubble');
+            var html = "<strong>" + clutils.encodeHTML(name) + "</strong> " + actionhtml;
+            bubble.addClass("show");
+            bubble.css({'bottom': bottom + "px"});
+            $('> div', bubble).html(html);
+            
+            if (that.showBubble.timeout) {
+                window.clearTimeout(that.showBubble.timeout);
+            }
+            that.showBubble.timeout = window.setTimeout(function () {bubble.removeClass("show"); }, 10000);
+        },
+
+        handleNewAction: function (action) {
+            var that = this;
+            switch (action.constructor.type) {
+            case "TrackRemove":
+                that.showBubble(action.get("position"), action.getUser().getName(action.party), "deleted the track");
+                break;
+            case "TrackUnRemove":
+                that.showBubble(action.get("position"), action.getUser().getName(action.party), "undeleted the track");
+                break;
+            case "Pause":
+                that.showBubble(action.party.get("current_playlist_index"),
+                                action.getUser().getName(action.party), "paused playback");
+                break;
+            case "Play":
+                that.showBubble(action.party.get("current_playlist_index"),
+                                action.getUser().getName(action.party), "resumed playback");
+                break;
+            case "PlayTrack":
+                var track = action.party.getCurrentTrack();
+                that.showBubble(action.get("position"),
+                                action.getUser().getName(action.party),
+                                "started playing <strong>" + track.getHtmlLazyLoad("name") + "</strong>"
+                               );
+                break;
+            default:
+                //lots of actions we don't show....
+            }
+        },
+
         render: function (target) {
             var that = this;
             getAndActivateParty(that.party_id, function (party) {
@@ -612,6 +657,7 @@ var clutils = window.clutils;
                 that.party.get("users").on("remove", that.updateUserBar, that);
                 that.party.get("users").on("reset", that.updateUserBar, that);
                 that.party.on("change:current_playlist_index", that.setCoverPhoto, that);
+                that.party.get("log").on("add", that.handleNewAction, that);
                 that.$('img.coverphoto').on("load.photopage", _.bind(that.resizeCoverPhoto, that));
                 $(window).on("resize.photopage", _.bind(that.resizeCoverPhoto, that));
                 $(window).on("resize.photopage", _.bind(that.updateUserBar, that));//needed to add/remove userbar arrows
@@ -655,7 +701,7 @@ var clutils = window.clutils;
                 var nameel = el.find(".name");
                 user.onLoaded(function () {
                     nameel.removeClass("loading");
-                    nameel.text(user.get("name"));
+                    nameel.text(user.getName(that.party));
                 });
                 el.toggleClass("owner", that.party.isOwner(user.id));
                 el.toggleClass("joined", user_in_party.isJoined());

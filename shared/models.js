@@ -240,6 +240,16 @@ if (typeof exports !== "undefined") {
             return PM.domain.FacebookDomain.getProfilePictureUrl(that.id);
         },
 
+        getName: function (party) {
+            var that = this;
+            var That = that.constructor;
+            if (that.id === That.MASTER_ID) {
+                return party.getOwner().get("name") + "*";
+            } else {
+                return that.get("name");
+            }
+        },
+
         lazyLoad: function () {
             var that = this;
             that.set("_status", that.constructor.LOADING);
@@ -497,6 +507,11 @@ if (typeof exports !== "undefined") {
             };
         },
 
+        getUser: function () {
+            var that = this;
+            return PM.models.User.getById(that.get("user_id"));
+        },
+
         initialize: function (attributes, options) {
             var that = this;
             that.set({
@@ -745,7 +760,6 @@ if (typeof exports !== "undefined") {
     });
 
     PM.models.LeaveAction = PM.models.Action.extend({
-        type: "Leave",
         validate: function (attrs) {
             var that = this;
             if (!that.party.isJoined(attrs.user_id)) {
@@ -860,9 +874,6 @@ if (typeof exports !== "undefined") {
 
         validate: function (attrs) {
             var that = this;
-//            if (!that.party.isOwner(attrs.user_id)) {
-//                return "only owner can do this";
-//            }
             if (!_.isNumber(attrs.position)) {
                 return "position must be present";
             }
@@ -1148,6 +1159,15 @@ if (typeof exports !== "undefined") {
         getNotDeletedTracksInPlaylist: function () {
             var that = this;
             return that.get("playlist").filter(function (track_in_playlist) {return !track_in_playlist.isDeleted(); });
+        },
+
+        getCurrentTrack: function () {
+            var that = this;
+            var track_in_playlist = that.get("playlist").at(that.get("current_playlist_index"));
+            if (!track_in_playlist) {
+                return null;
+            }
+            return track_in_playlist.getTrack();
         },
 
         isJoined: function (user_or_user_id) {

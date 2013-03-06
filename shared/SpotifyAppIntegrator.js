@@ -51,11 +51,11 @@ window.PM.domain.SpotifyAppIntegrator = window.Toolbox.Base.extend({
                     $(addedby.parent()).addClass("deleted");
                     $(addedby.parent()).removeClass("sp-track-selected");
                     track_in_playlist.getDeletedByUser().onLoaded(function (user) {
-                        addedby.text("deleted by: " + user.get("name"));
+                        addedby.text("deleted by: " + user.getName(that.activeParty));
                     });
                 } else {
                     track_in_playlist.getUser().onLoaded(function (user) {
-                        addedby.text(user.get("name"));
+                        addedby.text(user.getName(that.activeParty));
                     });
                 }
                 track_in_playlist.getTrack().onLoaded(_.bind(that.updateExpectedPlayTimes, that));
@@ -64,6 +64,8 @@ window.PM.domain.SpotifyAppIntegrator = window.Toolbox.Base.extend({
             stopDeleteButtonsFromSelectingTrack();
         };
         that.myTrackView.prototype = that.views.Track.prototype;
+        that.shuffle = false;
+        that.repeat = false;
     },
 
     updateExpectedPlayTimes: _.debounce(function () {
@@ -99,7 +101,7 @@ window.PM.domain.SpotifyAppIntegrator = window.Toolbox.Base.extend({
                 if (track_in_playlist.isDeleted()) {
                     return;
                 }
-                if (index < that.models.player.index) {
+                if (that.shuffle || index < that.models.player.index) {
                     $(expectedplaytimes[index]).prop("expectedtime", null);
                     return;
                 }
@@ -115,6 +117,18 @@ window.PM.domain.SpotifyAppIntegrator = window.Toolbox.Base.extend({
                 $(expectedplaytimes[index]).prop("expectedtime", targetms);
                 targetms += track_in_playlist.getTrack().get("duration");
             });
+            if (!that.shuffle && that.repeat) { //when repeating, songs at the top have an expected time as well
+                that.activeParty.get("playlist").each(function (track_in_playlist, index) {
+                    if (track_in_playlist.isDeleted()) {
+                        return;
+                    }
+                    if (index < that.models.player.index) {
+                        $(expectedplaytimes[index]).prop("expectedtime", targetms);
+                        targetms += track_in_playlist.getTrack().get("duration");
+                        return;
+                    }
+                });
+            }
             that.updateExpectedPlayTimesView(true);
             break;
         default:
@@ -147,6 +161,14 @@ window.PM.domain.SpotifyAppIntegrator = window.Toolbox.Base.extend({
             that.onPartyPlayStopped();
         } else {
             that.onPartyPlayStarted(that.models.player.index);
+        }
+        if (that.models.player.repeat !== that.repeat) {
+            that.repeat = that.models.player.repeat;
+            $('body').toggleClass("player-repeat", that.repeat);
+        }
+        if (that.models.player.shuffle !== that.shuffle) {
+            that.shuffle = that.models.player.shuffle;
+            $('body').toggleClass("player-shuffle", that.shuffle);
         }
         that.updateExpectedPlayTimes();
     }, 50),
