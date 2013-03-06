@@ -192,7 +192,7 @@ var clutils = window.clutils;
             PM.domain.PartyNodeDomain.getOwnParties(limit, before_timestamp, function (parties_data, parties_left) {
                 _.each(parties_data, function (party_data) {
                     var party = PM.models.Party.unserialize(party_data);
-                    var tracks = _.map(party.getNotDeletedTracksInPlaylist(), function (track_in_playlist) {return track_in_playlist.getTrack(); });
+                    var tracks = party.get("playlist").map(function (track_in_playlist) {return track_in_playlist.getTrack(); });
                     var domnode;
                     var fixcoverart = _.debounce(function () {
                         if (_.all(tracks, function (track) {return track.get("_status") !== PM.models.Track.LOADING; })) {
@@ -247,7 +247,7 @@ var clutils = window.clutils;
 
         playlistSeeAll: function (event) {
             var party = $(event.currentTarget).parents(".party")[0].party;
-            $(event.currentTarget).prevAll(".playlist-placeholder").css("max-height", (20 * party.getNotDeletedTracksInPlaylist().length) + "px");
+            $(event.currentTarget).prevAll(".playlist-placeholder").css("max-height", (20 * party.get("playlist").length) + "px");
             $(event.currentTarget).css("visibility", "hidden");
         },
     });
@@ -502,7 +502,7 @@ var clutils = window.clutils;
             that.party.get("users").off("add", that.updateUserBar, that);
             that.party.get("users").off("remove", that.updateUserBar, that);
             that.party.get("users").off("reset", that.updateUserBar, that);
-            that.party.off("change:current_playlist_index", that.setCoverPhoto, that);
+            that.party.off("change:current_tip_number", that.setCoverPhoto, that);
             that.party.get("log").off("add", that.handleNewAction, that);
             that.$('img.coverphoto').off("load.photopage");
             $(window).off("resize.photopage");
@@ -553,10 +553,10 @@ var clutils = window.clutils;
         setCoverPhoto: function () {
             var that = this;
             var user;
-            if (that.party.get("current_playlist_index") === -1) {
+            if (that.party.get("current_tip_number") === -1) {
                 user = that.party.getOwner();
             } else {
-                var user_id = that.party.get("playlist").at(that.party.get("current_playlist_index")).get("user_id");
+                var user_id = that.party.getCurrentTrackInPlaylist().get("user_id");
                 if (user_id === "master") {
                     user = that.party.getOwner();
                 } else {
@@ -575,19 +575,19 @@ var clutils = window.clutils;
                     } else {
                         that.$('.coverphoto-container').addClass("no-cover-photo");
                     }
-                    if (that.party.get("current_playlist_index") !== -1) {
-                        var user_id = that.party.get("playlist").at(that.party.get("current_playlist_index")).get("user_id");
+                    if (that.party.get("current_tip_number") !== -1) {
+                        var user_id = that.party.getCurrentTrackInPlaylist().get("user_id");
                         that.$('.coverphoto-container .currentsong > .requested-by').text(PM.models.User.getById(user_id).getName(that.party)); //note: don't use "user" here because the master user gets switched to normal user, and we want the master user here; master user will be loaded always so no need to wait...
                     }
                 }
             });
             
-            if (that.party.get("current_playlist_index") === -1) {
+            if (that.party.get("current_tip_number") === -1) {
                 that.$('.coverphoto-container').addClass("no-song-playing");
             } else {
                 that.$('.coverphoto-container').removeClass("no-song-playing");
 
-                var track = PM.models.Track.getById(that.party.get("playlist").at(that.party.get("current_playlist_index")).get("track_id"));
+                var track = that.party.getCurrentTrackInPlaylist().getTrack();
                 that.$('.coverphoto-container')[0].track = track;
                 track.onLoaded(function () {
                     if (that.$('.coverphoto-container')[0].track === track) {
@@ -616,24 +616,24 @@ var clutils = window.clutils;
 
         handleNewAction: function (action) {
             var that = this;
+            var track;
             switch (action.constructor.type) {
             case "TrackRemove":
-                that.showBubble(action.get("position"), action.getUser().getName(action.party), "deleted the track");
-                break;
-            case "TrackUnRemove":
-                that.showBubble(action.get("position"), action.getUser().getName(action.party), "undeleted the track");
+                track = PM.models.Track.getById(action.track_id);
+                that.showBubble(action.position - 0.5, action.getUser().getName(action.party), "deleted the track <strong>" + track.getHtmlLazyLoad("name") + "</strong> by <strong>" + track.getHtmlLazyLoad("artist") + "</strong>");
                 break;
             case "Pause":
-                that.showBubble(action.party.get("current_playlist_index"),
+                that.showBubble(action.party.getCurrentPlaylistIndex(),
                                 action.getUser().getName(action.party), "paused playback");
                 break;
             case "Play":
-                that.showBubble(action.party.get("current_playlist_index"),
+                that.showBubble(action.party.getCurrentPlaylistIndex(),
                                 action.getUser().getName(action.party), "resumed playback");
                 break;
             case "PlayTrack":
-                var track = action.party.getCurrentTrack();
-                that.showBubble(action.get("position"),
+                var track_in_playlist = action.party.findTrackInPlaylistByTipNumber(action.get("tip_number"));
+                track = track_in_playlist.getTrack();
+                that.showBubble(action.party.get("playlist").indexOf(track_in_playlist),
                                 action.getUser().getName(action.party),
                                 "started playing <strong>" + track.getHtmlLazyLoad("name") + "</strong>"
                                );
@@ -656,14 +656,14 @@ var clutils = window.clutils;
                 that.party.get("users").on("add", that.updateUserBar, that);
                 that.party.get("users").on("remove", that.updateUserBar, that);
                 that.party.get("users").on("reset", that.updateUserBar, that);
-                that.party.on("change:current_playlist_index", that.setCoverPhoto, that);
+                that.party.on("change:current_tip_number", that.setCoverPhoto, that);
                 that.party.get("log").on("add", that.handleNewAction, that);
                 that.$('img.coverphoto').on("load.photopage", _.bind(that.resizeCoverPhoto, that));
                 $(window).on("resize.photopage", _.bind(that.resizeCoverPhoto, that));
                 $(window).on("resize.photopage", _.bind(that.updateUserBar, that));//needed to add/remove userbar arrows
                 var playlistNode = PM.domain.SpotifyAppIntegrator.getHtmlNodeForActivePlaylist(that.party);
-                if (that.party.get("current_playlist_index") !== -1) {
-                    that.party.trigger("playcommand", "play", that.party.get("current_playlist_index"));
+                if (that.party.get("current_tip_number") !== -1) {
+                    that.party.trigger("playcommand", "play", that.party.get("current_tip_number"));
                 }
                 that.$('#playlist-placeholder').html(playlistNode);
                 that.setCoverPhoto();
@@ -673,12 +673,8 @@ var clutils = window.clutils;
 
         toggleDeleteTrack: _.debounce(function (event) { //debouce to prevent double-click
             var that = this;
-            var index = $(event.currentTarget.parentNode.parentNode).prevAll().length;
-            if (that.party.get("playlist").at(index).isDeleted()) {
-                that.party.createAndApplyMasterAction("TrackUnRemove", {position: index, });
-            } else {
-                that.party.createAndApplyMasterAction("TrackRemove", {position: index, });
-            }
+            var tip_number = $(event.currentTarget).prop("tip_number");
+            that.party.createAndApplyMasterAction("TrackRemove", {tip_number: tip_number, });
         }, 200, {immediate: true}),
 
         updateUserBar: _.debounce(function () {

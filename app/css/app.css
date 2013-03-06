@@ -162,22 +162,13 @@
       -webkit-transition: left 300ms; }
     #partymode .party-page ul.tracks li.track-in-playlist.show-controls .entry {
       left: 80%; }
-    #partymode .party-page ul.tracks li.track-in-playlist .deleted-by {
-      display: none; }
-    #partymode .party-page ul.tracks li.track-in-playlist.deleted .title, #partymode .party-page ul.tracks li.track-in-playlist.deleted .subtitle {
-      opacity: .2; }
-    #partymode .party-page ul.tracks li.track-in-playlist.deleted .artist-added {
-      display: none; }
-    #partymode .party-page ul.tracks li.track-in-playlist.deleted .deleted-by {
-      display: block;
-      margin-top: 3px; }
-    #partymode .party-page ul.tracks li.track-in-playlist.deleted .deleted-by:before {
-      content: "deleted by: "; }
-    #partymode .party-page ul.tracks li.track-in-playlist.deleted div.controls > div {
-      display: none; }
-      #partymode .party-page ul.tracks li.track-in-playlist.deleted div.controls > div.delete-button {
-        display: inline-block;
-        background-position-x: -96px; }
+    #partymode .party-page ul.tracks li.track-in-playlist.deleted.show-controls .entry {
+      left: 0; }
+    #partymode .party-page ul.tracks li.track-in-playlist.deleted > div {
+      height: 0px;
+      -webkit-transition: height 500ms ease 10000ms; }
+      #partymode .party-page ul.tracks li.track-in-playlist.deleted > div .title, #partymode .party-page ul.tracks li.track-in-playlist.deleted > div .subtitle {
+        opacity: .2; }
     #partymode .party-page ul.tracks li.track-in-playlist .playing.icon {
       width: 0;
       height: 24px;

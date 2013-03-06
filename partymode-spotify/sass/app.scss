@@ -174,23 +174,6 @@ body.player-repeat #player-repeat-warning, body.player-shuffle #player-shuffle-w
             .delete-button {display: block; }
             .play-time {display: none; }
         }
-        .sp-track.deleted .expectedplaytime .delete-button .delete {display: none; }
-        .sp-track:not(.deleted) .expectedplaytime .delete-button .undelete {display: none; }
-
-        a.sp-track > span {
-            position: relative;
-            hr.strike {display: none; border-style: none none solid; position: absolute; top: 5px; width: 100%; }
-        }
-
-        a.sp-track .deletemarker {
-            width: 100%; position: absolute; top: 9px; left: 0; height: 1px;
-        }
-
-        a.sp-track.deleted {
-            .deletemarker {border-top: 2px solid #605757;}
-            > span:not(.addedby):not(.expectedplaytime) {opacity: .15;}
-            .expectedplaytime, .addedby {background-color: #605757; color: black; }
-        }
     }
 }
 

@@ -148,7 +148,7 @@ __p+='<div class="play-button"></div><div class="pause-button"></div>\n    </div
 ((__t=( track.getHtmlLazyLoad("artist") ))==null?'':__t)+
 ' &mdash; '+
 ((__t=( user.getHtmlLazyLoad("name") ))==null?'':__t)+
-'</h3>\n            <h2 class="subtitle deleted-by"></h2>\n        </div>\n        <div class="playing icon"></div>\n    </a>\n</li>\n';
+'</h3>\n        </div>\n        <div class="playing icon"></div>\n    </a>\n</li>\n';
 }
 return __p;
 };

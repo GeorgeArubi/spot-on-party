@@ -334,31 +334,6 @@ body.player-repeat #player-repeat-warning, body.player-shuffle #player-shuffle-w
     display: block; }
   .party-page #playlist-placeholder .sp-track:hover .expectedplaytime .play-time {
     display: none; }
-  .party-page #playlist-placeholder .sp-track.deleted .expectedplaytime .delete-button .delete {
-    display: none; }
-  .party-page #playlist-placeholder .sp-track:not(.deleted) .expectedplaytime .delete-button .undelete {
-    display: none; }
-  .party-page #playlist-placeholder a.sp-track > span {
-    position: relative; }
-    .party-page #playlist-placeholder a.sp-track > span hr.strike {
-      display: none;
-      border-style: none none solid;
-      position: absolute;
-      top: 5px;
-      width: 100%; }
-  .party-page #playlist-placeholder a.sp-track .deletemarker {
-    width: 100%;
-    position: absolute;
-    top: 9px;
-    left: 0;
-    height: 1px; }
-  .party-page #playlist-placeholder a.sp-track.deleted .deletemarker {
-    border-top: 2px solid #605757; }
-  .party-page #playlist-placeholder a.sp-track.deleted > span:not(.addedby):not(.expectedplaytime) {
-    opacity: .15; }
-  .party-page #playlist-placeholder a.sp-track.deleted .expectedplaytime, .party-page #playlist-placeholder a.sp-track.deleted .addedby {
-    background-color: #605757;
-    color: black; }
 
 #overlay-backdrop {
   display: none;

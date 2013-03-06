@@ -6,7 +6,6 @@
         <div class="entry-container">
             <h2 class="title"><%= track.getHtmlLazyLoad("name") %></h2>
             <h3 class="subtitle artist-added"><%= track.getHtmlLazyLoad("artist") %> &mdash; <%= user.getHtmlLazyLoad("name") %></h3>
-            <h2 class="subtitle deleted-by"></h2>
         </div>
         <div class="playing icon"></div>
     </a>

@@ -34,32 +34,21 @@ window.PM.domain.SpotifyAppIntegrator = window.Toolbox.Base.extend({
 
             /*jshint bitwise:true */
 
-            var deletemarker = $("<div>");
-            deletemarker.addClass("deletemarker");
-            this.node.appendChild(deletemarker[0]);
             var addedby = $("<span>");
             addedby.addClass("addedby");
             this.node.appendChild(addedby[0]);
-            var willplayat = $('<span><span class="play-time"></span><span class="delete-button"><span class="delete">delete</span><span class="undelete">undelete</span></span></span>');
+            var willplayat = $('<span><span class="play-time"></span><span class="delete-button"><span class="delete">delete</span></span></span>');
             willplayat.addClass("expectedplaytime");
             this.node.appendChild(willplayat[0]);
             _.delay(_.bind(function () {
                 var index = $(this.node).prevAll().length;
                 var playlist = that.activeParty.get("playlist");
                 var track_in_playlist = playlist.at(index);
-                if (track_in_playlist.isDeleted()) {
-                    $(addedby.parent()).addClass("deleted");
-                    $(addedby.parent()).removeClass("sp-track-selected");
-                    track_in_playlist.getDeletedByUser().onLoaded(function (user) {
-                        addedby.text("deleted by: " + user.getName(that.activeParty));
-                    });
-                } else {
-                    track_in_playlist.getUser().onLoaded(function (user) {
-                        addedby.text(user.getName(that.activeParty));
-                    });
-                }
+                $(".delete-button", willplayat).prop("tip_number", track_in_playlist.get("tip_number"));
+                track_in_playlist.getUser().onLoaded(function (user) {
+                    addedby.text(user.getName(that.activeParty));
+                });
                 track_in_playlist.getTrack().onLoaded(_.bind(that.updateExpectedPlayTimes, that));
-
             }, this), 0);
             stopDeleteButtonsFromSelectingTrack();
         };
@@ -98,9 +87,6 @@ window.PM.domain.SpotifyAppIntegrator = window.Toolbox.Base.extend({
         case "play":
             var targetms;
             that.activeParty.get("playlist").each(function (track_in_playlist, index) {
-                if (track_in_playlist.isDeleted()) {
-                    return;
-                }
                 if (that.shuffle || index < that.models.player.index) {
                     $(expectedplaytimes[index]).prop("expectedtime", null);
                     return;
@@ -119,9 +105,6 @@ window.PM.domain.SpotifyAppIntegrator = window.Toolbox.Base.extend({
             });
             if (!that.shuffle && that.repeat) { //when repeating, songs at the top have an expected time as well
                 that.activeParty.get("playlist").each(function (track_in_playlist, index) {
-                    if (track_in_playlist.isDeleted()) {
-                        return;
-                    }
                     if (index < that.models.player.index) {
                         $(expectedplaytimes[index]).prop("expectedtime", targetms);
                         targetms += track_in_playlist.getTrack().get("duration");
@@ -186,7 +169,7 @@ window.PM.domain.SpotifyAppIntegrator = window.Toolbox.Base.extend({
         window.clearInterval(that.updateTimesInterval);
         party.off("playcommand", that.onPlayCommand, that);
         party.get("playlist").off("add", that.addPlaylistItem, that);
-        party.get("playlist").off("change:deleted_by_user_id", that.onChangePlaylistItem, that);
+        party.get("playlist").off("remove", that.removePlaylistItem, that);
         party.get("playlist").off("reset", that.onResetPlaylist, that);
         that.activeParty = null;
     },
@@ -201,7 +184,7 @@ window.PM.domain.SpotifyAppIntegrator = window.Toolbox.Base.extend({
 
         party.on("playcommand", that.onPlayCommand, that);
         party.get("playlist").on("add", that.addPlaylistItem, that);
-        party.get("playlist").on("change:deleted_by_user_id", that.onChangePlaylistItem, that);
+        party.get("playlist").on("remove", that.removePlaylistItem, that);
         party.get("playlist").on("reset", that.onResetPlaylist, that);
 
         that.updateTimesInterval = window.setInterval(_.bind(that.updateExpectedPlayTimesView, that), 500);
@@ -216,17 +199,17 @@ window.PM.domain.SpotifyAppIntegrator = window.Toolbox.Base.extend({
 
     getPlaylistDomForOldPartyPage: function (party) {
         var that = this;
-        var tracks_in_playlist = party.getNotDeletedTracksInPlaylist();
+        var tracks_in_playlist = party.get("playlist");
         var playlist = new that.models.Playlist();
-        _.each(tracks_in_playlist, function (track_in_playlist) {playlist.add(track_in_playlist.get("track_id")); });
+        tracks_in_playlist.each(function (track_in_playlist) {playlist.add(track_in_playlist.get("track_id")); });
         return (new that.views.List(playlist)).node;
     },
 
     addPartyAsPlaylist: function (party) {
         var that = this;
-        var tracks_in_playlist = party.getNotDeletedTracksInPlaylist();
+        var tracks_in_playlist = party.get("playlist");
         var playlist = new that.models.Playlist(party.get("name"));
-        _.each(tracks_in_playlist, function (track_in_playlist) {playlist.add(track_in_playlist.get("track_id")); });
+        tracks_in_playlist.each(function (track_in_playlist) {playlist.add(track_in_playlist.get("track_id")); });
         return playlist;
     },
 
@@ -249,9 +232,9 @@ window.PM.domain.SpotifyAppIntegrator = window.Toolbox.Base.extend({
         that.spotifyPlaylist.add(track_in_playlist.get("track_id"));
     },
 
-    onChangePlaylistItem: function () {
+    removePlaylistItem: function (track_in_playlist, playlist, options) {
         var that = this;
-        that.spotifyPlaylist.notify(that.models.EVENT.CHANGE);
+        that.spotifyPlaylist.remove(options.index);
     },
 
     onResetPlaylist: function () {
@@ -271,12 +254,13 @@ window.PM.domain.SpotifyAppIntegrator = window.Toolbox.Base.extend({
         that.spotifyPlaylist.notify(that.models.EVENT.CHANGE);
     },
 
-    onPlayCommand: function (command, index) {
+    onPlayCommand: function (command, tip_number) {
         var that = this;
         switch (command) {
         case "play":
-            if (_.isNumber(index)) {
-                that.play(index);
+            if (_.isNumber(tip_number)) {
+                var track_in_playlist = that.activeParty.findTrackInPlaylistByTipNumber(tip_number);
+                that.play(that.activeParty.get("playlist").indexOf(track_in_playlist));
             } else {
                 that.models.player.playing = true;
             }
@@ -299,57 +283,22 @@ window.PM.domain.SpotifyAppIntegrator = window.Toolbox.Base.extend({
 
     onPartyPlayStopped: function () {
         var that = this;
-        if (that.activeParty.get("current_playlist_index") !== -1 || that.activeParty.get("play_status") !== "stop") {
+        if (that.activeParty.get("current_tip_number") !== -1 || that.activeParty.get("play_status") !== "stop") {
             that.activeParty.applyPlayStatusFeedback("stop", -1, 0);
         }
     },
 
     onPartyPlayStarted: function () {
         var that = this;
-        if (that.models.player.playing && that.activeParty.get("playlist").at(that.models.player.index).isDeleted()) {
-            var delta;
-            if (that.spotifyPlaylist.length > 2 && that.models.player.index + 1 === that.lastPlayedIndex) {
-                delta = -1;
-            } else {
-                delta = 1;
-            }
-            var index_to_play = that.models.player.index;
-            var looped = false;
-            while (that.activeParty.get("playlist").at(index_to_play).isDeleted()) {
-                index_to_play += delta;
-                if (index_to_play < 0) {
-                    //we're going backwards, so play first one that is playable
-                    delta = 1;
-                    index_to_play = that.models.player.index;
-                }
-                if (index_to_play >= that.spotifyPlaylist.length) {
-                    index_to_play = 0;
-                    if (looped) {
-                        //all hope is lost, playlist is empty of songs to play. let's just stop
-                        break;
-                    } else {
-                        //don't give up hope, let's try from the start to find an item to select
-                        looped = true;
-                    }
-                }
-            }
-            that.play(index_to_play);
-            if (looped) { //if looped, we stop
-                _.delay(function () {
-                    that.models.player.playing = false;
-                }, 1); //for some reason this needs to be called asynchronously
-            }
-            return;
-        }
-        that.lastPlayedIndex = that.models.player.index;
+        var tip_number = that.activeParty.get("playlist").at(that.models.player.index).get("tip_number");
         if (that.models.player.playing) {
             that.activeParty.applyPlayStatusFeedback("play",
-                                                     that.models.player.index,
+                                                     tip_number,
                                                      clutils.nowts() - that.models.player.position
                                                     );
         } else {
             that.activeParty.applyPlayStatusFeedback("pause",
-                                                     that.models.player.index,
+                                                     tip_number,
                                                      that.models.player.position
                                                     );
         }

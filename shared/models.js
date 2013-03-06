@@ -434,24 +434,18 @@ if (typeof exports !== "undefined") {
         _fields: {
             track_id: 1,
             user_id: 1,
-            deleted_by_user_id: 1,
             created: 1,
+            tip_number: 1, /*some int that unqiuely identifies this item in this playlist. For now just using action number */
         },
 
         defaults: function () {
             return {
-                deleted_by_user_id: 0,
             };
         },
 
         serialize: function () {
             var that = this;
             return that.serializeAllButId();
-        },
-
-        isDeleted: function () {
-            var that = this;
-            return !!that.get("deleted_by_user_id");
         },
 
         getTrack: function () {
@@ -462,14 +456,6 @@ if (typeof exports !== "undefined") {
         getUser: function () {
             var that = this;
             return PM.models.User.getById(that.get("user_id"));
-        },
-
-        getDeletedByUser: function () {
-            var that = this;
-            if (!that.get("deleted_by_user_id")) {
-                return null;
-            }
-            return PM.models.User.getById(that.get("deleted_by_user_id"));
         },
 
         canBeDeletedBy: function (user_id, party) {
@@ -492,6 +478,9 @@ if (typeof exports !== "undefined") {
             }
             if (!(clutils.isTimestamp(attrs.created))) {
                 return "Created needs to be a date";
+            }
+            if (!_.isNumber(attrs.tip_number)) {
+                return "Tip_number should be a number";
             }
         }
     }, {
@@ -833,7 +822,8 @@ if (typeof exports !== "undefined") {
             playlist.add(new PM.models.TrackInPlaylist({
                 user_id: that.get("user_id"),
                 track_id: that.get("track_id"),
-                created: this.get("created"),
+                created: that.get("created"),
+                tip_number: that.get("number"),
             }));
 
             that.party.getMemberRecord(that.get("user_id")).didAction(that.get("created"));
@@ -848,17 +838,17 @@ if (typeof exports !== "undefined") {
 
     PM.models.TrackRemoveAction = PM.models.Action.extend({
         _fields: {
-            position: 1,
+            tip_number: 1, //track_in_playlist_number
         },
 
         validate: function (attrs) {
             var that = this;
-            if (!_.isNumber(attrs.position)) {
-                return "position must be present";
+            if (!_.isNumber(attrs.tip_number)) {
+                return "action must contain a tip_number";
             }
-            var track_in_playlist = that.party.get("playlist").at(attrs.position);
-            if (!_.isObject(track_in_playlist) || track_in_playlist.isDeleted()) {
-                return "no track in the playlist at that position";
+            var track_in_playlist = that.party.findTrackInPlaylistByTipNumber(attrs.tip_number);
+            if (!_.isObject(track_in_playlist)) {
+                return "no track in the playlist with that tip_number";
             }
             if (!track_in_playlist.canBeDeletedBy(attrs.user_id, that.party)) {
                 return "songs can only be deleted by the one who added them (or the party owner)";
@@ -869,48 +859,17 @@ if (typeof exports !== "undefined") {
         applyActionToParty: function () {
             var that = this;
             var playlist = that.party.get("playlist");
-            playlist.at(that.get("position")).set({
-                deleted_by_user_id: that.get("user_id")
-            });
+            var track_in_playlist = that.party.findTrackInPlaylistByTipNumber(that.get("tip_number"));
+            that.position = playlist.indexOf(track_in_playlist);
+            that.track_id = track_in_playlist.get("track_id"); //don't assign the track object, since we don't want lazy-loading in the server
+            playlist.remove(track_in_playlist);
             that.party.set("last_updated", that.get("created"));
-            if (that.party.get("current_playlist_index") === that.get("position")) {
+            if (that.party.get("current_tip_number") === that.get("tip_number")) {
                 that.party.trigger("playcommand", "play_next");
             }
         },
     }, {
         type: "TrackRemove",
-    });
-
-    PM.models.TrackUnRemoveAction = PM.models.Action.extend({
-        _fields: {
-            position: 1,
-        },
-
-        validate: function (attrs) {
-            var that = this;
-            if (!_.isNumber(attrs.position)) {
-                return "position must be present";
-            }
-            var track_in_playlist = that.party.get("playlist").at(attrs.position);
-            if (!_.isObject(track_in_playlist) || !track_in_playlist.isDeleted()) {
-                return "no track in the playlist at that position, or not deleted";
-            }
-            if (!track_in_playlist.canBeDeletedBy(attrs.user_id, that.party)) {
-                return "songs can only be undeleted by the one who added them (or the party owner)";
-            }
-            return that.constructor.__super__.validate.call(that, attrs);
-        },
-
-        applyActionToParty: function () {
-            var that = this;
-            var playlist = that.party.get("playlist");
-            playlist.at(that.get("position")).set({
-                deleted_by_user_id: null
-            });
-            that.party.set("last_updated", that.get("created"));
-        },
-    }, {
-        type: "TrackUnRemove",
     });
 
     PM.models.StartAction = PM.models.Action.extend({
@@ -993,24 +952,21 @@ if (typeof exports !== "undefined") {
 
     PM.models.PlayTrackAction = PM.models.Action.extend({
         _fields: {
-            position: 1
+            tip_number: 1
         },
 
         validate: function (attrs) {
             var that = this;
-            var track_in_playlist = that.party.get("playlist").at(attrs.position);
+            var track_in_playlist = that.party.findTrackInPlaylistByTipNumber(attrs.tip_number);
             if (!track_in_playlist) {
                 return "Position to play doesn't exist";
-            }
-            if (track_in_playlist.isDeleted()) {
-                return "Position to play is a deleted track";
             }
             return that.constructor.__super__.validate.call(that, attrs);
         },
 
         applyActionToParty: function () {
             var that = this;
-            that.party.trigger("playcommand", "play", that.get("position"));
+            that.party.trigger("playcommand", "play", that.get("tip_number"));
         },
     }, {
         type: "PlayTrack",
@@ -1020,7 +976,7 @@ if (typeof exports !== "undefined") {
     PM.models.PlayStatusFeedbackAction = PM.models.Action.extend({
         _fields: {
             play_status: 1, // one of: play, pause or stop
-            current_playlist_index: 1, // in TrackIn_playlist playlist, not spotify playlist
+            current_tip_number: 1, // the currently playing track_in_playlist
             current_place_in_track: 1, // see comment in Party
             created: 1,
         },
@@ -1047,7 +1003,7 @@ if (typeof exports !== "undefined") {
             var that = this;
             that.party.set({
                 play_status: that.get("play_status"),
-                current_playlist_index: that.get("current_playlist_index"),
+                current_tip_number: that.get("current_tip_number"),
                 current_place_in_track: that.get("current_place_in_track"),
             });
         },
@@ -1075,7 +1031,7 @@ if (typeof exports !== "undefined") {
             active: 1,
             owner_id: 1,
             play_status: 1,
-            current_playlist_index: 1,
+            current_tip_number: 1,
             current_place_in_track: 1,
             created: 1,
             last_updated: 1,
@@ -1090,7 +1046,7 @@ if (typeof exports !== "undefined") {
                 active: false,
                 owner_id: 0,
                 play_status: "stop", //or "play" or "pause",
-                current_playlist_index: -1,
+                current_tip_number: -1,
                 current_place_in_track: null, //when paused, contains ms after track start, when playing contains date when this song would have started had it been played in whole
                 created: null,
                 last_updated: null,
@@ -1105,7 +1061,7 @@ if (typeof exports !== "undefined") {
                 active: that.get("active"),
                 owner_id: that.get("owner_id"),
                 play_status: that.get("play_status"),
-                current_playlist_index: that.get("current_playlist_index"),
+                current_tip_number: that.get("current_tip_number"),
                 current_place_in_track: that.get("current_place_in_track"),
                 created: that.get("created"),
                 last_updated: that.get("last_updated"),
@@ -1125,7 +1081,6 @@ if (typeof exports !== "undefined") {
                 created: that.get("created"),
                 last_updated: that.get("last_updated"),
                 track_ids: that.get("playlist").chain()
-                    .filter(function (track_in_playlist) {return !track_in_playlist.isDeleted(); })
                     .map(function (track_in_playlist) { return track_in_playlist.get("track_id"); })
                     .value(),
                 user_ids: that.get("users").chain()
@@ -1173,14 +1128,30 @@ if (typeof exports !== "undefined") {
                 .value();
         },
 
-        getNotDeletedTracksInPlaylist: function () {
+        getCurrentPlaylistIndex: function () {
             var that = this;
-            return that.get("playlist").filter(function (track_in_playlist) {return !track_in_playlist.isDeleted(); });
+            var track_in_playlist = that.getCurrentTrackInPlaylist();
+            if (!track_in_playlist) {
+                return -1;
+            }
+            return that.get("playlist").indexOf(track_in_playlist);
+        },
+
+        findTrackInPlaylistByTipNumber: function (tip_number) {
+            var that = this;
+            return that.get("playlist").find(function (track_in_playlist) {
+                return track_in_playlist.get("tip_number") === tip_number;
+            });
+        },
+
+        getCurrentTrackInPlaylist: function () {
+            var that = this;
+            return that.findTrackInPlaylistByTipNumber(that.get("current_tip_number"));
         },
 
         getCurrentTrack: function () {
             var that = this;
-            var track_in_playlist = that.get("playlist").at(that.get("current_playlist_index"));
+            var track_in_playlist = that.getCurrentTrackInPlaylist();
             if (!track_in_playlist) {
                 return null;
             }
@@ -1212,11 +1183,11 @@ if (typeof exports !== "undefined") {
             PM.models.Action.createAndApplyAction(PM.models.User.MASTER_ID, that, type, properties, success_callback, failure_callback);
         },
 
-        applyPlayStatusFeedback: function (play_status, current_playlist_index, current_place_in_track) {
+        applyPlayStatusFeedback: function (play_status, current_tip_number, current_place_in_track) {
             var that = this;
             var data = {
                 play_status: play_status,
-                current_playlist_index: current_playlist_index,
+                current_tip_number: current_tip_number,
                 current_place_in_track: current_place_in_track,
             };
             PM.models.Action.createAndApplyAction(PM.models.User.MASTER_ID, that, "PlayStatusFeedback", data);
@@ -1256,7 +1227,7 @@ if (typeof exports !== "undefined") {
                 active: data.active,
                 owner_id: data.owner_id,
                 play_status: data.play_status,
-                current_playlist_index: data.current_playlist_index,
+                current_tip_number: data.current_tip_number,
                 current_place_in_track: data.current_place_in_track,
                 created: data.created,
                 last_updated: data.last_updated,

@@ -5,7 +5,6 @@
     $sprite-pause-offset: -$icon-width;
     $sprite-restart-offset: 2 * -$icon-width;
     $sprite-delete-offset: 3 * -$icon-width;
-    $sprite-undelete-offset: 4 * -$icon-width;
     min-height: 120%;
 
     .login-page {
@@ -119,18 +118,13 @@
                     -webkit-transition: left $entry-slide-time;
                 }
                 &.show-controls .entry {left: 80%;}
+                &.deleted.show-controls .entry {left: 0;}
 
 
-                .deleted-by {display: none; }
-                &.deleted {
+                &.deleted > div {
                     .title, .subtitle {opacity: .2;}
-                    .artist-added {display: none;}
-                    .deleted-by {display: block; margin-top: 3px;}
-                    .deleted-by:before {content: "deleted by: ";}
-                    div.controls > div {
-                        display: none;
-                        &.delete-button {display:inline-block; background-position-x: $sprite-undelete-offset;}
-                    }
+                    height: 0px;
+                    -webkit-transition: height 500ms ease 10000ms;
                 }
                 
                 .playing.icon {

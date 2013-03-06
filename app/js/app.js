@@ -360,7 +360,7 @@ window.PM.app = window.PM.app || {};
 
         events: {
             "click ul.tracks > li.track-in-playlist": "showControls",
-            "click .delete-button": "toggleDeleteTrack",
+            "click .delete-button": "deleteTrack",
             "click .play-button": "playTrack",
             "click .pause-button": "togglePausePlay",
         },
@@ -386,7 +386,7 @@ window.PM.app = window.PM.app || {};
             ActivePartyUtil.activate(that.party.id);
             that.$el.html(that.template({party: that.party}));
             that.party.get("playlist").on("add", that.addPlaylistItem, that);
-            that.party.get("playlist").on("change:deleted_by_user_id", that.onChangePlaylistItem, that);
+            that.party.get("playlist").on("remove", that.removePlaylistItem, that);
             that.party.get("playlist").on("reset", that.onResetPlaylist, that);
             that.party.on("change", that.onPlayStatusChange, that); // not all changed will be play status changes, but most will, so we'll just catch all...
             that.onResetPlaylist();
@@ -404,18 +404,17 @@ window.PM.app = window.PM.app || {};
             var that = this;
             var $target = $(event.currentTarget);
             var track_in_playlist = $($target.parents("li.track-in-playlist")).prop("track-in-playlist");
-            var index = that.party.get("playlist").indexOf(track_in_playlist);
-            var action = PM.models.Action.createAction(PM.app.loggedin_user, that.party, "PlayTrack", {position: index});
+            var action = PM.models.Action.createAction(PM.app.loggedin_user, that.party, "PlayTrack",
+                                                       {tip_number: track_in_playlist.get("tip_number")});
             PM.domain.PartyNodeDomain.proposeAction(action.serialize());
         }, 400, {immediate: true}),
 
-        toggleDeleteTrack: _.debounce(function (event) {
+        deleteTrack: _.debounce(function (event) {
             var that = this;
             var $target = $(event.currentTarget);
             var track_in_playlist = $($target.parents("li.track-in-playlist")).prop("track-in-playlist");
-            var index = that.party.get("playlist").indexOf(track_in_playlist);
-            var type = track_in_playlist.isDeleted() ? "TrackUnRemove" : "TrackRemove";
-            var action = PM.models.Action.createAction(PM.app.loggedin_user, that.party, type, {position: index});
+            var action = PM.models.Action.createAction(PM.app.loggedin_user, that.party, "TrackRemove",
+                                                       {tip_number: track_in_playlist.get("tip_number")});
             PM.domain.PartyNodeDomain.proposeAction(action.serialize());
         }, 400, {immediate: true}),
 
@@ -442,11 +441,11 @@ window.PM.app = window.PM.app || {};
 
         onPlayStatusChange: function () {
             var that = this;
-            var current_index = that.party.get("current_playlist_index");
+            var track_in_playlist = that.party.getCurrentTrackInPlaylist();
             var track_els = that.$("ul.tracks > li.track-in-playlist");
-            _.each(track_els, function (element, index) {
+            _.each(track_els, function (element) {
                 var $el = $(element);
-                $el.toggleClass("now-playing", index === current_index);
+                $el.toggleClass("now-playing", $el.prop("track-in-playlist") === track_in_playlist);
             });
             that.$("ul.tracks").toggleClass("paused", that.party.get("play_status") === "pause");
         },
@@ -455,36 +454,26 @@ window.PM.app = window.PM.app || {};
             var that = this;
             var track = track_in_playlist.getTrack();
             var user = track_in_playlist.getUser();
-            var deleted_by_user = track_in_playlist.getDeletedByUser();
-            var el = $(getTemplate("playlist-item")({track: track, track_in_playlist: track_in_playlist, user: user, deleted_by_user: deleted_by_user, deletable: track_in_playlist.canBeDeletedBy(PM.app.loggedin_user.id, that.party)}));
+            var el = $(getTemplate("playlist-item")({track: track, track_in_playlist: track_in_playlist, user: user, deletable: track_in_playlist.canBeDeletedBy(PM.app.loggedin_user.id, that.party)}));
             el.prop({"track-in-playlist": track_in_playlist});
             return el;
-        },
-
-        updateTrackInPlaylistElement: function (element) {
-            var $element = $(element);
-            var track_in_playlist = $element.prop("track-in-playlist");
-            $element.toggleClass("deleted", track_in_playlist.isDeleted());
-            $(".deleted-by", $element).html(track_in_playlist.isDeleted() ? track_in_playlist.getDeletedByUser().getHtmlLazyLoad("name") : "");
         },
 
         addPlaylistItem: function (track_in_playlist) {
             var that = this;
             var tracks_dom = that.$("ul.tracks");
             var track_el = that.getTrackInPlaylistElement(track_in_playlist);
-            that.updateTrackInPlaylistElement(track_el);
             tracks_dom.append(track_el);
             that.$('ul.tracks.ui-listview').listview('refresh');
         },
 
-        onChangePlaylistItem: function (track_in_playlist) {
+        removePlaylistItem: function (track_in_playlist) {
             var that = this;
             var track_els = that.$("ul.tracks > li.track-in-playlist");
-            _.each(track_els, function (el) {
-                if ($(el).prop("track-in-playlist") === track_in_playlist) {
-                    that.updateTrackInPlaylistElement(el);
-                }
-            });
+            $(_.find(track_els, function (el) {
+                return $(el).prop("track-in-playlist") === track_in_playlist;
+            })).addClass("deleted").children("h3")
+                .html("Deleted by <strong>" + track_in_playlist.getUser().getName(that.party) + "</strong>");
         },
 
         onResetPlaylist: function () {
@@ -500,7 +489,6 @@ window.PM.app = window.PM.app || {};
                 if (!track_els[i]) {
                     break;
                 }
-                that.updateTrackInPlaylistElement(that.$(track_els[i]));
             }
             for (; i < tracks_in_playlist.length; i++) {
                 that.addPlaylistItem(tracks_in_playlist[i]);
