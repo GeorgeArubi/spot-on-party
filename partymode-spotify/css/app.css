@@ -306,7 +306,7 @@ body.player-repeat #player-repeat-warning, body.player-shuffle #player-shuffle-w
     color: #444;
     border-width: 7px 12px 22px 20px;
     border-image: url(../img/bubble@2x.png) 14 24 44 40 fill stretch;
-    left: -1000; }
+    left: -1000px; }
     .party-page #bubbleholder #bubble > div {
       margin-left: -7px;
       margin-bottom: -5px; }
