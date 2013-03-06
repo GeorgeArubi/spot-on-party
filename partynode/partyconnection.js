@@ -301,28 +301,20 @@ var partyconnection = exports;
                     _isTimestamp: true,
                 },
             };
-            var handshake_domain = domain.create();
-            handshake_domain.on("error", function (er) {
-                winston.log("info", "login failed from " + handshakeData.address.address + " with data " + JSON.stringify(handshakeData.query));
-                callback(er, false);
-            });
-            handshake_domain.run(function () {
-                clutils.checkConstraints(handshakeData.query, constraint);
-                var token = handshakeData.query.token;
-                var url = "https://graph.facebook.com/me?fields=id%2Cname&access_token=" + encodeURIComponent(token);
-                if (!root.counter) {
-                    root.counter = 0;
+            clutils.checkConstraints(handshakeData.query, constraint);
+            var token = handshakeData.query.token;
+            var url = "https://graph.facebook.com/me?fields=id%2Cname&access_token=" + encodeURIComponent(token);
+            request.get(url, function (error, undefined /*response*/, json) {
+                if (error) {
+                    return callback(error, false);
                 }
-                var localcounter = root.counter++;
-                console.log("start request " + localcounter + ": " + url);
-                request.get(url, function (error, undefined /*response*/, json) {
-                    console.log("done request " + localcounter + ": " + url);
-                    if (error) {
-                        throw error;
-                    }
+                try {
                     var object = JSON.parse(json);
+                    if (object.error) {
+                        return callback("Error login in: " + JSON.stringify(object.error));
+                    }
                     if (!object.id) {
-                        throw "No valid response: " + json;
+                        return callback("Unexpected response: " + JSON.stringify(json));
                     }
                     handshakeData.partynode = {
                         user_id: parseInt(object.id, 10),
@@ -333,8 +325,10 @@ var partyconnection = exports;
                     } else {
                         handshakeData.partynode.ConnectionClass = partyconnection.ClientConnection;
                     }
-                    callback(null, true);
-                });
+                    return callback(null, true);
+                } catch (error) {
+                    return callback("Problem parsing JSON: " + JSON.stringify(json) + " -- " + error);
+                }
             });
         },
 
