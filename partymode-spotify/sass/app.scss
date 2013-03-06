@@ -158,10 +158,10 @@ body.player-repeat #player-repeat-warning, body.player-shuffle #player-shuffle-w
     #bubbleholder {
         position: relative;
         #bubble {
-            opacity: 0; z-index: 100; -webkit-transition: opacity 200ms; position: absolute; left: 75px; color: #444;
-            border-width: 7px 12px 22px 20px; border-image: url(../img/bubble@2x.png) 14 24 44 40 fill stretch;
+            opacity: 0; z-index: 100; -webkit-transition: opacity 200ms, left 0 ease 200ms; position: absolute; color: #444;
+            border-width: 7px 12px 22px 20px; border-image: url(../img/bubble@2x.png) 14 24 44 40 fill stretch; left: -1000;
             > div {margin-left: -7px; margin-bottom: -5px;}
-            &.show {opacity: .95;}
+            &.show {opacity: .95; left: 75px; -webkit-transition: opacity 200ms;}
         }
     }
     #playlist-placeholder {
