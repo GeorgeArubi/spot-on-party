@@ -55,6 +55,15 @@
         }));
     }));
 
-
+    setInterval(function () {
+        ['http', 'https'].forEach(function (protocolname) {
+            winston.info("Status " + (new Date()).toGMTString());
+            var protocol = require(protocolname);
+            var connectioncount = Object.keys(protocol.globalAgent.sockets).map(function (domain) {
+                return domain + ": " + protocol.globalAgent.sockets[domain].length;
+            });
+            winston.info(protocolname + " connections (" + connectioncount.length + "): " + connectioncount.join(", "));
+        });
+    }, 60 * 60 * 1000);
 })();
 
