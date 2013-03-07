@@ -9,7 +9,7 @@
     <div class="playlist">
         <span class="header">Playlist</span>
         <ul data-role="listview">
-            <% _.each(party.getNotDeletedTracksInPlaylist(), function (track_in_playlist, index) { %>
+            <% _.each(party.get("playlist"), function (track_in_playlist, index) { %>
                 <% var id = "id_" + track_in_playlist.cid %>
                 <li id="<%- id %>"><a href="<%- track_in_playlist.get("track_id") %>">
                     <h2 class="track-name"></h2>

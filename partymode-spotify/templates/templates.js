@@ -27,7 +27,7 @@ with(obj||{}){
 __p+='';
  var members_in_party = party.getMembersInPartyOrderedByActive() 
 __p+='\n';
- var tracks_in_playlist = party.getNotDeletedTracksInPlaylist() 
+ var tracks_in_playlist = party.get("playlist") 
 __p+='\n';
  var members_shown = 8 
 __p+='\n<div class="party">\n    <div class="art"></div><div class="info">\n        <h2 class="party-name">'+

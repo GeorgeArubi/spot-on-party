@@ -1,5 +1,5 @@
 <% var members_in_party = party.getMembersInPartyOrderedByActive() %>
-<% var tracks_in_playlist = party.getNotDeletedTracksInPlaylist() %>
+<% var tracks_in_playlist = party.get("playlist") %>
 <% var members_shown = 8 %>
 <div class="party">
     <div class="art"></div><div class="info">

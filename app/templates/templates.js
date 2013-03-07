@@ -57,7 +57,7 @@ __p+='<div data-role="header">\n    <h1>'+
 '" data-role="button" data-icon="arrow-l">users</a>\n</div>\n<div data-role="content">\n    <iframe src="https://embed.spotify.com/?uri=spotify:trackset:PREFEREDTITLE:5Z7ygHQo02SUrFmcgpwsKW,1x6ACsKV4UdWS2FMuPFUiT,4bi73jCM02fMpkI11Lqmfe" frameborder="0" allowtransparency="true"></iframe>\n    <div class="party-when">'+
 ((__t=( clutils.pastDateText(party.get("last_updated")) ))==null?'':_.escape(__t))+
 '</div>\n    <div class="playlist">\n        <span class="header">Playlist</span>\n        <ul data-role="listview">\n            ';
- _.each(party.getNotDeletedTracksInPlaylist(), function (track_in_playlist, index) { 
+ _.each(party.get("playlist"), function (track_in_playlist, index) { 
 __p+='\n                ';
  var id = "id_" + track_in_playlist.cid 
 __p+='\n                <li id="'+
@@ -101,7 +101,7 @@ __p+='party_'+
 '</h3>\n            <span class="ui-li-aside">\n                <span class="number-of-users"><span>'+
 ((__t=( party.getMembersInPartyOrderedByActive().length ))==null?'':_.escape(__t))+
 '</span></span>\n                <span class="number-of-tracks"><span>'+
-((__t=( party.getNotDeletedTracksInPlaylist().length ))==null?'':_.escape(__t))+
+((__t=( party.get("playlist").length ))==null?'':_.escape(__t))+
 '</span></span>\n            </span>\n        </div>\n    </a>\n</li>\n';
 }
 return __p;

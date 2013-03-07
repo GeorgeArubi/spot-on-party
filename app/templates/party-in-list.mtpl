@@ -5,7 +5,7 @@
             <h3 class="party-when"><%- clutils.pastDateText(party.get("last_updated")) %></h3>
             <span class="ui-li-aside">
                 <span class="number-of-users"><span><%- party.getMembersInPartyOrderedByActive().length %></span></span>
-                <span class="number-of-tracks"><span><%- party.getNotDeletedTracksInPlaylist().length %></span></span>
+                <span class="number-of-tracks"><span><%- party.get("playlist").length %></span></span>
             </span>
         </div>
     </a>
