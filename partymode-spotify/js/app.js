@@ -553,7 +553,7 @@ var clutils = window.clutils;
         setCoverPhoto: function () {
             var that = this;
             var user;
-            if (that.party.get("current_tip_number") === -1) {
+            if (!that.party.getCurrentTrackInPlaylist()) {
                 user = that.party.getOwner();
             } else {
                 var user_id = that.party.getCurrentTrackInPlaylist().get("user_id");
@@ -575,14 +575,14 @@ var clutils = window.clutils;
                     } else {
                         that.$('.coverphoto-container').addClass("no-cover-photo");
                     }
-                    if (that.party.get("current_tip_number") !== -1) {
+                    if (that.party.getCurrentTrackInPlaylist()) {
                         var user_id = that.party.getCurrentTrackInPlaylist().get("user_id");
                         that.$('.coverphoto-container .currentsong > .requested-by').text(PM.models.User.getById(user_id).getName(that.party)); //note: don't use "user" here because the master user gets switched to normal user, and we want the master user here; master user will be loaded always so no need to wait...
                     }
                 }
             });
             
-            if (that.party.get("current_tip_number") === -1) {
+            if (!that.party.getCurrentTrackInPlaylist()) {
                 that.$('.coverphoto-container').addClass("no-song-playing");
             } else {
                 that.$('.coverphoto-container').removeClass("no-song-playing");
@@ -662,7 +662,7 @@ var clutils = window.clutils;
                 $(window).on("resize.photopage", _.bind(that.resizeCoverPhoto, that));
                 $(window).on("resize.photopage", _.bind(that.updateUserBar, that));//needed to add/remove userbar arrows
                 var playlistNode = PM.domain.SpotifyAppIntegrator.getHtmlNodeForActivePlaylist(that.party);
-                if (that.party.get("current_tip_number") !== -1) {
+                if (that.party.getCurrentTrackInPlaylist()) {
                     that.party.trigger("playcommand", "play", that.party.get("current_tip_number"));
                 }
                 that.$('#playlist-placeholder').html(playlistNode);

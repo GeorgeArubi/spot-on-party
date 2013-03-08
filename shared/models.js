@@ -988,6 +988,7 @@ if (typeof exports !== "undefined") {
         },
 
         validate: function (attrs) {
+            var that = this;
             if (attrs.play_status !== "play" && attrs.play_status !== "stop" && attrs.play_status !== "pause") {
                 return "No valid play status: \"" + attrs.play_status + "\"";
             }
@@ -996,6 +997,9 @@ if (typeof exports !== "undefined") {
             }
             if (attrs.play_status === "play" && !clutils.isTimestamp(attrs.current_place_in_track)) {
                 return "Expected a date for current_place_in_track";
+            }
+            if (!that.party.findTrackInPlaylistByTipNumber(attrs.tip_number)) {
+                return "Trying to play a track that doesn't exist";
             }
         },
 

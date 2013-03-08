@@ -278,7 +278,9 @@ window.PM.domain.SpotifyAppIntegrator = window.Toolbox.Base.extend({
 
     play: function (index) {
         var that = this;
-        that.models.player.play(that.spotifyPlaylist.tracks[index], that.spotifyPlaylist, index);
+        if (that.activeParty.get("playlist").at(index)) {
+            that.models.player.play(that.spotifyPlaylist.tracks[index], that.spotifyPlaylist, index);
+        }
     },
 
     onPartyPlayStopped: function () {
