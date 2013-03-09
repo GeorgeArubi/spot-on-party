@@ -397,7 +397,6 @@ window.PM.app = window.PM.app || {};
             var that = this;
             if ($(event.target).parents().addBack().hasClass("button")) {
                 //click was on a button, we don't want it
-                console.log("ignoring event on button");
                 return;
             }
             var target = $(event.currentTarget);
