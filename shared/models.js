@@ -829,7 +829,7 @@ if (typeof exports !== "undefined") {
             that.party.getMemberRecord(that.get("user_id")).didAction(that.get("created"));
             that.party.set("last_updated", that.get("created"));
             if (that.party.get("play_status") === "stop") {
-                that.party.trigger("playcommand", "play", playlist.length - 1);
+                that.party.trigger("playcommand", "play", that.party.get("playlist").last().get("tip_number"));
             }
         },
     }, {
