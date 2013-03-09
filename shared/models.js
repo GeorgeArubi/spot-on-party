@@ -998,8 +998,12 @@ if (typeof exports !== "undefined") {
             if (attrs.play_status === "play" && !clutils.isTimestamp(attrs.current_place_in_track)) {
                 return "Expected a date for current_place_in_track";
             }
-            if (!that.party.findTrackInPlaylistByTipNumber(attrs.current_tip_number)) {
-                return "Trying to play a track that doesn't exist";
+            if (attrs.play_status === "stop") {
+                if (attrs.current_tip_number !== -1) {
+                    return "With a stop command, only tip_number -1 is allowed";
+                }
+            } else if (!that.party.findTrackInPlaylistByTipNumber(attrs.current_tip_number)) {
+                return "Trying to play a track that doesn't exist " + attrs.current_tip_number;
             }
         },
 
