@@ -138,17 +138,21 @@ return __p;
 PM.templates["playlist-item"]=function(obj){
 var __t,__p='',__j=Array.prototype.join,print=function(){__p+=__j.call(arguments,'');};
 with(obj||{}){
-__p+='<li class="track-in-playlist" data-icon="false">\n    <div class="controls">\n        ';
+__p+='<li class="track-in-playlist" data-icon="false">\n    <a class="entry"> <!-- needs to be "a" because else jqm applies different borders etc -->\n        ';
  if (deletable) { 
-__p+='<div class="delete-button"></div>';
+__p+='<div class="button delete-button"><div>Delete</div></div>';
  } 
-__p+='<div class="play-button"></div><div class="pause-button"></div>\n    </div>\n    <a class="entry"> <!-- needs to be "a" because else jqm applies different borders etc -->\n        <div class="entry-container">\n            <h2 class="title">'+
+__p+='\n        ';
+ if (playable) { 
+__p+='<div class="button play-button"><div>Play</div></div>';
+ } 
+__p+='\n        <div class="playing icon"></div>\n        <div class="entry-container">\n            <h2 class="title">'+
 ((__t=( track.getHtmlLazyLoad("name") ))==null?'':__t)+
 '</h2>\n            <h3 class="subtitle artist-added">'+
 ((__t=( track.getHtmlLazyLoad("artist") ))==null?'':__t)+
 ' &mdash; '+
 ((__t=( user.getHtmlLazyLoad("name") ))==null?'':__t)+
-'</h3>\n        </div>\n        <div class="playing icon"></div>\n    </a>\n</li>\n';
+'</h3>\n        </div>\n    </a>\n</li>\n\n';
 }
 return __p;
 };

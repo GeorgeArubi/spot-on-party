@@ -359,10 +359,10 @@ window.PM.app = window.PM.app || {};
         className: 'party-page',
 
         events: {
-            "click ul.tracks > li.track-in-playlist": "showControls",
+            "swipe ul.tracks > li.track-in-playlist": "showDelete",
+            "click ul.tracks > li.track-in-playlist": "clickTrack",
             "click .delete-button": "deleteTrack",
             "click .play-button": "playTrack",
-            "click .pause-button": "togglePausePlay",
         },
 
         close: function () {
@@ -393,50 +393,68 @@ window.PM.app = window.PM.app || {};
             return that;
         },
 
-        togglePausePlay: _.debounce(function () {
+        clickTrack: _.debounce(function (event) {
             var that = this;
-            var type = that.party.get("play_status") === "play" ? "Pause" : "Play";
-            var action = PM.models.Action.createAction(PM.app.loggedin_user, that.party, type, {});
-            PM.domain.PartyNodeDomain.proposeAction(action.serialize());
+            if ($(event.target).parents().addBack().hasClass("button")) {
+                //click was on a button, we don't want it
+                console.log("ignoring event on button");
+                return;
+            }
+            var target = $(event.currentTarget);
+            if (target.hasClass("show-play")) {
+                target.removeClass("show-play");
+                return;
+            }
+            //if something is open, this click event is a close
+            that.hidePlaylistButtons();
+            target.addClass("show-play");
+            that.hidePlaylistButtonsAfterTimeout();
         }, 400, {immediate: true}),
+
+        hidePlaylistButtons: function () {
+            var that = this;
+            var track_els = that.$("li.track-in-playlist");
+            if (track_els.hasClass("show-delete") || track_els.hasClass("show-play")) {
+                track_els.removeClass("show-delete show-play");
+                return true;
+            }
+            return false;
+        },
 
         playTrack: _.debounce(function (event) {
             var that = this;
-            var $target = $(event.currentTarget);
-            var track_in_playlist = $($target.parents("li.track-in-playlist")).prop("track-in-playlist");
+            var target = $(event.currentTarget);
+            that.hidePlaylistButtons();
+            var track_in_playlist = $(target.parents("li.track-in-playlist")).prop("track-in-playlist");
             var action = PM.models.Action.createAction(PM.app.loggedin_user, that.party, "PlayTrack",
                                                        {tip_number: track_in_playlist.get("tip_number")});
             PM.domain.PartyNodeDomain.proposeAction(action.serialize());
         }, 400, {immediate: true}),
 
-        deleteTrack: _.debounce(function (event) {
+        deleteTrack: function (event) {
             var that = this;
-            var $target = $(event.currentTarget);
-            var track_in_playlist = $($target.parents("li.track-in-playlist")).prop("track-in-playlist");
+            that.hidePlaylistButtons();
+            var target = $(event.currentTarget);
+            if (target.hasClass("deleted")) {
+                return;
+            }
+            var track_in_playlist = $(target.parents("li.track-in-playlist")).prop("track-in-playlist");
             var action = PM.models.Action.createAction(PM.app.loggedin_user, that.party, "TrackRemove",
                                                        {tip_number: track_in_playlist.get("tip_number")});
             PM.domain.PartyNodeDomain.proposeAction(action.serialize());
+        },
+
+        showDelete: _.debounce(function (event) {
+            var that = this;
+            var target = $(event.currentTarget);
+            that.hidePlaylistButtons();
+            target.addClass("show-delete");
+            that.hidePlaylistButtonsAfterTimeout();
         }, 400, {immediate: true}),
 
-        showControls: _.debounce(function (event) {
+        hidePlaylistButtonsAfterTimeout: _.debounce(function () {
             var that = this;
-            var target = event && event.currentTarget;
-
-            var track_els = that.$("ul.tracks > li.track-in-playlist");
-            _.each(track_els, function (element) {
-                var $el = $(element);
-                if (element === target) {
-                    $el.toggleClass("show-controls");
-                } else {
-                    $el.removeClass("show-controls");
-                }
-            });
-            that.hideControlsAfterTimeout();
-        }, 200, {immediate: true}),
-
-        hideControlsAfterTimeout: _.debounce(function () {
-            var that = this;
-            that.showControls();
+            that.hidePlaylistButtons();
         }, 10000),
 
         onPlayStatusChange: function () {
@@ -454,7 +472,13 @@ window.PM.app = window.PM.app || {};
             var that = this;
             var track = track_in_playlist.getTrack();
             var user = track_in_playlist.getUser();
-            var el = $(getTemplate("playlist-item")({track: track, track_in_playlist: track_in_playlist, user: user, deletable: track_in_playlist.canBeDeletedBy(PM.app.loggedin_user.id, that.party)}));
+            var template = getTemplate("playlist-item");
+            var el = $(template({track: track,
+                                 track_in_playlist: track_in_playlist,
+                                 user: user,
+                                 deletable: track_in_playlist.canBeDeletedBy(PM.app.loggedin_user.id, that.party),
+                                 playable: that.party.mayGivePlayCommand(PM.app.loggedin_user),
+            }));
             el.prop({"track-in-playlist": track_in_playlist});
             return el;
         },

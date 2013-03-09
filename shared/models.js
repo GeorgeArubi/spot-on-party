@@ -1211,6 +1211,11 @@ if (typeof exports !== "undefined") {
             }
         },
 
+        mayGivePlayCommand: function (user_or_user_id) {
+            var that = this;
+            return that.isOwner(user_or_user_id);
+        },
+
     }, {
         type: "Party",
         

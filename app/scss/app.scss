@@ -1,15 +1,31 @@
+$icon-width: 24px;
+$icon-height: $icon-width;
+
 #partymode {
-    $icon-width: 24px;
-    $icon-height: 24px;
-    $sprite-play-offset: 0;
-    $sprite-pause-offset: -$icon-width;
-    $sprite-restart-offset: 2 * -$icon-width;
-    $sprite-delete-offset: 3 * -$icon-width;
     min-height: 120%;
 
     .login-page {
         .fb-login-button {border: 0; outline: none; width: 152px; height: 22px; background: url(../img/fb-login.png) no-repeat; display: inline-block;}
 
+    }
+
+    @mixin swipe-button($color) {
+        $button-width: 64px; $button-height: 33px; $margin-right: 7px; $padding-x: 4px; $padding-top: 9px;
+        width: $button-width + $margin-right; height: $button-height;
+        float: right; overflow: hidden; position: relative; -webkit-transition: width 200ms;
+        > div {
+            width: $button-width - 2 * $padding-x; height: $button-height - $padding-top; overflow: hidden;
+            position: absolute; right: 0px; margin-right: $margin-right;
+            background-image: url(../img/buttons@2x.svg); background-size: 2*$button-width 3*$button-height;
+            padding: $padding-top $padding-x 0; text-align: center; text-overflow: ellipsis; white-space: nowrap;
+            font: normal 14px Arial, Helvetica; color: #FFF; text-shadow: 0 -1px 0 rgba(0,0,0,.5);
+            background-position-y: if($color == green, -1, if($color == blue, -2, 0))* $button-height;
+            /* somehow bold only looks good on retina screen */
+            @media (-webkit-min-device-pixel-ratio: 1.5) {font-weight: bold;} 
+        }
+
+        &:not(:active) > div {-webkit-transition: background-position-x 0 ease 1000ms;}
+        &:active > div {background-position-x: -$button-width;}
     }
 
     .ui-popup-screen.in {
@@ -88,61 +104,33 @@
                 &:last-child {display: block;}
             }
             li.track-in-playlist {
-                $entry-slide-time: 300ms;
-                position: relative; top: 0;
-                div.controls {
-                    height: 47px; width: 100%;
-                    border-width: 1px; border-style: solid none; border-color: #424242 black #020202;
-                    background: #646464; /* Old browsers */
-                    background: -moz-linear-gradient(top, #646464 0%, #717171 10%, #313131 100%); /* FF3.6+ */
-                    background: -webkit-linear-gradient(top, #646464 0%,#717171 10%,#313131 100%); /* Chrome10+,Safari5.1+ */
-                    background: -o-linear-gradient(top, #646464 0%,#717171 10%,#313131 100%); /* Opera 11.10+ */
-                    background: -ms-linear-gradient(top, #646464 0%,#717171 10%,#313131 100%); /* IE10+ */
-                    background: linear-gradient(to bottom, #646464 0%,#717171 10%,#313131 100%); /* W3C */
 
-                    > div {
-                        display: block; margin-top: 2px; padding: 10px; position: absolute;
-                        width: $icon-width; height: $icon-height;
-                        background-image: url(../img/sprite@2x.png); background-size: $icon-width * 5 $icon-height * 2;
-                        background-position-y: $icon-height; background-origin: content-box; background-clip: content-box;
-                        -webkit-transition: background-position-x 0 ease 2 * $entry-slide-time; /* add a delay when the button changes, so that it will change when the slider is closed (so this is no transition, only delay) */
-                        &:not(:active) { -webkit-transition: background-position-y 0 linear 2 * $entry-slide-time; background-position-y: 0;} /* delay when active button is released, so that it stays "pressed" a bit longer */
-                        &.play-button {background-position-x: $sprite-play-offset; left: 0}
-                        &.pause-button {background-position-x: $sprite-pause-offset; display: none; left: 2 * $icon-width; }
-                        &.delete-button {background-position-x: $sprite-delete-offset; left: 4 * $icon-width; }
-                    }
+                .delete-button {
+                    @include swipe-button(red); margin-top: 7px;
                 }
-                .entry {
-                    position: absolute;
-                    left: 0; top: 0;
-                    -webkit-transition: left $entry-slide-time;
+                &:not(.show-delete) .delete-button {width: 0}
+                .play-button {
+                    @include swipe-button(green); margin-top: 7px;
                 }
-                &.show-controls .entry {left: 80%;}
-                &.deleted.show-controls .entry {left: 0;}
-
+                &:not(.show-play) .play-button {width: 0}
 
                 &.deleted > div {
                     .title, .subtitle {opacity: .2;}
                     height: 0px;
-                    -webkit-transition: height 500ms ease 10000ms;
+                    -webkit-transition: height 500ms ease 10000ms; /*slide away in 10 seconds never to be seen again */
                 }
                 
                 .playing.icon {
-                    width: 0; height: $icon-height; position: absolute; top: 11px; right: 9px; -webkit-transition: width 200ms;
+                    width: 0; height: $icon-height; -webkit-transition: width 200ms; float: right; margin: 11px 10px;
                     background-image: url(../img/speaker-on.svg); background-size: $icon-width $icon-height;
                 }
 
-                .entry-container {margin-right: 0; -webkit-transition: margin-right 200ms;}
                 &.now-playing {
-                    .entry-container {margin-right: $icon-width;}
                     .playing.icon {width: $icon-width;}
-                    div.controls > div.play-button {background-position-x: $sprite-restart-offset;}
-                    div.controls > div.pause-button {display: inline-block;}
                 }
             }
             &.paused li.track-in-playlist {
                  .playing.icon {background-image: url(../img/speaker-off.svg);}
-                 div.controls div.pause-button {background-position-x: $sprite-play-offset;}
             }
         }
     }

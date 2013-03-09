@@ -106,93 +106,94 @@
     display: none; }
     #partymode .party-page ul.tracks li.playlist-empty-message:last-child {
       display: block; }
-  #partymode .party-page ul.tracks li.track-in-playlist {
+  #partymode .party-page ul.tracks li.track-in-playlist .delete-button {
+    width: 71px;
+    height: 33px;
+    float: right;
+    overflow: hidden;
     position: relative;
-    top: 0; }
-    #partymode .party-page ul.tracks li.track-in-playlist div.controls {
-      height: 47px;
-      width: 100%;
-      border-width: 1px;
-      border-style: solid none;
-      border-color: #424242 black #020202;
-      background: #646464;
-      /* Old browsers */
-      background: -moz-linear-gradient(top, #646464 0%, #717171 10%, #313131 100%);
-      /* FF3.6+ */
-      background: -webkit-linear-gradient(top, #646464 0%, #717171 10%, #313131 100%);
-      /* Chrome10+,Safari5.1+ */
-      background: -o-linear-gradient(top, #646464 0%, #717171 10%, #313131 100%);
-      /* Opera 11.10+ */
-      background: -ms-linear-gradient(top, #646464 0%, #717171 10%, #313131 100%);
-      /* IE10+ */
-      background: linear-gradient(to bottom, #646464 0%, #717171 10%, #313131 100%);
-      /* W3C */ }
-      #partymode .party-page ul.tracks li.track-in-playlist div.controls > div {
-        display: block;
-        margin-top: 2px;
-        padding: 10px;
-        position: absolute;
-        width: 24px;
-        height: 24px;
-        background-image: url(../img/sprite@2x.png);
-        background-size: 120px 48px;
-        background-position-y: 24px;
-        background-origin: content-box;
-        background-clip: content-box;
-        -webkit-transition: background-position-x 0 ease 600ms;
-        /* add a delay when the button changes, so that it will change when the slider is closed (so this is no transition, only delay) */
-        /* delay when active button is released, so that it stays "pressed" a bit longer */ }
-        #partymode .party-page ul.tracks li.track-in-playlist div.controls > div:not(:active) {
-          -webkit-transition: background-position-y 0 linear 600ms;
-          background-position-y: 0; }
-        #partymode .party-page ul.tracks li.track-in-playlist div.controls > div.play-button {
-          background-position-x: 0;
-          left: 0; }
-        #partymode .party-page ul.tracks li.track-in-playlist div.controls > div.pause-button {
-          background-position-x: -24px;
-          display: none;
-          left: 48px; }
-        #partymode .party-page ul.tracks li.track-in-playlist div.controls > div.delete-button {
-          background-position-x: -72px;
-          left: 96px; }
-    #partymode .party-page ul.tracks li.track-in-playlist .entry {
-      position: absolute;
-      left: 0;
-      top: 0;
-      -webkit-transition: left 300ms; }
-    #partymode .party-page ul.tracks li.track-in-playlist.show-controls .entry {
-      left: 80%; }
-    #partymode .party-page ul.tracks li.track-in-playlist.deleted.show-controls .entry {
-      left: 0; }
-    #partymode .party-page ul.tracks li.track-in-playlist.deleted > div {
-      height: 0px;
-      -webkit-transition: height 500ms ease 10000ms; }
-      #partymode .party-page ul.tracks li.track-in-playlist.deleted > div .title, #partymode .party-page ul.tracks li.track-in-playlist.deleted > div .subtitle {
-        opacity: .2; }
-    #partymode .party-page ul.tracks li.track-in-playlist .playing.icon {
-      width: 0;
+    -webkit-transition: width 200ms;
+    margin-top: 7px; }
+    #partymode .party-page ul.tracks li.track-in-playlist .delete-button > div {
+      width: 56px;
       height: 24px;
+      overflow: hidden;
       position: absolute;
-      top: 11px;
-      right: 9px;
-      -webkit-transition: width 200ms;
-      background-image: url(../img/speaker-on.svg);
-      background-size: 24px 24px; }
-    #partymode .party-page ul.tracks li.track-in-playlist .entry-container {
-      margin-right: 0;
-      -webkit-transition: margin-right 200ms; }
-    #partymode .party-page ul.tracks li.track-in-playlist.now-playing .entry-container {
-      margin-right: 24px; }
-    #partymode .party-page ul.tracks li.track-in-playlist.now-playing .playing.icon {
-      width: 24px; }
-    #partymode .party-page ul.tracks li.track-in-playlist.now-playing div.controls > div.play-button {
-      background-position-x: -48px; }
-    #partymode .party-page ul.tracks li.track-in-playlist.now-playing div.controls > div.pause-button {
-      display: inline-block; }
+      right: 0px;
+      margin-right: 7px;
+      background-image: url(../img/buttons@2x.svg);
+      background-size: 128px 99px;
+      padding: 9px 4px 0;
+      text-align: center;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font: normal 14px Arial, Helvetica;
+      color: #FFF;
+      text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.5);
+      background-position-y: 0px;
+      /* somehow bold only looks good on retina screen */ }
+      @media (-webkit-min-device-pixel-ratio: 1.5) {
+        #partymode .party-page ul.tracks li.track-in-playlist .delete-button > div {
+          font-weight: bold; } }
+    #partymode .party-page ul.tracks li.track-in-playlist .delete-button:not(:active) > div {
+      -webkit-transition: background-position-x 0 ease 1000ms; }
+    #partymode .party-page ul.tracks li.track-in-playlist .delete-button:active > div {
+      background-position-x: -64px; }
+  #partymode .party-page ul.tracks li.track-in-playlist:not(.show-delete) .delete-button {
+    width: 0; }
+  #partymode .party-page ul.tracks li.track-in-playlist .play-button {
+    width: 71px;
+    height: 33px;
+    float: right;
+    overflow: hidden;
+    position: relative;
+    -webkit-transition: width 200ms;
+    margin-top: 7px; }
+    #partymode .party-page ul.tracks li.track-in-playlist .play-button > div {
+      width: 56px;
+      height: 24px;
+      overflow: hidden;
+      position: absolute;
+      right: 0px;
+      margin-right: 7px;
+      background-image: url(../img/buttons@2x.svg);
+      background-size: 128px 99px;
+      padding: 9px 4px 0;
+      text-align: center;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font: normal 14px Arial, Helvetica;
+      color: #FFF;
+      text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.5);
+      background-position-y: -33px;
+      /* somehow bold only looks good on retina screen */ }
+      @media (-webkit-min-device-pixel-ratio: 1.5) {
+        #partymode .party-page ul.tracks li.track-in-playlist .play-button > div {
+          font-weight: bold; } }
+    #partymode .party-page ul.tracks li.track-in-playlist .play-button:not(:active) > div {
+      -webkit-transition: background-position-x 0 ease 1000ms; }
+    #partymode .party-page ul.tracks li.track-in-playlist .play-button:active > div {
+      background-position-x: -64px; }
+  #partymode .party-page ul.tracks li.track-in-playlist:not(.show-play) .play-button {
+    width: 0; }
+  #partymode .party-page ul.tracks li.track-in-playlist.deleted > div {
+    height: 0px;
+    -webkit-transition: height 500ms ease 10000ms;
+    /*slide away in 10 seconds never to be seen again */ }
+    #partymode .party-page ul.tracks li.track-in-playlist.deleted > div .title, #partymode .party-page ul.tracks li.track-in-playlist.deleted > div .subtitle {
+      opacity: .2; }
+  #partymode .party-page ul.tracks li.track-in-playlist .playing.icon {
+    width: 0;
+    height: 24px;
+    -webkit-transition: width 200ms;
+    float: right;
+    margin: 11px 10px;
+    background-image: url(../img/speaker-on.svg);
+    background-size: 24px 24px; }
+  #partymode .party-page ul.tracks li.track-in-playlist.now-playing .playing.icon {
+    width: 24px; }
   #partymode .party-page ul.tracks.paused li.track-in-playlist .playing.icon {
     background-image: url(../img/speaker-off.svg); }
-  #partymode .party-page ul.tracks.paused li.track-in-playlist div.controls div.pause-button {
-    background-position-x: 0; }
   #partymode .add-song-page:not(.tracks) #back-to-playlists {
     display: none; }
   #partymode .add-song-page:not(.playlists) .explain {
