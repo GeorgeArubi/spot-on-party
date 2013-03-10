@@ -42,6 +42,7 @@ $icon-height: $icon-width;
         background: linear-gradient(to bottom, #505050 0%, #313131 100%); /* W3C */
     }
 
+
     li.ui-li {
         border: none;
         .entry {background-color: #ECEBE8; width: 100%; height: 100%;}
@@ -96,6 +97,38 @@ $icon-height: $icon-width;
     .party-page {
         .ui-header .ui-title {
             margin-left: 6em; margin-right: 2em;
+        }
+
+        .pm-header {
+            text-shadow: 0 -1px 0 #2D4756; color: #FFF; height: 44px; margin-top: -11px;
+            h1 {font-size: 16px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; padding-top: 11px;}
+            background: #404040; /* Old browsers */
+            background: -moz-linear-gradient(top, #505050 0%, #313131 100%); /* FF3.6+ */
+            background: -webkit-linear-gradient(top, #BECCDD 0%, #587397 100%); /* Chrome10+,Safari5.1+ */
+            background: -o-linear-gradient(top, #505050 0%, #313131 100%); /* Opera 11.10+ */
+            background: -ms-linear-gradient(top, #505050 0%, #313131 100%); /* IE10+ */
+            background: linear-gradient(to bottom, #505050 0%, #313131 100%); /* W3C */
+            border-bottom: 1px solid #3F5C80;
+        }
+
+        .plus-button {
+            background-image: url(../img/plus@2x.svg);
+            width: 33px;
+            height: 30px;
+            float: right;
+            margin: 7px 10px;
+            &:active {background-image-position: -33px;}
+        }
+        .back-button {
+            @media (-webkit-min-device-pixel-ratio: 1.5) {font-weight: bold;} 
+            color: #FFF;
+            background-image: url(../img/back@2x.svg);
+            width: 52px; padding-left: 12px;
+            height: 26px; padding-top: 4px;
+            float: left;
+            margin: 7px 10px;
+            font-size: 14px; font-weight: normal; text-decoration: none;
+            &:active {background-image-position: -64px;}
         }
 
         ul.tracks {

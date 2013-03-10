@@ -123,15 +123,15 @@ return __p;
 PM.templates["party-page"]=function(obj){
 var __t,__p='',__j=Array.prototype.join,print=function(){__p+=__j.call(arguments,'');};
 with(obj||{}){
-__p+='<div data-role="header">\n    <h1>'+
+__p+='<div class="pm-header">\n    <a href="#partyoverview" class="back-button" data-direction="reverse">parties</a>\n    <a data-role="actionsheet" class="plus-button"></a>\n    <div>\n        <a data-role="button" data-theme="a" href="#activeparty_'+
+((__t=( party.id ))==null?'':_.escape(__t))+
+'_addsong_playlist">From Playlist</a>\n        <a data-role="button" data-theme="a" href="#activeparty_'+
+((__t=( party.id ))==null?'':_.escape(__t))+
+'_addsong_recent">Recently Played</a>\n        <a data-role="button" data-theme="a" href="#activeparty_'+
+((__t=( party.id ))==null?'':_.escape(__t))+
+'_addsong_search">Search</a>\n        <br/>\n        <!-- This close button is optional. The widget also closes if you click or touch outside of the popup -->\n        <a data-role="button" data-theme="a" data-rel="close" href="#">Cancel</a>\n    </div>\n    <h1>'+
 ((__t=( party.get("name") ))==null?'':_.escape(__t))+
-'</h1>\n    <a href="#partyoverview" data-role="button" data-icon="arrow-l" data-direction="reverse">parties</a>\n    <a data-role="actionsheet" data-icon="plus" data-iconpos="notext">Add song</a>\n    <div>\n    <a data-role="button" data-theme="a" href="#activeparty_'+
-((__t=( party.id ))==null?'':_.escape(__t))+
-'_addsong_playlist">From Playlist</a>\n    <a data-role="button" data-theme="a" href="#activeparty_'+
-((__t=( party.id ))==null?'':_.escape(__t))+
-'_addsong_recent">Recently Played</a>\n    <a data-role="button" data-theme="a" href="#activeparty_'+
-((__t=( party.id ))==null?'':_.escape(__t))+
-'_addsong_search">Search</a>\n    <br/>\n    <!-- This close button is optional. The widget also closes if you click or touch outside of the popup -->\n    <a data-role="button" data-theme="a" data-rel="close" href="#">Cancel</a>\n</div>\n</div>\n\n<div data-role="content">\n    <ul class="tracks" data-role="listview">\n        <li class="playlist-empty-message">\n            <div>The playlist is empty, you can add songs with the button in the right top</div>\n        </li>\n    </ul>\n</div>\n\n';
+'</h1>\n</div>\n\n<div data-role="content">\n    <ul class="tracks" data-role="listview">\n        <li class="playlist-empty-message">\n            <div>The playlist is empty, you can add songs with the button in the right top</div>\n        </li>\n    </ul>\n</div>\n\n';
 }
 return __p;
 };
