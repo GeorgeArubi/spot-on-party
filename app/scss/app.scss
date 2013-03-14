@@ -1,3 +1,5 @@
+@import "compass/css3/images";
+@import "compass/css3/transition";
 $icon-width: 24px;
 $icon-height: $icon-width;
 
@@ -8,7 +10,14 @@ $icon-height: $icon-width;
         .fb-login-button {border: 0; outline: none; width: 152px; height: 22px; background: url(../img/fb-login.png) no-repeat; display: inline-block;}
 
     }
-
+    @mixin width-padding($width, $padding-left, $padding-right) {
+        width: $width - $padding-left - $padding-right;
+        padding-left: $padding-left; padding-right: $padding-right;
+    }
+     @mixin height-padding-top($height, $padding-top) {
+        height: $height - $padding-top;
+        padding-top: $padding-top;
+    }
     @mixin swipe-button($color) {
         $button-width: 64px; $button-height: 33px; $margin-right: 7px; $padding-x: 4px; $padding-top: 9px;
         width: $button-width + $margin-right; height: $button-height;
@@ -22,10 +31,10 @@ $icon-height: $icon-width;
             background-position-y: if($color == green, -1, if($color == blue, -2, 0))* $button-height;
             /* somehow bold only looks good on retina screen */
             @media (-webkit-min-device-pixel-ratio: 1.5) {font-weight: bold;} 
-        }
 
-        &:not(:active) > div {-webkit-transition: background-position-x 0 ease 1000ms;}
-        &:active > div {background-position-x: -$button-width;}
+            &:not(:active) {-webkit-transition: background-position-x 0 ease 1000ms;}
+            &:active {background-position-x: -$button-width;}
+        }
     }
 
     .ui-popup-screen.in {
@@ -40,6 +49,61 @@ $icon-height: $icon-width;
         background: -o-linear-gradient(top, #505050 0%, #313131 100%); /* Opera 11.10+ */
         background: -ms-linear-gradient(top, #505050 0%, #313131 100%); /* IE10+ */
         background: linear-gradient(to bottom, #505050 0%, #313131 100%); /* W3C */
+    }
+
+    .actionsheet {
+        text-align: center; border-top: 1px solid #FFF; box-shadow: 0 -1px 1px rgba(73, 77, 80, 0.98);
+        color: #FFF; font-weight: normal; text-shadow: 0 -1px #000; width: 100%; position: fixed; bottom: 0px; z-index: 1000;
+        height: 0px; 
+        @include single-transition(height, 500ms);
+        @include background(linear-gradient(top, rgba(159, 165, 173,.98) 0, rgba(95,100,110, .98) 30px));
+
+        > div {
+            padding: 20px;
+            > a {
+                border-top: 1px solid rgba(25, 25, 25, 0.5); margin: 15px 0; background-color: rgba(74, 78, 85, 0.98);
+                border-radius: 22px; padding: 2px 3px 3px; display: block; text-decoration: none; font-weight: bold;
+                box-shadow: 0 1px rgba(230, 230, 230, 0.2);
+                > span {
+                    @include height-padding-top(39px, 11px);
+                    display: block; border-radius: 19px; border: 0.5px solid rgba(250, 250, 250, 0.1); color: black;
+                    box-shadow: 0 1px 1px rgb(38,40,43); text-shadow: 0px 1px rgba(230, 230, 230, 0.5);
+                    @include background(linear-gradient(top, rgb(254, 254, 254), rgb(194, 195, 197) 80%, rgb(229, 229, 229)));
+                }
+                &.cancel > span {
+                    @include background(linear-gradient(top, rgb(105, 107, 112), rgb(42, 48, 56) 80%, rgb(57, 64, 71)));
+                    color: #FFF; text-shadow: 0 -1px rgba(25, 25, 25, 0.5);
+                }
+                &:active > span {
+                    @include background(linear-gradient(top, rgb(120, 140, 223), rgb(20, 55, 198) 80%, rgb(62, 87, 208)));
+                    color: #FFF; text-shadow: 0 -1px rgba(25, 25, 25, 0.5);
+                }
+            }
+        }
+    }
+
+
+    .pm-header {
+        text-shadow: 0 -1px 0 #2D4756; color: #FFF; height: 44px; margin-top: -11px; position: relative;
+        h1 {text-align: center; font-size: 16px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; padding-top: 11px;}
+        @include background(linear-gradient(top, #BECCDD, #587397));
+        border-bottom: 1px solid #3F5C80;
+
+        .plus-button {
+            background-image: url(../img/plus@2x.svg); width: 33px; height: 30px; float: right; margin: 7px 10px;
+            &:active {background-position-x: -33px;}
+        }
+        .back-button, .left-button, .right-button {
+            @media (-webkit-min-device-pixel-ratio: 1.5) {font-weight: bold;} 
+            color: #FFF; background-image: url(../img/header-button@2x.svg);
+            margin: 7px 10px; font-size: 14px; font-weight: normal; text-decoration: none; text-align: center;
+            @include width-padding(64px, 10px, 10px); @include height-padding-top(30px, 5px);
+            &:active {background-position-x: -64px;}
+            &.fake {background: none;} /*fake buttons can be used to center the header text */
+        }
+        .back-button, .left-button {float: left;}
+        .back-button { background-position-y: 30px; @include width-padding(64px, 11px, 9px);}
+        .right-button {float: right;}
     }
 
 
@@ -73,7 +137,6 @@ $icon-height: $icon-width;
                 -webkit-transition: height 500ms; overflow: hidden;
                 &.invisible {height: 1; border: none;}
                 &.activeparty h3 {display: none;}
-                .party-when:before {content: "Ended: ";}
             }
             li.party .ui-li-aside {
                 width: 70px;
@@ -82,8 +145,8 @@ $icon-height: $icon-width;
                     position: relative; top: 0px;
                     span {
                         margin-right: -50%;
-                        position: absolute; top: -7px; right: 7px; display: block; min-width: 6px;
-                        border: 1px solid #FFFFFF; border-radius: 9px; background-color: #000000; padding: 0 3px;
+                        position: absolute; top: -7px; right: 7px; display: block; min-width: 6.5px;
+                        border: 1px solid #FFFFFF; border-radius: 10px; background-color: #000000; padding: 0 3px;
                         font-size: 10px; text-shadow: none; color: #FFFFFF; text-align: center;
                     }
 
@@ -97,38 +160,6 @@ $icon-height: $icon-width;
     .party-page {
         .ui-header .ui-title {
             margin-left: 6em; margin-right: 2em;
-        }
-
-        .pm-header {
-            text-shadow: 0 -1px 0 #2D4756; color: #FFF; height: 44px; margin-top: -11px;
-            h1 {font-size: 16px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; padding-top: 11px;}
-            background: #404040; /* Old browsers */
-            background: -moz-linear-gradient(top, #505050 0%, #313131 100%); /* FF3.6+ */
-            background: -webkit-linear-gradient(top, #BECCDD 0%, #587397 100%); /* Chrome10+,Safari5.1+ */
-            background: -o-linear-gradient(top, #505050 0%, #313131 100%); /* Opera 11.10+ */
-            background: -ms-linear-gradient(top, #505050 0%, #313131 100%); /* IE10+ */
-            background: linear-gradient(to bottom, #505050 0%, #313131 100%); /* W3C */
-            border-bottom: 1px solid #3F5C80;
-        }
-
-        .plus-button {
-            background-image: url(../img/plus@2x.svg);
-            width: 33px;
-            height: 30px;
-            float: right;
-            margin: 7px 10px;
-            &:active {background-image-position: -33px;}
-        }
-        .back-button {
-            @media (-webkit-min-device-pixel-ratio: 1.5) {font-weight: bold;} 
-            color: #FFF;
-            background-image: url(../img/back@2x.svg);
-            width: 52px; padding-left: 12px;
-            height: 26px; padding-top: 4px;
-            float: left;
-            margin: 7px 10px;
-            font-size: 14px; font-weight: normal; text-decoration: none;
-            &:active {background-image-position: -64px;}
         }
 
         ul.tracks {
@@ -169,10 +200,35 @@ $icon-height: $icon-width;
     }
 
     .add-song-page {
+        background: #ECEBE8;
+        &.tracks #no-back-to-playlists {display: none;}
         &:not(.tracks) #back-to-playlists {display: none;}
         &:not(.playlists) .explain {display: none;}
         #searchform {
             margin-bottom: 25px;
+
+
+            #searchdomain {
+                padding: 0;
+                > li {
+                    display: inline-block; width: 33.4%; text-align: center;
+                    &:last-child {margin-right: -1px;}
+                    padding: 6px 0; 
+                    color: rgb(127, 127, 127); text-shadow: 0 1px rgb(255, 255, 255);
+                    @include background(linear-gradient(top, rgb(255, 255, 255), rgb(200, 200, 200)));
+                    border: 1px solid rgb(159, 159, 159);
+                    margin-left: -2px;
+                    box-shadow: rgba(200, 200, 200, 0.7);
+                    &:first-child { border-radius: 10px 0 0 10px; }
+                    &:last-child { border-radius: 0 10px 10px 0; }
+                    &.active + li:not(.active) {border-left: 1px solid rgb(11, 57, 135);}
+                    &.active {
+                        @include background(linear-gradient(top, rgb(28, 89, 179), rgb(88, 152, 242)));
+                        border: 1px solid rgb(11, 57, 135);
+                        color: #FFF; text-shadow: 0 -1px rgba(25, 25, 25, 0.5);
+                    }
+                }
+            }
         }
         ul.search-results {
             > li h3 .album:before {content: "\2014 ";}

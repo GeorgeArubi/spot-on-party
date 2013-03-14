@@ -1,13 +1,15 @@
 <div class="pm-header">
     <a href="#partyoverview" class="back-button" data-direction="reverse">parties</a>
-    <a data-role="actionsheet" class="plus-button"></a>
-    <div>
-        <a data-role="button" data-theme="a" href="#activeparty_<%- party.id %>_addsong_playlist">From Playlist</a>
-        <a data-role="button" data-theme="a" href="#activeparty_<%- party.id %>_addsong_recent">Recently Played</a>
-        <a data-role="button" data-theme="a" href="#activeparty_<%- party.id %>_addsong_search">Search</a>
-        <br/>
-        <!-- This close button is optional. The widget also closes if you click or touch outside of the popup -->
-        <a data-role="button" data-theme="a" data-rel="close" href="#">Cancel</a>
+    <a class="plus-button" id="add-track"></a>
+    <div class="actionsheet" id="add-track-actionsheet">
+        <div>
+            Add songs
+            <a data-transition="slideup" href="#activeparty_<%- party.id %>_addsong_playlist"><span>From Playlist</span></a>
+            <a data-transition="slideup" href="#activeparty_<%- party.id %>_addsong_recent"><span>Recently Played</span></a>
+            <a data-transition="slideup" href="#activeparty_<%- party.id %>_addsong_search"><span>Search</span></a>
+            <br/>
+            <a class="cancel" href="#"><span>Cancel</span></a>
+        </div>
     </div>
     <h1><%- party.get("name") %></h1>
 </div>

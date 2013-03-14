@@ -23,6 +23,126 @@
     /* IE10+ */
     background: linear-gradient(to bottom, #505050 0%, #313131 100%);
     /* W3C */ }
+  #partymode .actionsheet {
+    text-align: center;
+    border-top: 1px solid #FFF;
+    box-shadow: 0 -1px 1px rgba(73, 77, 80, 0.98);
+    color: #FFF;
+    font-weight: normal;
+    text-shadow: 0 -1px black;
+    width: 100%;
+    position: fixed;
+    bottom: 0px;
+    z-index: 1000;
+    height: 0px;
+    -webkit-transition: height 500ms;
+    -moz-transition: height 500ms;
+    -o-transition: height 500ms;
+    transition: height 500ms;
+    background: -webkit-gradient(linear, 50% 0%, 50% 30, color-stop(0%, rgba(159, 165, 173, 0.98)), color-stop(100%, rgba(95, 100, 110, 0.98)));
+    background: -webkit-linear-gradient(top, rgba(159, 165, 173, 0.98) 0%, rgba(95, 100, 110, 0.98) 30px);
+    background: -moz-linear-gradient(top, rgba(159, 165, 173, 0.98) 0%, rgba(95, 100, 110, 0.98) 30px);
+    background: -o-linear-gradient(top, rgba(159, 165, 173, 0.98) 0%, rgba(95, 100, 110, 0.98) 30px);
+    background: linear-gradient(top, rgba(159, 165, 173, 0.98) 0%, rgba(95, 100, 110, 0.98) 30px); }
+    #partymode .actionsheet > div {
+      padding: 20px; }
+      #partymode .actionsheet > div > a {
+        border-top: 1px solid rgba(25, 25, 25, 0.5);
+        margin: 15px 0;
+        background-color: rgba(74, 78, 85, 0.98);
+        border-radius: 22px;
+        padding: 2px 3px 3px;
+        display: block;
+        text-decoration: none;
+        font-weight: bold;
+        box-shadow: 0 1px rgba(230, 230, 230, 0.2); }
+        #partymode .actionsheet > div > a > span {
+          height: 28px;
+          padding-top: 11px;
+          display: block;
+          border-radius: 19px;
+          border: 0.5px solid rgba(250, 250, 250, 0.1);
+          color: black;
+          box-shadow: 0 1px 1px #26282b;
+          text-shadow: 0px 1px rgba(230, 230, 230, 0.5);
+          background: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #fefefe), color-stop(80%, #c2c3c5), color-stop(100%, #e5e5e5));
+          background: -webkit-linear-gradient(top, #fefefe, #c2c3c5 80%, #e5e5e5);
+          background: -moz-linear-gradient(top, #fefefe, #c2c3c5 80%, #e5e5e5);
+          background: -o-linear-gradient(top, #fefefe, #c2c3c5 80%, #e5e5e5);
+          background: linear-gradient(top, #fefefe, #c2c3c5 80%, #e5e5e5); }
+        #partymode .actionsheet > div > a.cancel > span {
+          background: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #696b70), color-stop(80%, #2a3038), color-stop(100%, #394047));
+          background: -webkit-linear-gradient(top, #696b70, #2a3038 80%, #394047);
+          background: -moz-linear-gradient(top, #696b70, #2a3038 80%, #394047);
+          background: -o-linear-gradient(top, #696b70, #2a3038 80%, #394047);
+          background: linear-gradient(top, #696b70, #2a3038 80%, #394047);
+          color: #FFF;
+          text-shadow: 0 -1px rgba(25, 25, 25, 0.5); }
+        #partymode .actionsheet > div > a:active > span {
+          background: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #788cdf), color-stop(80%, #1437c6), color-stop(100%, #3e57d0));
+          background: -webkit-linear-gradient(top, #788cdf, #1437c6 80%, #3e57d0);
+          background: -moz-linear-gradient(top, #788cdf, #1437c6 80%, #3e57d0);
+          background: -o-linear-gradient(top, #788cdf, #1437c6 80%, #3e57d0);
+          background: linear-gradient(top, #788cdf, #1437c6 80%, #3e57d0);
+          color: #FFF;
+          text-shadow: 0 -1px rgba(25, 25, 25, 0.5); }
+  #partymode .pm-header {
+    text-shadow: 0 -1px 0 #2d4756;
+    color: #FFF;
+    height: 44px;
+    margin-top: -11px;
+    position: relative;
+    background: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #beccdd), color-stop(100%, #587397));
+    background: -webkit-linear-gradient(top, #beccdd, #587397);
+    background: -moz-linear-gradient(top, #beccdd, #587397);
+    background: -o-linear-gradient(top, #beccdd, #587397);
+    background: linear-gradient(top, #beccdd, #587397);
+    border-bottom: 1px solid #3F5C80; }
+    #partymode .pm-header h1 {
+      text-align: center;
+      font-size: 16px;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      padding-top: 11px; }
+    #partymode .pm-header .plus-button {
+      background-image: url(../img/plus@2x.svg);
+      width: 33px;
+      height: 30px;
+      float: right;
+      margin: 7px 10px; }
+      #partymode .pm-header .plus-button:active {
+        background-position-x: -33px; }
+    #partymode .pm-header .back-button, #partymode .pm-header .left-button, #partymode .pm-header .right-button {
+      color: #FFF;
+      background-image: url(../img/header-button@2x.svg);
+      margin: 7px 10px;
+      font-size: 14px;
+      font-weight: normal;
+      text-decoration: none;
+      text-align: center;
+      width: 44px;
+      padding-left: 10px;
+      padding-right: 10px;
+      height: 25px;
+      padding-top: 5px;
+      /*fake buttons can be used to center the header text */ }
+      @media (-webkit-min-device-pixel-ratio: 1.5) {
+        #partymode .pm-header .back-button, #partymode .pm-header .left-button, #partymode .pm-header .right-button {
+          font-weight: bold; } }
+      #partymode .pm-header .back-button:active, #partymode .pm-header .left-button:active, #partymode .pm-header .right-button:active {
+        background-position-x: -64px; }
+      #partymode .pm-header .back-button.fake, #partymode .pm-header .left-button.fake, #partymode .pm-header .right-button.fake {
+        background: none; }
+    #partymode .pm-header .back-button, #partymode .pm-header .left-button {
+      float: left; }
+    #partymode .pm-header .back-button {
+      background-position-y: 30px;
+      width: 44px;
+      padding-left: 11px;
+      padding-right: 9px; }
+    #partymode .pm-header .right-button {
+      float: right; }
   #partymode li.ui-li {
     border: none; }
     #partymode li.ui-li .entry {
@@ -68,8 +188,6 @@
       border: none; }
     #partymode .party-overview-page ul.parties li.party.activeparty h3 {
       display: none; }
-    #partymode .party-overview-page ul.parties li.party .party-when:before {
-      content: "Ended: "; }
   #partymode .party-overview-page ul.parties li.party .ui-li-aside {
     width: 70px; }
     #partymode .party-overview-page ul.parties li.party .ui-li-aside .number-of-users, #partymode .party-overview-page ul.parties li.party .ui-li-aside .number-of-tracks {
@@ -85,9 +203,9 @@
         top: -7px;
         right: 7px;
         display: block;
-        min-width: 6px;
+        min-width: 6.5px;
         border: 1px solid #FFFFFF;
-        border-radius: 9px;
+        border-radius: 10px;
         background-color: #000000;
         padding: 0 3px;
         font-size: 10px;
@@ -101,55 +219,6 @@
   #partymode .party-page .ui-header .ui-title {
     margin-left: 6em;
     margin-right: 2em; }
-  #partymode .party-page .pm-header {
-    text-shadow: 0 -1px 0 #2d4756;
-    color: #FFF;
-    height: 44px;
-    margin-top: -11px;
-    background: #404040;
-    /* Old browsers */
-    background: -moz-linear-gradient(top, #505050 0%, #313131 100%);
-    /* FF3.6+ */
-    background: -webkit-linear-gradient(top, #beccdd 0%, #587397 100%);
-    /* Chrome10+,Safari5.1+ */
-    background: -o-linear-gradient(top, #505050 0%, #313131 100%);
-    /* Opera 11.10+ */
-    background: -ms-linear-gradient(top, #505050 0%, #313131 100%);
-    /* IE10+ */
-    background: linear-gradient(to bottom, #505050 0%, #313131 100%);
-    /* W3C */
-    border-bottom: 1px solid #3F5C80; }
-    #partymode .party-page .pm-header h1 {
-      font-size: 16px;
-      white-space: nowrap;
-      text-overflow: ellipsis;
-      overflow: hidden;
-      padding-top: 11px; }
-  #partymode .party-page .plus-button {
-    background-image: url(../img/plus@2x.svg);
-    width: 33px;
-    height: 30px;
-    float: right;
-    margin: 7px 10px; }
-    #partymode .party-page .plus-button:active {
-      background-image-position: -33px; }
-  #partymode .party-page .back-button {
-    color: #FFF;
-    background-image: url(../img/back@2x.svg);
-    width: 52px;
-    padding-left: 12px;
-    height: 26px;
-    padding-top: 4px;
-    float: left;
-    margin: 7px 10px;
-    font-size: 14px;
-    font-weight: normal;
-    text-decoration: none; }
-    @media (-webkit-min-device-pixel-ratio: 1.5) {
-      #partymode .party-page .back-button {
-        font-weight: bold; } }
-    #partymode .party-page .back-button:active {
-      background-image-position: -64px; }
   #partymode .party-page ul.tracks li.playlist-empty-message {
     /* this can be done in 1 rule, but this offers better gradual deterioration */
     display: none; }
@@ -184,10 +253,10 @@
       @media (-webkit-min-device-pixel-ratio: 1.5) {
         #partymode .party-page ul.tracks li.track-in-playlist .delete-button > div {
           font-weight: bold; } }
-    #partymode .party-page ul.tracks li.track-in-playlist .delete-button:not(:active) > div {
-      -webkit-transition: background-position-x 0 ease 1000ms; }
-    #partymode .party-page ul.tracks li.track-in-playlist .delete-button:active > div {
-      background-position-x: -64px; }
+      #partymode .party-page ul.tracks li.track-in-playlist .delete-button > div:not(:active) {
+        -webkit-transition: background-position-x 0 ease 1000ms; }
+      #partymode .party-page ul.tracks li.track-in-playlist .delete-button > div:active {
+        background-position-x: -64px; }
   #partymode .party-page ul.tracks li.track-in-playlist:not(.show-delete) .delete-button {
     width: 0; }
   #partymode .party-page ul.tracks li.track-in-playlist .play-button {
@@ -219,10 +288,10 @@
       @media (-webkit-min-device-pixel-ratio: 1.5) {
         #partymode .party-page ul.tracks li.track-in-playlist .play-button > div {
           font-weight: bold; } }
-    #partymode .party-page ul.tracks li.track-in-playlist .play-button:not(:active) > div {
-      -webkit-transition: background-position-x 0 ease 1000ms; }
-    #partymode .party-page ul.tracks li.track-in-playlist .play-button:active > div {
-      background-position-x: -64px; }
+      #partymode .party-page ul.tracks li.track-in-playlist .play-button > div:not(:active) {
+        -webkit-transition: background-position-x 0 ease 1000ms; }
+      #partymode .party-page ul.tracks li.track-in-playlist .play-button > div:active {
+        background-position-x: -64px; }
   #partymode .party-page ul.tracks li.track-in-playlist:not(.show-play) .play-button {
     width: 0; }
   #partymode .party-page ul.tracks li.track-in-playlist.deleted > div {
@@ -243,33 +312,71 @@
     width: 24px; }
   #partymode .party-page ul.tracks.paused li.track-in-playlist .playing.icon {
     background-image: url(../img/speaker-off.svg); }
-  #partymode .add-song-page:not(.tracks) #back-to-playlists {
-    display: none; }
-  #partymode .add-song-page:not(.playlists) .explain {
-    display: none; }
-  #partymode .add-song-page #searchform {
-    margin-bottom: 25px; }
-  #partymode .add-song-page ul.search-results > li h3 .album:before {
-    content: "\2014 "; }
-  #partymode .add-song-page ul.search-results.loading {
-    background: url(../img/spinner.gif) no-repeat center;
-    height: 100px; }
-    #partymode .add-song-page ul.search-results.loading .noresults {
+  #partymode .add-song-page {
+    background: #ECEBE8; }
+    #partymode .add-song-page.tracks #no-back-to-playlists {
       display: none; }
-  #partymode .add-song-page ul.search-results .noresults:not(:last-child) {
-    display: none; }
-  #partymode .add-song-page ul.search-results .explain {
-    font-weight: normal;
-    text-shadow: none;
-    font-size: 12px;
-    height: 35px;
-    text-align: center;
-    padding: 17px 50px 0;
-    background-image: url(../img/alert@2x.png);
-    background-size: 9px 35px;
-    background-repeat: no-repeat;
-    background-position: -20px -7px;
-    background-origin: content-box; }
+    #partymode .add-song-page:not(.tracks) #back-to-playlists {
+      display: none; }
+    #partymode .add-song-page:not(.playlists) .explain {
+      display: none; }
+    #partymode .add-song-page #searchform {
+      margin-bottom: 25px; }
+      #partymode .add-song-page #searchform #searchdomain {
+        padding: 0; }
+        #partymode .add-song-page #searchform #searchdomain > li {
+          display: inline-block;
+          width: 33.4%;
+          text-align: center;
+          padding: 6px 0;
+          color: #7f7f7f;
+          text-shadow: 0 1px white;
+          background: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #ffffff), color-stop(100%, #c8c8c8));
+          background: -webkit-linear-gradient(top, #ffffff, #c8c8c8);
+          background: -moz-linear-gradient(top, #ffffff, #c8c8c8);
+          background: -o-linear-gradient(top, #ffffff, #c8c8c8);
+          background: linear-gradient(top, #ffffff, #c8c8c8);
+          border: 1px solid #9f9f9f;
+          margin-left: -2px;
+          box-shadow: rgba(200, 200, 200, 0.7); }
+          #partymode .add-song-page #searchform #searchdomain > li:last-child {
+            margin-right: -1px; }
+          #partymode .add-song-page #searchform #searchdomain > li:first-child {
+            border-radius: 10px 0 0 10px; }
+          #partymode .add-song-page #searchform #searchdomain > li:last-child {
+            border-radius: 0 10px 10px 0; }
+          #partymode .add-song-page #searchform #searchdomain > li.active + li:not(.active) {
+            border-left: 1px solid #0b3987; }
+          #partymode .add-song-page #searchform #searchdomain > li.active {
+            background: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #1c59b3), color-stop(100%, #5898f2));
+            background: -webkit-linear-gradient(top, #1c59b3, #5898f2);
+            background: -moz-linear-gradient(top, #1c59b3, #5898f2);
+            background: -o-linear-gradient(top, #1c59b3, #5898f2);
+            background: linear-gradient(top, #1c59b3, #5898f2);
+            border: 1px solid #0b3987;
+            color: #FFF;
+            text-shadow: 0 -1px rgba(25, 25, 25, 0.5); }
+    #partymode .add-song-page ul.search-results > li h3 .album:before {
+      content: "\2014 "; }
+    #partymode .add-song-page ul.search-results.loading {
+      background: url(../img/spinner.gif) no-repeat center;
+      height: 100px; }
+      #partymode .add-song-page ul.search-results.loading .noresults {
+        display: none; }
+    #partymode .add-song-page ul.search-results .noresults:not(:last-child) {
+      display: none; }
+    #partymode .add-song-page ul.search-results .explain {
+      font-weight: normal;
+      text-shadow: none;
+      font-size: 12px;
+      height: 35px;
+      text-align: center;
+      padding: 17px 50px 0;
+      background-image: url(../img/alert@2x.png);
+      background-size: 9px 35px;
+      background-repeat: no-repeat;
+      background-position: -20px -7px;
+      background-origin: content-box; }
   #partymode .pm-popup {
     max-width: 350px;
     padding: 20px;

@@ -1,18 +1,15 @@
-<div data-role="header">
+<div class="pm-header">
+    <span class="left-button fake"></span>
+    <a href="#activeparty_<%- party.id %>" data-rel="back" class="right-button">cancel</a>
     <h1>Add songs</h1>
-    <a href="#activeparty_<%- party.id %>" data-rel="back" data-role="button" class="ui-btn-right">cancel</a>
 </div>
 
 <div data-role="content">
     <form id="searchform" action="javascript:void(0)">
         <input type="search" id="searchfield" name="search" value="" placeholder="search for a track"/>
-        <div data-role="navbar">
-            <ul id="searchdomain">
-                <li><a id="search-in-tracks" class="ui-btn-active ui-state-persist">Tracks</a></li>
-                <li><a id="search-in-albums">Albums</a></li>
-                <li><a id="search-in-artists">Artists</a></li>
-            </ul>
-        </div>
+        <ul id="searchdomain">
+                <li class="active" id="search-in-tracks">Tracks</li><li id="search-in-albums">Albums</li><li id="search-in-artists">Artists</li>
+        </ul>
     </form>
     <ul class="search-results" data-role="listview">
     </ul>

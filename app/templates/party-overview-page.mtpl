@@ -1,6 +1,7 @@
-<div data-role="header">
+<div class="pm-header">
+    <a id="logout" class="left-button">logout</a>
+    <span class="right-button fake"></span>
     <h1>Parties</h1>
-    <button id="logout">logout</button>
 </div>
 
 <div data-role="content">

@@ -145,6 +145,7 @@ if (typeof exports !== "undefined") {
         var MINUTE = 60 * 1000;
         var HOUR = 60 * MINUTE;
         var DAY = 24 * HOUR;
+        var MONTH = 30 * DAY;
         var diff = nowts - timestamp;
         if (diff < MINUTE) {
             return "just now";
@@ -155,7 +156,10 @@ if (typeof exports !== "undefined") {
         if (diff < 0.75 * DAY) {
             return Math.round(diff / HOUR) + " hours ago";
         }
-        return Math.round(diff / DAY) + " days ago";
+        if (diff < MONTH) {
+            return Math.round(diff / DAY) + " days ago";
+        }
+        return Math.floor(diff / MONTH) + " months ago"; //for some reason, for months it feels better to use floor
     };
 
     /**

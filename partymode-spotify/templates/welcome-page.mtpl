@@ -1,6 +1,20 @@
 <div class="logo">
-<!--        <img src="img/logo.svg"> -->
-    <img src="img/logo.png">
+<svg xmlns="http://www.w6.org/2000/svg" version="1.1" viewBox="0 0 280 100" height="400">
+    <defs>
+        <linearGradient id="textfill" x1="0%" x2="0%" y1="0%" y2="100%" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" style="stop-color:#101010" />
+            <stop offset="100%" style="stop-color:#373737" />
+        </linearGradient>
+    </defs>
+    <text x="101" y="45" class="svgparty" fill="url(#textfill)">party</text>
+    <text x="131" y="83" class="svglists" fill="url(#textfill)">mode</text>
+    <path id="beam1"
+        d="M 0,0
+        L 100,95 166,95, 10,0 Z" />
+    <path id="beam2"
+        d="M 116,0
+           L 8,100 50,100, 125,0 Z" />
+</svg>
     <h2>Share control of your party music with your friends</h2>
 </div>
 <div class="facebook-login">

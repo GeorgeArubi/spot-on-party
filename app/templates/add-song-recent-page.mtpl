@@ -1,6 +1,7 @@
-<div data-role="header">
+<div class="pm-header">
+    <span class="left-button fake"></span>
+    <a href="#activeparty_<%- party.id %>" data-rel="back" class="right-button">cancel</a>
     <h1>Add songs</h1>
-    <a href="#activeparty_<%- party.id %>" data-rel="back" data-role="button" class="ui-btn-right">cancel</a>
 </div>
 
 <div data-role="content">

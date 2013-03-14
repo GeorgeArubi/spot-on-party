@@ -647,7 +647,7 @@ var clutils = window.clutils;
             var that = this;
             getAndActivateParty(that.party_id, function (party) {
                 that.party = party;
-                that.$el.html(that.template());
+                that.$el.html(that.template({party: that.party}));
                 target.html(that.$el);
                 if (that.party.shouldShowInviteFriendsOnOpen()) {
                     that.inviteUsers();

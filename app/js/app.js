@@ -69,6 +69,17 @@ window.PM.app = window.PM.app || {};
         el.trigger("pagecreate");
     };
 
+    var toggleShowActionSheet = function ($element) {
+        if ($element.hasClass("open")) {
+            $element.css('height', "");
+            $element.removeClass("open");
+        } else {
+            var height = $element.children().innerHeight();
+            $element.css('height', height + "px");
+            $element.addClass("open");
+        }
+    };
+
     OldPartyView = Backbone.View.extend({
         template: getTemplate('old-party-page'),
         className: 'old-party-page',
@@ -182,6 +193,7 @@ window.PM.app = window.PM.app || {};
             var that = this;
             ActivePartyUtil.deactivate();
             that.$('ul.search-results > li').removeClass("ui-btn-active");
+            that.undelegateEvents();
         },
 
         render: function () {
@@ -254,6 +266,7 @@ window.PM.app = window.PM.app || {};
             var that = this;
             ActivePartyUtil.deactivate();
             that.$('ul.search-results > li').removeClass("ui-btn-active");
+            that.undelegateEvents();
         },
 
         render: function () {
@@ -294,7 +307,7 @@ window.PM.app = window.PM.app || {};
         events: {
             "submit #searchform": function () {$('#searchfield').blur(); }, // will do the search per the next line
             "blur #searchfield": "search",
-            "click ul#searchdomain > li > a": "search",
+            "click ul#searchdomain > li": "updateSegmetedButtonAndSearch",
             "click ul.search-results > li": "addSong"
         },
 
@@ -302,6 +315,7 @@ window.PM.app = window.PM.app || {};
             var that = this;
             ActivePartyUtil.deactivate();
             that.$('ul.search-results > li').removeClass("ui-btn-active");
+            that.undelegateEvents();
         },
 
         render: function () {
@@ -320,12 +334,20 @@ window.PM.app = window.PM.app || {};
             return that;
         },
 
+        updateSegmetedButtonAndSearch: function (event) {
+            var that = this;
+            $('ul#searchdomain > li.active').removeClass("active");
+            $(event.currentTarget).addClass("active");
+            that.search();
+        },
+
+
         search: function () {
             var that = this;
             var searchterms = $('#searchfield').val();
             $('ul.search-results').addClass("loading");
             $('ul.search-results .track').remove();
-            var searchdomain = $('ul#searchdomain > li > a.ui-btn-active').prop('id');
+            var searchdomain = $('ul#searchdomain > li.active').prop('id');
             switch (searchdomain) {
             case 'search-in-tracks':
                 PM.domain.SpotifyDomain.search(searchterms, function (trackdata) {
@@ -359,6 +381,8 @@ window.PM.app = window.PM.app || {};
         className: 'party-page',
 
         events: {
+            "click #add-track": function () {toggleShowActionSheet($("#add-track-actionsheet")); },
+            "click #add-track-actionsheet .cancel": function () {toggleShowActionSheet($("#add-track-actionsheet")); },
             "swipe ul.tracks > li.track-in-playlist": "showDelete",
             "click ul.tracks > li.track-in-playlist": "clickTrack",
             "click .delete-button": "deleteTrack",
@@ -368,9 +392,9 @@ window.PM.app = window.PM.app || {};
         close: function () {
             var that = this;
             ActivePartyUtil.deactivate();
-            that.party.off("playcommand", that.onPlayCommand, that);
             that.party.get("playlist").off(null, null, that);
             that.party.off(null, null, that);
+            that.undelegateEvents();
         },
 
         render: function () {
@@ -529,6 +553,10 @@ window.PM.app = window.PM.app || {};
         close: function () {
             var that = this;
             activeParties.off(null, null, that);
+            that.undelegateEvents();
+        },
+
+        events: {
         },
 
         render: function () {

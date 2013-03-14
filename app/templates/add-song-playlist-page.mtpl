@@ -1,7 +1,8 @@
-<div data-role="header">
-    <a id="back-to-playlists" data-role="button" data-icon="back" data-iconpos="notext">back</a>
+<div class="pm-header">
+    <span id="no-back-to-playlists" class="left-button fake"></span>
+    <a id="back-to-playlists" class="back-button">playlists</a>
+    <a href="#activeparty_<%- party.id %>" data-rel="back" class="right-button">cancel</a>
     <h1>Add songs</h1>
-    <a href="#activeparty_<%- party.id %>" data-rel="back" data-role="button" class="ui-btn-right">cancel</a>
 </div>
 
 <div data-role="content">

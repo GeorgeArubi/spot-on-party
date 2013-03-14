@@ -2,6 +2,7 @@
 <div id="overlay-placeholder"></div>
 <div class="coverphoto-container">
     <img class="coverphoto">
+    <div class="partyname"><%- party.get("name") %></div>
     <div class="buttons">
         <button class="sp-button" id="add-track">add song</button>
         <button class="sp-button" id="invite-users">invite friends</button>

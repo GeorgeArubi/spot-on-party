@@ -3,27 +3,27 @@ PM.templates = PM.templates || {};
 PM.templates["add-song-playlist-page"]=function(obj){
 var __t,__p='',__j=Array.prototype.join,print=function(){__p+=__j.call(arguments,'');};
 with(obj||{}){
-__p+='<div data-role="header">\n    <a id="back-to-playlists" data-role="button" data-icon="back" data-iconpos="notext">back</a>\n    <h1>Add songs</h1>\n    <a href="#activeparty_'+
+__p+='<div class="pm-header">\n    <span id="no-back-to-playlists" class="left-button fake"></span>\n    <a id="back-to-playlists" class="back-button">playlists</a>\n    <a href="#activeparty_'+
 ((__t=( party.id ))==null?'':_.escape(__t))+
-'" data-rel="back" data-role="button" class="ui-btn-right">cancel</a>\n</div>\n\n<div data-role="content">\n    <ul class="search-results" data-role="listview">\n        <li class="explain">Only playlists shared on Facebook appear here</li>\n        <li class="noresults">\n            <h2>No playlists found</h2>\n            <p>Partylists uses Facebook to check your Spotify playlists. If you don\'t have your Spotify and Facebook account connected, or you don\'t share your Spotify playlists on Facebook, we can\'t retrieve them.</p>\n        </li>\n    </ul>\n</div>\n\n\n';
+'" data-rel="back" class="right-button">cancel</a>\n    <h1>Add songs</h1>\n</div>\n\n<div data-role="content">\n    <ul class="search-results" data-role="listview">\n        <li class="explain">Only playlists shared on Facebook appear here</li>\n        <li class="noresults">\n            <h2>No playlists found</h2>\n            <p>Partylists uses Facebook to check your Spotify playlists. If you don\'t have your Spotify and Facebook account connected, or you don\'t share your Spotify playlists on Facebook, we can\'t retrieve them.</p>\n        </li>\n    </ul>\n</div>\n\n\n';
 }
 return __p;
 };
 PM.templates["add-song-recent-page"]=function(obj){
 var __t,__p='',__j=Array.prototype.join,print=function(){__p+=__j.call(arguments,'');};
 with(obj||{}){
-__p+='<div data-role="header">\n    <h1>Add songs</h1>\n    <a href="#activeparty_'+
+__p+='<div class="pm-header">\n    <span class="left-button fake"></span>\n    <a href="#activeparty_'+
 ((__t=( party.id ))==null?'':_.escape(__t))+
-'" data-rel="back" data-role="button" class="ui-btn-right">cancel</a>\n</div>\n\n<div data-role="content">\n    <ul class="search-results" data-role="listview">\n        <li class="noresults">\n            <h2>No music found</h2>\n            Partylists uses Facebook to check which music you recently played on Spotify. If you don\'t have your Spotify and Facebook account connected, or you don\'t share your played Spotify tracks on Facebook, we can\'t retrieve them.\n        </li>\n    </ul>\n</div>\n\n\n';
+'" data-rel="back" class="right-button">cancel</a>\n    <h1>Add songs</h1>\n</div>\n\n<div data-role="content">\n    <ul class="search-results" data-role="listview">\n        <li class="noresults">\n            <h2>No music found</h2>\n            Partylists uses Facebook to check which music you recently played on Spotify. If you don\'t have your Spotify and Facebook account connected, or you don\'t share your played Spotify tracks on Facebook, we can\'t retrieve them.\n        </li>\n    </ul>\n</div>\n\n\n';
 }
 return __p;
 };
 PM.templates["add-song-search-page"]=function(obj){
 var __t,__p='',__j=Array.prototype.join,print=function(){__p+=__j.call(arguments,'');};
 with(obj||{}){
-__p+='<div data-role="header">\n    <h1>Add songs</h1>\n    <a href="#activeparty_'+
+__p+='<div class="pm-header">\n    <span class="left-button fake"></span>\n    <a href="#activeparty_'+
 ((__t=( party.id ))==null?'':_.escape(__t))+
-'" data-rel="back" data-role="button" class="ui-btn-right">cancel</a>\n</div>\n\n<div data-role="content">\n    <form id="searchform" action="javascript:void(0)">\n        <input type="search" id="searchfield" name="search" value="" placeholder="search for a track"/>\n        <div data-role="navbar">\n            <ul id="searchdomain">\n                <li><a id="search-in-tracks" class="ui-btn-active ui-state-persist">Tracks</a></li>\n                <li><a id="search-in-albums">Albums</a></li>\n                <li><a id="search-in-artists">Artists</a></li>\n            </ul>\n        </div>\n    </form>\n    <ul class="search-results" data-role="listview">\n    </ul>\n</div>\n\n\n';
+'" data-rel="back" class="right-button">cancel</a>\n    <h1>Add songs</h1>\n</div>\n\n<div data-role="content">\n    <form id="searchform" action="javascript:void(0)">\n        <input type="search" id="searchfield" name="search" value="" placeholder="search for a track"/>\n        <ul id="searchdomain">\n                <li class="active" id="search-in-tracks">Tracks</li><li id="search-in-albums">Albums</li><li id="search-in-artists">Artists</li>\n        </ul>\n    </form>\n    <ul class="search-results" data-role="listview">\n    </ul>\n</div>\n\n\n';
 }
 return __p;
 };
@@ -116,20 +116,20 @@ return __p;
 PM.templates["party-overview-page"]=function(obj){
 var __t,__p='',__j=Array.prototype.join,print=function(){__p+=__j.call(arguments,'');};
 with(obj||{}){
-__p+='<div data-role="header">\n    <h1>Parties</h1>\n    <button id="logout">logout</button>\n</div>\n\n<div data-role="content">\n    <ul class="parties" data-role="listview">\n    </ul>\n</div>\n';
+__p+='<div class="pm-header">\n    <a id="logout" class="left-button">logout</a>\n    <span class="right-button fake"></span>\n    <h1>Parties</h1>\n</div>\n\n<div data-role="content">\n    <ul class="parties" data-role="listview">\n    </ul>\n</div>\n';
 }
 return __p;
 };
 PM.templates["party-page"]=function(obj){
 var __t,__p='',__j=Array.prototype.join,print=function(){__p+=__j.call(arguments,'');};
 with(obj||{}){
-__p+='<div class="pm-header">\n    <a href="#partyoverview" class="back-button" data-direction="reverse">parties</a>\n    <a data-role="actionsheet" class="plus-button"></a>\n    <div>\n        <a data-role="button" data-theme="a" href="#activeparty_'+
+__p+='<div class="pm-header">\n    <a href="#partyoverview" class="back-button" data-direction="reverse">parties</a>\n    <a class="plus-button" id="add-track"></a>\n    <div class="actionsheet" id="add-track-actionsheet">\n        <div>\n            Add songs\n            <a data-transition="slideup" href="#activeparty_'+
 ((__t=( party.id ))==null?'':_.escape(__t))+
-'_addsong_playlist">From Playlist</a>\n        <a data-role="button" data-theme="a" href="#activeparty_'+
+'_addsong_playlist"><span>From Playlist</span></a>\n            <a data-transition="slideup" href="#activeparty_'+
 ((__t=( party.id ))==null?'':_.escape(__t))+
-'_addsong_recent">Recently Played</a>\n        <a data-role="button" data-theme="a" href="#activeparty_'+
+'_addsong_recent"><span>Recently Played</span></a>\n            <a data-transition="slideup" href="#activeparty_'+
 ((__t=( party.id ))==null?'':_.escape(__t))+
-'_addsong_search">Search</a>\n        <br/>\n        <!-- This close button is optional. The widget also closes if you click or touch outside of the popup -->\n        <a data-role="button" data-theme="a" data-rel="close" href="#">Cancel</a>\n    </div>\n    <h1>'+
+'_addsong_search"><span>Search</span></a>\n            <br/>\n            <a class="cancel" href="#"><span>Cancel</span></a>\n        </div>\n    </div>\n    <h1>'+
 ((__t=( party.get("name") ))==null?'':_.escape(__t))+
 '</h1>\n</div>\n\n<div data-role="content">\n    <ul class="tracks" data-role="listview">\n        <li class="playlist-empty-message">\n            <div>The playlist is empty, you can add songs with the button in the right top</div>\n        </li>\n    </ul>\n</div>\n\n';
 }
