@@ -213,7 +213,8 @@
         color: #FFFFFF;
         text-align: center; }
     #partymode .party-overview-page ul.parties li.party .ui-li-aside .number-of-users {
-      background-image: url(../img/friends.svg); }
+      background-image: url(../img/friends.svg);
+      display: none; }
     #partymode .party-overview-page ul.parties li.party .ui-li-aside .number-of-tracks {
       background-image: url(../img/note.svg); }
   #partymode .party-page .ui-header .ui-title {

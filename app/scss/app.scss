@@ -151,8 +151,8 @@ $icon-height: $icon-width;
                     }
 
                 }
-                .number-of-users {background-image: url(../img/friends.svg);}
-                .number-of-tracks {background-image: url(../img/note.svg);}
+                .number-of-users {background-image: url(../img/friends.svg); display: none;}
+                .number-of-tracks {background-image: url(../img/note.svg); }
             }
         }
     }
