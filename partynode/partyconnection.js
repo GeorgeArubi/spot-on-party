@@ -113,7 +113,7 @@ var partyconnection = exports;
             });
         },
         "update token constraints": {
-            _matches: /^[A-Za-z0-9]{10,200}$/
+            _matches: /^[A-Za-z0-9]{10,300}$/
         },
 
         /**
@@ -292,7 +292,7 @@ var partyconnection = exports;
             var constraint = {
                 token: {
                     _isString: true,
-                    _matches: /^[A-Za-z0-9]{10,200}$/
+                    _matches: /^[A-Za-z0-9]{10,300}$/
                 },
                 master: {
                     _matches: /^[01]$/,
